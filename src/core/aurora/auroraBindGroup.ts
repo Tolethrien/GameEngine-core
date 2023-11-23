@@ -11,13 +11,13 @@ export default class AuroraBindGroup {
   public static createBindGroup({
     shaderGroupPosition,
     layout,
-    data
+    data,
   }: bindGroupTemplate): [GPUBindGroup, GPUBindGroupLayout] {
     const layoutOut = Aurora.device.createBindGroupLayout(layout);
     const entriesOut = Aurora.device.createBindGroup({
       entries: data.entries,
       layout: layoutOut,
-      label: data.label
+      label: data.label,
     });
     AuroraBindGroup.groupLayout[shaderGroupPosition] = layoutOut;
     return [entriesOut, layoutOut];
@@ -27,7 +27,7 @@ export default class AuroraBindGroup {
   public static getPipelineLayout(label: string) {
     return Aurora.device.createPipelineLayout({
       bindGroupLayouts: AuroraBindGroup.groupLayout,
-      label: label
+      label: label,
     });
   }
 }

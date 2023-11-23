@@ -1,6 +1,6 @@
-import { avalibleComponents } from "./ECSList";
-import { nameToUpper } from "../../utils/helpers";
+import { avalibleComponents } from "../../sandbox/ECSList";
 import Engine from "../engine";
+import { nameToUpper } from "../utils/utils";
 type EntitiesManipulatedInFrame = { added: string[]; removed: string[] };
 export default abstract class Entity {
   id: string;
@@ -13,7 +13,10 @@ export default abstract class Entity {
     this.components = new Map();
     this.world = worldName ?? "";
   }
-  addComponent<T = unknown>(component: Uncapitalize<keyof AvalibleComponents>, props?: T) {
+  addComponent<T = unknown>(
+    component: Uncapitalize<keyof AvalibleComponents>,
+    props?: T
+  ) {
     this.components.set(
       component,
       new avalibleComponents[nameToUpper(component)](
@@ -28,11 +31,17 @@ export default abstract class Entity {
       Entity.setManipulatedEntities("add", this.id);
       this.components.forEach((component, componentName) => {
         if (world.componentsLists.has(nameToUpper(componentName)))
-          world.componentsLists.get(nameToUpper(componentName))?.set(this.id, component);
+          world.componentsLists
+            .get(nameToUpper(componentName))
+            ?.set(this.id, component);
         else
-          world.componentsLists.set(nameToUpper(componentName), new Map().set(this.id, component));
+          world.componentsLists.set(
+            nameToUpper(componentName),
+            new Map().set(this.id, component)
+          );
       });
-    } else throw new Error(`cannot distribute components to world "${this.world}`);
+    } else
+      throw new Error(`cannot distribute components to world "${this.world}`);
   }
   deleteComponents() {
     const world = Engine.worlds.get(this.world);
@@ -42,19 +51,29 @@ export default abstract class Entity {
       world.componentsLists.forEach((list) => {
         if (list.has(this.id)) list.delete(this.id);
       });
-    } else throw new Error(`cannot find world "${this.world} or components to remove`);
+    } else
+      throw new Error(
+        `cannot find world "${this.world} or components to remove`
+      );
   }
   addTag(tag: string) {
     if (!this.tags.includes(tag)) this.tags.push(tag);
   }
-  private static setManipulatedEntities(status: "remove" | "add", entityId: string) {
+  private static setManipulatedEntities(
+    status: "remove" | "add",
+    entityId: string
+  ) {
     if (status === "add")
       (
-        Engine.globalContext.get("EntitiesManipulatedInFrame")! as EntitiesManipulatedInFrame
+        Engine.globalContext.get(
+          "EntitiesManipulatedInFrame"
+        )! as EntitiesManipulatedInFrame
       ).added.push(entityId);
     else
       (
-        Engine.globalContext.get("EntitiesManipulatedInFrame")! as EntitiesManipulatedInFrame
+        Engine.globalContext.get(
+          "EntitiesManipulatedInFrame"
+        )! as EntitiesManipulatedInFrame
       ).removed.push(entityId);
   }
 }

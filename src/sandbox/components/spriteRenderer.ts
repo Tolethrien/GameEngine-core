@@ -1,6 +1,6 @@
-import Component from "../core/ecs/component";
-import AssetStore from "../core/assetStore";
-import { clamp } from "../math/engineMath";
+import Component from "../../core/ecs/component";
+import { clamp } from "../../core/math/engineMath";
+import AssetStore from "../../core/stores/assetStore";
 
 interface GeneralProps {
   alpha?: number;
@@ -35,7 +35,10 @@ interface RendererPassLayer {
   isTexture: number;
   cashedOffsetData: { x: number; y: number; w: number; h: number } | undefined;
 }
-export type SpriteRendererProps = QuadAtlasProps | QuadColorProps | QuadSpriteProps;
+export type SpriteRendererProps =
+  | QuadAtlasProps
+  | QuadColorProps
+  | QuadSpriteProps;
 
 export interface SpriteRendererType extends SpriteRenderer {}
 export default class SpriteRenderer extends Component {
@@ -59,7 +62,7 @@ export default class SpriteRenderer extends Component {
         offset: props.offset ?? undefined,
         tint: new Uint8ClampedArray(props.tint ?? [255, 255, 255]),
         isTexture: 0,
-        cashedOffsetData: undefined
+        cashedOffsetData: undefined,
       });
     }
     if (props.type === "sprite") {
@@ -73,19 +76,22 @@ export default class SpriteRenderer extends Component {
         offset: props.offset ?? undefined,
         tint: new Uint8ClampedArray(props.tint ?? [255, 255, 255]),
         isTexture: 1,
-        cashedOffsetData: undefined
+        cashedOffsetData: undefined,
       });
     }
     if (props.type === "spritesheet") {
       this.image = props.image;
       this.gpuAtlas = props.GPUAtlas;
-      const { image, index } = AssetStore.getDataFromAtlas(this.gpuAtlas, this.image);
+      const { image, index } = AssetStore.getDataFromAtlas(
+        this.gpuAtlas,
+        this.image
+      );
       props.layers.forEach((layer) => {
         const layerCrop = new Float32Array([
           layer.crop.x / image.width,
           layer.crop.y / image.height,
           (layer.crop.x + layer.cropSize.width) / image.width,
-          (layer.crop.y + layer.cropSize.height) / image.height
+          (layer.crop.y + layer.cropSize.height) / image.height,
         ]);
         this.layers.push({
           cashedCropData: layerCrop,
@@ -94,7 +100,7 @@ export default class SpriteRenderer extends Component {
           offset: layer.offset ?? undefined,
           tint: new Uint8ClampedArray(layer.tint ?? [255, 255, 255]),
           isTexture: 1,
-          cashedOffsetData: undefined
+          cashedOffsetData: undefined,
         });
       });
     }

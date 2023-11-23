@@ -5,12 +5,20 @@ interface AssetsStore {
   GPUTexture: Map<string, typetype["GPUTexture"]>;
   GPUTextureAtlas: Map<string, typetype["GPUAtlas"]>;
 }
-type GPUAtlasDataReturn = { name: string; image: HTMLImageElement; index: number };
+type GPUAtlasDataReturn = {
+  name: string;
+  image: HTMLImageElement;
+  index: number;
+};
 type AssetsTypes = "sound" | "image" | "GPUTexture" | "GPUAtlas";
 interface typetype {
   sound: HTMLAudioElement;
   image: HTMLImageElement;
-  GPUTexture: { image: HTMLImageElement; texture: GPUTexture; sampler: GPUSampler };
+  GPUTexture: {
+    image: HTMLImageElement;
+    texture: GPUTexture;
+    sampler: GPUSampler;
+  };
   GPUAtlas: {
     texture: GPUTexture;
     sampler: GPUSampler;
@@ -28,9 +36,12 @@ export default class AssetStore {
     sound: new Map(),
     GPUTexture: new Map(),
     GPUTextureAtlas: new Map(),
-    image: new Map()
+    image: new Map(),
   };
-  static getAsset<T extends AssetsTypes>(assetType: T, name: string): AssetTypeMap[T] {
+  static getAsset<T extends AssetsTypes>(
+    assetType: T,
+    name: string
+  ): AssetTypeMap[T] {
     let asset;
     switch (assetType) {
       case "image":
@@ -59,9 +70,15 @@ export default class AssetStore {
   }
   static getDataFromAtlas(atlasName: string, imageName: string) {
     const data = AssetStore.store.GPUTextureAtlas.get(atlasName)?.data;
-    if (!data) throw new Error(`Error: atlas name "${atlasName}" is not found in store.GPUAtlas`);
+    if (!data)
+      throw new Error(
+        `Error: atlas name "${atlasName}" is not found in store.GPUAtlas`
+      );
     const found = data.find((element) => element.name === imageName);
-    if (!found) throw new Error(`Error: image "${imageName}" is not found in atlas "${atlasName}"`);
+    if (!found)
+      throw new Error(
+        `Error: image "${imageName}" is not found in atlas "${atlasName}"`
+      );
     return found;
   }
   static removeAsset(assetType: AssetsTypes, name: string) {
@@ -77,7 +94,8 @@ export default class AssetStore {
     atlasName: string,
     atlasData: { url: string; name: string }[]
   ): Promise<[GPUTexture, GPUSampler, GPUAtlasDataReturn[]]> {
-    if (atlasData.length === 0) throw new Error("trying to load empty array of images");
+    if (atlasData.length === 0)
+      throw new Error("trying to load empty array of images");
     const data: GPUAtlasDataReturn[] = [];
     let index = 0;
     for (const { name, url } of atlasData) {
@@ -127,13 +145,13 @@ export default class AssetStore {
       size: {
         width: images[0].width,
         height: images[0].height,
-        depthOrArrayLayers: images.length
+        depthOrArrayLayers: images.length,
       },
       dimension: "2d",
       usage:
         GPUTextureUsage.COPY_DST |
         GPUTextureUsage.TEXTURE_BINDING |
-        GPUTextureUsage.RENDER_ATTACHMENT
+        GPUTextureUsage.RENDER_ATTACHMENT,
     });
     const datas: ImageBitmap[] = [];
     for (const image of images) {
@@ -145,7 +163,7 @@ export default class AssetStore {
         { texture: texture, origin: { z: index } },
         {
           width: images[0].width,
-          height: images[0].height
+          height: images[0].height,
         }
       );
     });
@@ -157,12 +175,12 @@ export default class AssetStore {
       format: "rgba8unorm",
       size: {
         width: image.width,
-        height: image.height
+        height: image.height,
       },
       usage:
         GPUTextureUsage.COPY_DST |
         GPUTextureUsage.TEXTURE_BINDING |
-        GPUTextureUsage.RENDER_ATTACHMENT
+        GPUTextureUsage.RENDER_ATTACHMENT,
     });
     const data = await createImageBitmap(image);
     Aurora.device.queue.copyExternalImageToTexture(
@@ -170,7 +188,7 @@ export default class AssetStore {
       { texture: texture },
       {
         width: image.width,
-        height: image.height
+        height: image.height,
       }
     );
 

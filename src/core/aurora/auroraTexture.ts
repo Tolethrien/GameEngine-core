@@ -1,9 +1,14 @@
 import Aurora from "./auroraCore";
 
 export default class AuroraTexture {
-  public static loadedImages: Map<string, { image: HTMLImageElement; index: number }> = new Map();
-  public static loadedAtlases: Map<string, { texture: GPUTexture; sampler: GPUSampler }> =
-    new Map();
+  public static loadedImages: Map<
+    string,
+    { image: HTMLImageElement; index: number }
+  > = new Map();
+  public static loadedAtlases: Map<
+    string,
+    { texture: GPUTexture; sampler: GPUSampler }
+  > = new Map();
   /**@description creates GPU texture from url*/
   public static async createTexture(url: string) {
     const image = await AuroraTexture.loadImage(url);
@@ -11,14 +16,17 @@ export default class AuroraTexture {
     return await AuroraTexture.createGPUTexture(image);
   }
   /**@description creates GPU texture atlas or texture array, from url's so they can be used in batch*/
-  public static async createTextureArray(urls: { name: string; url: string }[]) {
-    if (urls.length === 0) throw new Error("trying to load empty array of images");
+  public static async createTextureArray(
+    urls: { name: string; url: string }[]
+  ) {
+    if (urls.length === 0)
+      throw new Error("trying to load empty array of images");
     const images: HTMLImageElement[] = [];
     for (const { name, url } of urls) {
       const img = await AuroraTexture.loadImage(url);
       AuroraTexture.loadedImages.set(name, {
         image: img,
-        index: AuroraTexture.loadedImages.size
+        index: AuroraTexture.loadedImages.size,
       });
       images.push(img);
     }
@@ -48,13 +56,13 @@ export default class AuroraTexture {
       size: {
         width: images[0].width,
         height: images[0].height,
-        depthOrArrayLayers: images.length
+        depthOrArrayLayers: images.length,
       },
       dimension: "2d",
       usage:
         GPUTextureUsage.COPY_DST |
         GPUTextureUsage.TEXTURE_BINDING |
-        GPUTextureUsage.RENDER_ATTACHMENT
+        GPUTextureUsage.RENDER_ATTACHMENT,
     });
     const datas: ImageBitmap[] = [];
     for (const image of images) {
@@ -66,7 +74,7 @@ export default class AuroraTexture {
         { texture: texture, origin: { z: index } },
         {
           width: images[0].width,
-          height: images[0].height
+          height: images[0].height,
         }
       );
     });
@@ -78,12 +86,12 @@ export default class AuroraTexture {
       format: "rgba8unorm",
       size: {
         width: image.width,
-        height: image.height
+        height: image.height,
       },
       usage:
         GPUTextureUsage.COPY_DST |
         GPUTextureUsage.TEXTURE_BINDING |
-        GPUTextureUsage.RENDER_ATTACHMENT
+        GPUTextureUsage.RENDER_ATTACHMENT,
     });
     const data = await createImageBitmap(image);
     Aurora.device.queue.copyExternalImageToTexture(
@@ -91,7 +99,7 @@ export default class AuroraTexture {
       { texture: texture },
       {
         width: image.width,
-        height: image.height
+        height: image.height,
       }
     );
 

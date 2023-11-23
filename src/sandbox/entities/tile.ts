@@ -1,9 +1,7 @@
-import Entity from "../core/ecs/entity";
 import { SpriteRendererProps } from "../components/spriteRenderer";
-import { PositionProps, PositionType } from "../components/position";
 import { IndieRigidBodyProps } from "../components/indieRigidBody";
-import { SizeProps } from "../components/size";
 import { TransformProps } from "../components/transform";
+import Entity from "../../core/ecs/entity";
 interface TileData {
   crop: [number, number, number, number];
   offset: { x: number; y: number; w: number; h: number };
@@ -24,18 +22,26 @@ export interface TileProps {
 }
 export interface TileType extends Tile {}
 export default class Tile extends Entity {
-  constructor({ pos, size, world, tileList, tileData, groundData, rigid }: TileProps) {
+  constructor({
+    pos,
+    size,
+    world,
+    tileList,
+    tileData,
+    groundData,
+    rigid,
+  }: TileProps) {
     super(world);
     tileList.push(this.id);
     this.addComponent<TransformProps>("transform", {
       position: pos,
       size: size,
-      rotation: 0
+      rotation: 0,
     });
     if (rigid) {
       if (rigid === "static-block") {
         this.addComponent<IndieRigidBodyProps>("indieRigidBody", {
-          bodyType: "static"
+          bodyType: "static",
           // friction: 1,
           // mass: 200
         });
@@ -55,15 +61,15 @@ export default class Tile extends Entity {
             crop: { x: data.crop[0] * 32, y: data.crop[1] * 32 },
             cropSize: { width: data.crop[2] * 32, height: data.crop[3] * 32 },
             tint: [data.tint[0], data.tint[1], data.tint[2]],
-            alpha: data.tint[3]
+            alpha: data.tint[3],
           };
-        })
+        }),
       });
     } else {
       this.addComponent<SpriteRendererProps>("groundRenderer", {
         type: "shape",
         isStatic: true,
-        tint: [1, 0, 0]
+        tint: [1, 0, 0],
       });
     }
     if (tileData) {
@@ -79,9 +85,9 @@ export default class Tile extends Entity {
             offset: data.offset,
             cropSize: { width: data.crop[2] * 32, height: data.crop[3] * 32 },
             tint: [data.tint[0], data.tint[1], data.tint[2]],
-            alpha: data.tint[3]
+            alpha: data.tint[3],
           };
-        })
+        }),
       });
     }
     this.distributeComponents();

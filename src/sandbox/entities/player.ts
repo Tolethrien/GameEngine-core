@@ -1,4 +1,3 @@
-import Entity from "../core/ecs/entity";
 import { OrthographicCameraProps } from "../components/OrthographicCamera";
 import { AnimationProps } from "../components/animation";
 import { SpriteRendererProps } from "../components/spriteRenderer";
@@ -6,7 +5,7 @@ import { IndieRigidBodyProps } from "../components/indieRigidBody";
 import { MouseEventsProps } from "../components/mouseEvents";
 import { PointLightProps } from "../components/pointLight";
 import { TransformProps } from "../components/transform";
-import { canvas } from "../core/engine";
+import Entity from "../../core/ecs/entity";
 export default class Player extends Entity {
   constructor() {
     super();
@@ -21,7 +20,7 @@ export default class Player extends Entity {
       type: "sprite",
       image: "vite",
       GPUAtlas: "char",
-      isStatic: true
+      isStatic: true,
     });
     // this.addComponent<SpriteRendererProps>("spriteRenderer", {
     //   type: "shape",
@@ -40,7 +39,7 @@ export default class Player extends Entity {
     this.addComponent<TransformProps>("transform", {
       position: { x: 511, y: 33 },
       size: { width: 32, height: 32 },
-      rotation: 0
+      rotation: 0,
     });
     this.addComponent<OrthographicCameraProps>("orthographicCamera");
     this.addComponent<AnimationProps>("animation", {
@@ -52,24 +51,24 @@ export default class Player extends Entity {
         top: { numberOfFrames: 6, rowInSpritesheet: 4 },
         down: { numberOfFrames: 6, rowInSpritesheet: 1 },
         left: { numberOfFrames: 6, rowInSpritesheet: 2 },
-        right: { numberOfFrames: 6, rowInSpritesheet: 3 }
+        right: { numberOfFrames: 6, rowInSpritesheet: 3 },
       },
-      isAnimate: false
+      isAnimate: false,
     });
     this.addComponent<IndieRigidBodyProps>("indieRigidBody", {
       bodyType: "dynamic",
       mass: 10,
-      friction: 0
+      friction: 0,
       // offset: { x: 0, y: 16, w: 32, h: 16 }
     });
     this.addComponent<MouseEventsProps>("mouseEvents", {
       action: { left: "sdsd", right: "sss" },
-      objectType: "translated"
+      objectType: "translated",
     });
     this.addComponent<PointLightProps>("pointLight", {
       color: "white",
       intencity: 1,
-      typeOfLight: "radial"
+      typeOfLight: "radial",
     });
   }
 }

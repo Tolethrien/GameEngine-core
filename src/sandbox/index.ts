@@ -1,11 +1,50 @@
-import "../css/index.css";
-import chest from "../assets/chest.png";
-console.log(
-  '👋 This message is being logged by "renderer.ts", included via Vite'
-);
-const img = new Image();
-img.src = chest;
-img.onload = () => {
-  console.log("loaded");
-  document.getElementsByTagName("body")[0].appendChild(img);
-};
+import mapFile from "./test.json";
+import tilemap from "../assets/tilemap3.png";
+import char from "../assets/char.png";
+import Engine from "../core/engine";
+import Player from "./entities/player";
+import AssetStore from "../core/stores/assetStore";
+// import { loadImage } from "./src/engine/core/loadAssets";
+// const canvas = document.getElementById("gameWindow") as HTMLCanvasElement;
+console.log(mapFile);
+async function preload() {
+  await AssetStore.addGPUAtlas("char", [
+    { name: "vite", url: tilemap },
+    { name: "cyberu", url: char },
+  ]);
+  await AssetStore.addGPUTexture("kiki", char);
+  AssetStore.removeAsset("sound", "jeff");
+}
+function setup() {
+  const worldd = Engine.createWorld("main");
+  worldd.addEntity(new Player());
+  // worldd.addEntity(new Tester(550, 310, "dynamic", 3000, 1));
+  // worldd.addEntity(new Tester(2550, 335, "dynamic", 111, 1));
+  // worldd.addEntity(new Tester(620, 345, "dynamic", 511, 0.3));
+  // worldd.addEntity(new Tester(690, 345, "dynamic", 511, 0.3));
+  // worldd.addEntity(new Tester(760, 345, "dynamic", 511, 0.3));
+  // worldd.addEntity(new Tester(840, 375, "dynamic", 511, 0.1));
+  // Array(10)
+  //   .fill(null)
+  //   .forEach((el) => {
+  //     worldd.addEntity(
+  //       new Tester(Math.random() * canvas.width, Math.random() * canvas.height, "static", 111, 1)
+  //     );
+  //   });
+  // worldd.addEntity(new Tester(550, 440, "static"));
+  // worldd.addEntity(new Tester(630, 440, "static"));
+  worldd.addWorldMap(mapFile);
+  worldd.addSystem("keyInputs");
+  worldd.addSystem("mouseInputs");
+  worldd.addSystem("loadChunks");
+  // tutaj powinno sie wykonywac jakies glowne dodwania
+  worldd.addSystem("indiePhysics");
+  // worldd.addSystem("animator");
+  worldd.addSystem("cameras");
+  worldd.addSystem("renderer");
+  // worldd.addSystem("lightMap");
+}
+Engine.Initialize({ preload, setup });
+// const ca = document.createElement("canvas");
+// await Aurora.initialize(ca);
+// new Engine(setup, preload);

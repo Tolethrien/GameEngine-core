@@ -1,8 +1,8 @@
+import { useAction } from "../../core/ecs/actions";
+import System from "../../core/ecs/system";
+import { canvas } from "../../core/engine";
 import { MouseEventsType } from "../components/mouseEvents";
-import System from "../core/ecs/system";
 import OrthographicCamera from "../components/OrthographicCamera";
-import { canvas } from "../core/engine";
-import { useAction } from "../core/ecs/actions";
 import { TransformType } from "../components/transform";
 type Button = "left" | "right" | "middle" | "hold";
 type mousePosition = { x: number; y: number };
@@ -30,13 +30,19 @@ export default class MouseInputs extends System {
       event.action[button] &&
         this.mouseCollideWithTranslated(event.entityID) &&
         !this.proximityFilterList.has(event.entityID) &&
-        this.proximityFilterList.set(event.entityID, this.transforms.get(event.entityID)!);
+        this.proximityFilterList.set(
+          event.entityID,
+          this.transforms.get(event.entityID)!
+        );
     });
     this.proximityFilter(button);
   }
   proximityFilter(button: Button) {
     const target = Array.from(this.proximityFilterList.values())
-      .sort((a, b) => a.position.get.y + a.size.get.y - (b.position.get.y + b.size.get.y))
+      .sort(
+        (a, b) =>
+          a.position.get.y + a.size.get.y - (b.position.get.y + b.size.get.y)
+      )
       .at(-1);
     this.proximityFilterList.clear();
     target && useAction(this.mouseEvents.get(target.entityID)!.action[button]!);
@@ -46,20 +52,32 @@ export default class MouseInputs extends System {
     const mouseXNormalized = (mousePos.x / canvas.width) * 2 - 1;
     const mouseYNormalized = -(mousePos.y / canvas.height) * 2 + 1;
     const inverseMatrix = this.camera.projectionViewMatrix.invert();
-    const mouseWorldSpace = inverseMatrix.transform([mouseXNormalized, mouseYNormalized, -1, 1]);
+    const mouseWorldSpace = inverseMatrix.transform([
+      mouseXNormalized,
+      mouseYNormalized,
+      -1,
+      1,
+    ]);
     return { x: mouseWorldSpace[0], y: mouseWorldSpace[1] };
   }
 
   mouseCollideWithTranslated(id: EntityType["id"]) {
-    const mousePosition = this.globalContext("get", "mousePosition") as mousePosition;
+    const mousePosition = this.globalContext(
+      "get",
+      "mousePosition"
+    ) as mousePosition;
     const transform = this.transforms.get(id)!;
     const mouseConvertedPosition = this.screenToWorld(mousePosition);
 
     return (
-      Math.floor(mouseConvertedPosition.x) >= transform.position.get.x - transform.size.get.x &&
-      Math.floor(mouseConvertedPosition.x) <= transform.position.get.x + transform.size.get.x &&
-      Math.floor(mouseConvertedPosition.y) >= transform.position.get.y - transform.size.get.y &&
-      Math.floor(mouseConvertedPosition.y) <= transform.position.get.y + transform.size.get.y &&
+      Math.floor(mouseConvertedPosition.x) >=
+        transform.position.get.x - transform.size.get.x &&
+      Math.floor(mouseConvertedPosition.x) <=
+        transform.position.get.x + transform.size.get.x &&
+      Math.floor(mouseConvertedPosition.y) >=
+        transform.position.get.y - transform.size.get.y &&
+      Math.floor(mouseConvertedPosition.y) <=
+        transform.position.get.y + transform.size.get.y &&
       true
     );
   }

@@ -5,13 +5,21 @@ declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
 declare const MAIN_WINDOW_VITE_NAME: string;
 declare module "*.png" {
   const value: string;
-  export = value;
+  export default value;
 }
 declare module "*.jpg" {
   const value: string;
-  export = value;
+  export default value;
 }
 declare module "*.json" {
   const value: string;
-  export = value;
+  export default value;
+}
+declare module "*.wgsl" {
+  const value: string;
+  export default value;
+}
+declare module "*?raw" {
+  const content: string;
+  export default content;
 }

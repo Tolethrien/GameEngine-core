@@ -66,12 +66,18 @@ export default class DepthQuadTree {
     this.quadChildren.clear();
     this.entities.clear();
   }
-  private queryQuad(range: Boundry, self: string, arr?: EntityBody["entityId"][]) {
+  private queryQuad(
+    range: Boundry,
+    self: string,
+    arr?: EntityBody["entityId"][]
+  ) {
     if (!arr) arr = [];
     if (!DepthQuadTree.inBoundries(range, this.boundry)) return arr;
     else {
       if (DepthQuadTree.isConteined(this.boundry, range)) {
-        this.entities.forEach((entity) => entity.entityId !== self && arr!.push(entity.entityId));
+        this.entities.forEach(
+          (entity) => entity.entityId !== self && arr!.push(entity.entityId)
+        );
       } else {
         this.entities.forEach(
           (entity) =>
@@ -87,12 +93,19 @@ export default class DepthQuadTree {
   }
   private insertToQuad(entity: EntityBody, path?: number[]) {
     if (!path) path = [];
-    if (this.DepthInTree === 0 && !DepthQuadTree.isConteined(entity.body, this.boundry))
+    if (
+      this.DepthInTree === 0 &&
+      !DepthQuadTree.isConteined(entity.body, this.boundry)
+    )
       return false;
     if (this.DepthInTree < DepthQuadTree.maxDepth) {
       this.quadChildren.size === 0 && this.subdevide();
       const arr = Array.from(this.quadChildren.values());
-      const { childToFit, notInChildren } = this.dontFitToChildren(arr, entity, path);
+      const { childToFit, notInChildren } = this.dontFitToChildren(
+        arr,
+        entity,
+        path
+      );
       if (notInChildren) this.writeToQuad(entity, path);
       else childToFit !== -1 && arr[childToFit].insertToQuad(entity, path);
     }
@@ -107,7 +120,11 @@ export default class DepthQuadTree {
     this.entities.set(entity.entityId, entity);
     DepthQuadTree.bodiesInQuad++;
   }
-  private dontFitToChildren(arr: DepthQuadTreeType[], entity: EntityBody, path: number[]) {
+  private dontFitToChildren(
+    arr: DepthQuadTreeType[],
+    entity: EntityBody,
+    path: number[]
+  ) {
     let childToFit = -1;
     return {
       notInChildren: arr.every((child, i) => {
@@ -117,15 +134,31 @@ export default class DepthQuadTree {
           return false;
         } else return true;
       }),
-      childToFit
+      childToFit,
     };
   }
   private subdevide() {
     [
-      ["NW", this.boundry.x - this.boundry.w / 2, this.boundry.y - this.boundry.h / 2],
-      ["NE", this.boundry.x + this.boundry.w / 2, this.boundry.y - this.boundry.h / 2],
-      ["SE", this.boundry.x + this.boundry.w / 2, this.boundry.y + this.boundry.h / 2],
-      ["SW", this.boundry.x - this.boundry.w / 2, this.boundry.y + this.boundry.h / 2]
+      [
+        "NW",
+        this.boundry.x - this.boundry.w / 2,
+        this.boundry.y - this.boundry.h / 2,
+      ],
+      [
+        "NE",
+        this.boundry.x + this.boundry.w / 2,
+        this.boundry.y - this.boundry.h / 2,
+      ],
+      [
+        "SE",
+        this.boundry.x + this.boundry.w / 2,
+        this.boundry.y + this.boundry.h / 2,
+      ],
+      [
+        "SW",
+        this.boundry.x - this.boundry.w / 2,
+        this.boundry.y + this.boundry.h / 2,
+      ],
     ].forEach((quadData) =>
       this.quadChildren.set(
         quadData[0] as string,
@@ -134,9 +167,9 @@ export default class DepthQuadTree {
             x: quadData[1] as number,
             y: quadData[2] as number,
             w: this.boundry.w / 2,
-            h: this.boundry.h / 2
+            h: this.boundry.h / 2,
           },
-          depth: this.DepthInTree + 1
+          depth: this.DepthInTree + 1,
         })
       )
     );

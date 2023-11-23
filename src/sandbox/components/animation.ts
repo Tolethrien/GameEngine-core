@@ -1,7 +1,12 @@
-import Component from "../core/ecs/component";
-import AssetStore from "../core/assetStore";
+import AssetStore from "../../core/stores/assetStore";
+import Component from "../../core/ecs/component";
+
 interface AnimationData {
-  [key: string]: { numberOfFrames: number; rowInSpritesheet: number; startAnimation?: boolean };
+  [key: string]: {
+    numberOfFrames: number;
+    rowInSpritesheet: number;
+    startAnimation?: boolean;
+  };
 }
 export interface AnimationProps {
   isAnimate?: boolean;
@@ -24,7 +29,9 @@ export default class Animation extends Component {
   cropSize: { width: number; height: number };
   spriteSheet: { gpuAtlas: string; image: string };
 
-  cashedAnimationData: { [key: number]: { x: number; y: number; w: number; h: number } };
+  cashedAnimationData: {
+    [key: number]: { x: number; y: number; w: number; h: number };
+  };
 
   constructor(
     componentProps: ComponentProps,
@@ -35,7 +42,7 @@ export default class Animation extends Component {
       animationSpeed = 8,
       cropSize = { width: 32, height: 32 },
       animationData = {},
-      spriteSheet
+      spriteSheet,
     }: AnimationProps
   ) {
     super(componentProps);
@@ -57,7 +64,8 @@ export default class Animation extends Component {
     );
     const data = {};
     for (const animState in this.animationData) {
-      const { numberOfFrames, rowInSpritesheet } = this.animationData[animState];
+      const { numberOfFrames, rowInSpritesheet } =
+        this.animationData[animState];
       const frames = {};
       Array(numberOfFrames)
         .fill(null)
@@ -66,7 +74,9 @@ export default class Animation extends Component {
             (index * this.cropSize.width) / image.width,
             ((rowInSpritesheet - 1) * this.cropSize.height) / image.height,
             (index * this.cropSize.width + this.cropSize.width) / image.width,
-            ((rowInSpritesheet - 1) * this.cropSize.height + this.cropSize.height) / image.height
+            ((rowInSpritesheet - 1) * this.cropSize.height +
+              this.cropSize.height) /
+              image.height,
           ]);
         });
       data[animState] = frames;

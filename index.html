@@ -8,9 +8,21 @@
     <meta charset="UTF-8" />
     <title>Hello World!</title>
   </head>
-  <body>
-    <h1>💖 Hello World!</h1>
-    <p>Welcome to your Electron application.</p>
-    <script type="module" src="/src/sandbox/index.ts"></script>
+  <body style="overflow: hidden">
+    <script type="module" src="src/sandbox/index.ts"></script>
+    <div id="framer">
+      <p id="framer#1">FPS: 60.0</p>
+      <p id="framer#2">FrameTime: 0.20MS</p>
+      <p id="framer#3">CPUTime: 0.20MS</p>
+      <p id="framer#4">GPUTime: 0.20MS</p>
+    </div>
+    <div id="CanvasContainer" width="900" height="600">
+      <canvas
+        id="gameWindow"
+        style="display: inline-block"
+        width="900"
+        height="600"
+      ></canvas>
+    </div>
   </body>
 </html>

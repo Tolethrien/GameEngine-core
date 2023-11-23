@@ -1,7 +1,8 @@
-import { canvas } from "../core/engine";
-import Vec2D from "../math/vec2D";
-import Component from "../core/ecs/component";
-import Mat4 from "../math/mat4";
+import Component from "../../core/ecs/component";
+import { canvas } from "../../core/engine";
+import Mat4 from "../../core/math/mat4";
+import Vec2D from "../../core/math/vec2D";
+
 export interface OrthographicCameraProps {
   zoom?: number;
   offset?: { x: number; y: number };
@@ -21,7 +22,10 @@ export default class OrthographicCamera extends Component {
   position?: Vec2DType;
   constructor(
     componentProps: ComponentProps,
-    { zoom = 1, offset = { x: canvas.width / 2, y: canvas.height / 2 } }: OrthographicCameraProps
+    {
+      zoom = 1,
+      offset = { x: canvas.width / 2, y: canvas.height / 2 },
+    }: OrthographicCameraProps
   ) {
     super(componentProps);
     this.zoom = zoom;

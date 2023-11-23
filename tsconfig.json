@@ -7,10 +7,10 @@
     "esModuleInterop": true,
     "noImplicitAny": true,
     "sourceMap": true,
-    "baseUrl": ".",
     "outDir": "dist",
+    // "baseUrl": ".",
     "moduleResolution": "node",
-    "resolveJsonModule": true
-  },
-  "include": ["src"]
+    "resolveJsonModule": true,
+    "types": ["@webgpu/types"]
+  }
 }

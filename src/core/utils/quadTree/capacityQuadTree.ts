@@ -1,4 +1,7 @@
-type EntityBody = { body: { x: number; y: number; w: number; h: number }; entityId: string };
+type EntityBody = {
+  body: { x: number; y: number; w: number; h: number };
+  entityId: string;
+};
 type Boundry = { x: number; y: number; w: number; h: number };
 export interface QuadProps {
   boundry: Boundry;
@@ -23,7 +26,9 @@ export default class CapacityQuadTree {
       return false;
     } else {
       if (this.quadChildren.size === 0) this.subdevide();
-      Array.from(this.quadChildren.values()).every((child) => child.insert(entity));
+      Array.from(this.quadChildren.values()).every((child) =>
+        child.insert(entity)
+      );
     }
     return;
   }
@@ -33,10 +38,26 @@ export default class CapacityQuadTree {
   }
   subdevide() {
     [
-      ["NW", this.boundry.x - this.boundry.w / 2, this.boundry.y - this.boundry.h / 2],
-      ["NE", this.boundry.x + this.boundry.w / 2, this.boundry.y - this.boundry.h / 2],
-      ["SE", this.boundry.x + this.boundry.w / 2, this.boundry.y + this.boundry.h / 2],
-      ["SW", this.boundry.x - this.boundry.w / 2, this.boundry.y + this.boundry.h / 2]
+      [
+        "NW",
+        this.boundry.x - this.boundry.w / 2,
+        this.boundry.y - this.boundry.h / 2,
+      ],
+      [
+        "NE",
+        this.boundry.x + this.boundry.w / 2,
+        this.boundry.y - this.boundry.h / 2,
+      ],
+      [
+        "SE",
+        this.boundry.x + this.boundry.w / 2,
+        this.boundry.y + this.boundry.h / 2,
+      ],
+      [
+        "SW",
+        this.boundry.x - this.boundry.w / 2,
+        this.boundry.y + this.boundry.h / 2,
+      ],
     ].forEach((quadData) =>
       this.quadChildren.set(
         quadData[0] as string,
@@ -45,9 +66,9 @@ export default class CapacityQuadTree {
             x: quadData[1] as number,
             y: quadData[2] as number,
             w: this.boundry.w / 2,
-            h: this.boundry.h / 2
+            h: this.boundry.h / 2,
           },
-          capacity: this.capacity
+          capacity: this.capacity,
         })
       )
     );

@@ -1,8 +1,10 @@
+import System from "../../core/ecs/system";
+import Engine from "../../core/engine";
+import Vec2D from "../../core/math/vec2D";
+import DepthQuadTree, {
+  DepthQuadTreeType,
+} from "../../core/utils/quadTree/depthQuadTree";
 import { IndieRigidBodyType } from "../components/indieRigidBody";
-import System from "../core/ecs/system";
-import Engine from "../core/engine";
-import Vec2D from "../math/vec2D";
-import DepthQuadTree, { DepthQuadTreeType } from "../utils/quadTree/depthQuadTree";
 import { TransformType } from "../components/transform";
 type IndieCollisionManifold = {
   bodyA: string;
@@ -53,11 +55,13 @@ export default class indiePhysics extends System {
       if (!rigid.velocity.isZero()) {
         const transform = this.transforms.get(rigid.entityID)!;
         rigid.velocity = rigid.velocity.add(rigid.force);
-        transform.position = transform.position.add(rigid.velocity.multiply(time));
+        transform.position = transform.position.add(
+          rigid.velocity.multiply(time)
+        );
         rigid.velocity = rigid.velocity.multiply(1 - rigid.friction / 10);
         this.quadTree.move({
           body: this.getCollider(rigid),
-          entityId: rigid.entityID
+          entityId: rigid.entityID,
         });
         rigid.force = Vec2D.Zero;
       }
@@ -94,7 +98,7 @@ export default class indiePhysics extends System {
             bodyB: collisionTarget,
             depth: Number.MIN_VALUE,
             normal: Vec2D.Zero,
-            done: false
+            done: false,
           });
       });
     });
@@ -147,13 +151,21 @@ export default class indiePhysics extends System {
         const bodyARigid = this.rigidBodies.get(manifold.bodyA)!;
         const bodyBRigid = this.rigidBodies.get(manifold.bodyB)!;
         const relativeVelo = bodyBRigid.velocity.sub(bodyARigid.velocity);
-        const minResti = Math.min(bodyARigid.restitution, bodyBRigid.restitution);
+        const minResti = Math.min(
+          bodyARigid.restitution,
+          bodyBRigid.restitution
+        );
         if (relativeVelo.dotProduct(manifold.normal) > 0) return;
-        let maginutudeOfImpuls = -(1 + minResti) * relativeVelo.dotProduct(manifold.normal);
+        let maginutudeOfImpuls =
+          -(1 + minResti) * relativeVelo.dotProduct(manifold.normal);
         maginutudeOfImpuls /= bodyARigid.inverceMass + bodyBRigid.inverceMass;
         const impulse = manifold.normal.multiply(maginutudeOfImpuls);
-        bodyARigid.velocity = bodyARigid.velocity.sub(impulse.multiply(bodyARigid.inverceMass));
-        bodyBRigid.velocity = bodyBRigid.velocity.add(impulse.multiply(bodyBRigid.inverceMass));
+        bodyARigid.velocity = bodyARigid.velocity.sub(
+          impulse.multiply(bodyARigid.inverceMass)
+        );
+        bodyBRigid.velocity = bodyBRigid.velocity.add(
+          impulse.multiply(bodyBRigid.inverceMass)
+        );
       }
     });
   }
@@ -166,23 +178,28 @@ export default class indiePhysics extends System {
           x: map.mapdata.widthInPixels / 2,
           y: map.mapdata.heightInPixels / 2,
           h: map.mapdata.widthInPixels,
-          w: map.mapdata.heightInPixels
-        }
+          w: map.mapdata.heightInPixels,
+        },
       });
-    else throw new Error("MapData is undefined but required in QuadTree to quarter the world");
+    else
+      throw new Error(
+        "MapData is undefined but required in QuadTree to quarter the world"
+      );
   }
 
   private addEntitiesToQuad(rigid: IndieRigidBodyType) {
     const body = this.getCollider(rigid);
     this.quadTree.insert({
       body: body,
-      entityId: rigid.entityID
+      entityId: rigid.entityID,
     });
     rigid.bodyType === "dynamic" && this.dynamicEntities.push(rigid.entityID);
   }
   private removeEntitiesFromQuad(entityID: string) {
     this.quadTree.remove(entityID);
-    const isDynamic = this.dynamicEntities.findIndex((dynamic) => dynamic === entityID);
+    const isDynamic = this.dynamicEntities.findIndex(
+      (dynamic) => dynamic === entityID
+    );
     isDynamic !== -1 && this.dynamicEntities.splice(isDynamic, 1);
   }
   private drawQuad() {
@@ -197,13 +214,13 @@ export default class indiePhysics extends System {
         x: transform.position.get.x,
         y: transform.position.get.y,
         w: transform.size.get.x,
-        h: transform.size.get.y
+        h: transform.size.get.y,
       };
     const data = {
       x: transform.position.get.x + rigid.offset.x,
       y: transform.position.get.y + rigid.offset.y,
       w: rigid.offset.w,
-      h: rigid.offset.h
+      h: rigid.offset.h,
     };
     if (rigid.bodyType === "static") rigid.cashedColiderData = data;
     return data;

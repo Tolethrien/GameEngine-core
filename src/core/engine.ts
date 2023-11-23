@@ -1,14 +1,18 @@
 import World from "./ecs/world";
 import { ActionsControllerType } from "./ecs/actions";
-import Time from "./time";
-import Aurora from "../aurora/auroraCore";
+import Time from "./utils/timers/time";
+import Aurora from "./aurora/auroraCore";
 
-export const canvas = document.getElementById("gameWindow") as HTMLCanvasElement;
+export const canvas = document.getElementById(
+  "gameWindow"
+) as HTMLCanvasElement;
 const framer = document.getElementById("framer")!;
 
 let mod = 0;
-export const filesObjects: Map<string, HTMLImageElement | HTMLAudioElement | OffscreenCanvas> =
-  new Map();
+export const filesObjects: Map<
+  string,
+  HTMLImageElement | HTMLAudioElement | OffscreenCanvas
+> = new Map();
 
 interface EngineConfig {
   // core: "2d" | "3d"
@@ -22,14 +26,15 @@ export default class Engine {
   public static worlds: Map<string, WorldType> = new Map();
   public static activeWorld = "main";
   public static actions: ActionsControllerType | undefined = undefined;
-  public static globalContext: Map<string, unknown> = Engine.createGlobalContext();
+  public static globalContext: Map<string, unknown> =
+    Engine.createGlobalContext();
   public static time: Time = new Time();
-  private static meter: FPSM;
 
   public static async Initialize({ preload, setup }: EngineConfig) {
     if (Engine.isInitialized)
-      throw new Error("Engine already Initialize,you can only have one instance of engine");
-    Engine.meter = new FPSMeter();
+      throw new Error(
+        "Engine already Initialize,you can only have one instance of engine"
+      );
     await Aurora.initialize(canvas); // needs to be before preload
     await preload();
     Engine.setFirstAuroraFrame();
@@ -45,12 +50,13 @@ export default class Engine {
     Engine.time.calculateTimeStamp();
     Engine.worlds.get(Engine.activeWorld)?.onUpdate();
     Engine.clearOnFrame();
-    Engine.meter.tick();
     Engine.framerTick();
     requestAnimationFrame(Engine.loop);
   }
   private static createGlobalContext() {
-    const data: [string, unknown][] = [["EntitiesManipulatedInFrame", { added: [], removed: [] }]];
+    const data: [string, unknown][] = [
+      ["EntitiesManipulatedInFrame", { added: [], removed: [] }],
+    ];
     return new Map<string, unknown>(data);
   }
   private static framerTick = () => {
@@ -58,7 +64,9 @@ export default class Engine {
       const fps = String(Math.floor(1000 / Engine.time.getSeconds / 100));
       const children = framer.children as unknown as HTMLParagraphElement[];
       children[0].innerText = `FPS: ${fps[0]}${fps[1]},${fps[2]}`;
-      children[1].innerText = `FrameTime: ${(performance.now() - Engine.time.now).toFixed(2)}MS`;
+      children[1].innerText = `FrameTime: ${(
+        performance.now() - Engine.time.now
+      ).toFixed(2)}MS`;
       children[2].innerText = `CPUTime: 0.0MS`;
       children[3].innerText = `GPUTime: 0.0MS`;
       mod = 0;
@@ -72,9 +80,9 @@ export default class Engine {
           view: Aurora.context.getCurrentTexture().createView(),
           loadOp: "clear",
           storeOp: "store",
-          clearValue: [0, 0, 0, 1]
-        }
-      ]
+          clearValue: [0, 0, 0, 1],
+        },
+      ],
     });
     commandPass.end();
     Aurora.device.queue.submit([encoder.finish()]);
@@ -83,7 +91,10 @@ export default class Engine {
     Engine.worlds.set(wordlName, new World(wordlName));
     return Engine.worlds.get(wordlName)!;
   };
-  public static addDynamicEntity = <T extends EntityType>(world: string, entity: T) => {
+  public static addDynamicEntity = <T extends EntityType>(
+    world: string,
+    entity: T
+  ) => {
     entity.world = world;
     return entity;
   };
@@ -98,7 +109,7 @@ export default class Engine {
       mouseDown = true;
       offset = {
         x: framer.offsetLeft - e.clientX,
-        y: framer.offsetTop - e.clientY
+        y: framer.offsetTop - e.clientY,
       };
     });
     framer.addEventListener("mouseup", function () {
@@ -113,12 +124,18 @@ export default class Engine {
     });
   }
   private static setGlobalContexts() {
-    Engine.globalContext.set("EntitiesManipulatedInFrame", { added: [], removed: [] });
+    Engine.globalContext.set("EntitiesManipulatedInFrame", {
+      added: [],
+      removed: [],
+    });
     Engine.globalContext.set("mousePosition", { x: 0, y: 0 });
     Engine.globalContext.set("mousePressed", false);
   }
   private static clearOnFrame() {
-    Engine.globalContext.set("EntitiesManipulatedInFrame", { added: [], removed: [] });
+    Engine.globalContext.set("EntitiesManipulatedInFrame", {
+      added: [],
+      removed: [],
+    });
   }
   private static addGlobalListeners() {
     canvas.onmousedown = () => {
@@ -128,7 +145,10 @@ export default class Engine {
       Engine.globalContext.set("mousePressed", false);
     };
     canvas.addEventListener("mousemove", (event) => {
-      Engine.globalContext.set("mousePosition", { x: event.offsetX, y: event.offsetY });
+      Engine.globalContext.set("mousePosition", {
+        x: event.offsetX,
+        y: event.offsetY,
+      });
     });
   }
 }

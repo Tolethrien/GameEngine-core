@@ -1,5 +1,5 @@
-import { nameToUpper } from "../../utils/helpers";
-import { avalibleSystems } from "./ECSList";
+import { avalibleSystems } from "src/sandbox/ECSList";
+import { nameToUpper } from "../utils/utils";
 
 export default abstract class SystemsGroup {
   /**
@@ -14,9 +14,11 @@ export default abstract class SystemsGroup {
     this.systemsList = new Map();
   }
   addSystem(system: Uncapitalize<keyof avalibleSystems>) {
-    const createdSystem = new avalibleSystems[nameToUpper(system as keyof avalibleSystems)]({
+    const createdSystem = new avalibleSystems[
+      nameToUpper(system as keyof avalibleSystems)
+    ]({
       name: this.worldName,
-      shared: this.shared
+      shared: this.shared,
     } as SystemProps);
     this.systemsList.set(createdSystem.constructor.name, createdSystem);
   }
@@ -30,7 +32,8 @@ export default abstract class SystemsGroup {
     this.systemsList.forEach((system) => system.onUpdate());
   }
   sharedState(action: "set" | "delete" | "get", name: string, data?: unknown) {
-    if (!this.shared) throw new Error("sharing data is avalible only in SystemGroups");
+    if (!this.shared)
+      throw new Error("sharing data is avalible only in SystemGroups");
     switch (action) {
       case "set":
         this.shared.set(name, data);

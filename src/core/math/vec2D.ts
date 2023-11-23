@@ -32,7 +32,9 @@ export default class Vec2D {
   }
 
   setAxis(axis: "x" | "y", value: number) {
-    return axis === "x" ? new Vec2D([value, this.vecY]) : new Vec2D([this.vecX, value]);
+    return axis === "x"
+      ? new Vec2D([value, this.vecY])
+      : new Vec2D([this.vecX, value]);
   }
   sub(targetVec: Vec2DType | [number, number]) {
     return Array.isArray(targetVec)
@@ -47,7 +49,9 @@ export default class Vec2D {
   }
   get getNormalize() {
     const length = this.length();
-    return length === 0 ? [0, 0] : { x: this.vecX / length, y: this.vecY / length };
+    return length === 0
+      ? [0, 0]
+      : { x: this.vecX / length, y: this.vecY / length };
   }
   get x() {
     return this.vecX;
@@ -57,7 +61,9 @@ export default class Vec2D {
   }
   normalize() {
     const length = this.length();
-    return length === 0 ? new Vec2D([0, 0]) : new Vec2D([this.vecX / length, this.vecY / length]);
+    return length === 0
+      ? new Vec2D([0, 0])
+      : new Vec2D([this.vecX / length, this.vecY / length]);
   }
   clone() {
     return new Vec2D([this.vecX, this.vecY]);

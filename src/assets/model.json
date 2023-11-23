@@ -1,0 +1,10 @@
+{
+    "chunk":{},
+    "tile":{
+        "position":[0,0],
+        "collider":{"is":false,"offset":[0,0,0,0]},
+        "ground":[{"crop":[0,0,0,0],"texture":"ss"}],
+        "world":[{"crop":[30,15,8,10],"texture":"ss","offset":[0,0,0,0],"tint":[150,155,255,255]}],
+        "sky":[{"crop":[0,0,0,0],"texture":"ss"}]
+    }
+}

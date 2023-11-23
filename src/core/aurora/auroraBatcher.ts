@@ -3,7 +3,7 @@ import AuroraBindGroup from "./auroraBindGroup";
 import AuroraRenderer from "./auroraRenderer";
 import AuroraShader from "./auroraShader";
 import universalShader from "./shaders/universalShader.wgsl?raw";
-import { normalizeColor } from "../utils/helpers";
+import { normalizeColor } from "../utils/utils";
 interface SpriteProps {
   position: { x: number; y: number };
   size: { width: number; height: number };
@@ -54,12 +54,20 @@ export default class AuroraBatcher {
           view: Aurora.context.getCurrentTexture().createView(),
           loadOp: "clear",
           storeOp: "store",
-          clearValue: AuroraBatcher.options.backgroundColor
-        }
-      ]
+          clearValue: AuroraBatcher.options.backgroundColor,
+        },
+      ],
     });
-    Aurora.device.queue.writeBuffer(AuroraBatcher.vertexBuffer, 0, AuroraBatcher.vertices);
-    Aurora.device.queue.writeBuffer(AuroraBatcher.addDataBuffer, 0, AuroraBatcher.addData);
+    Aurora.device.queue.writeBuffer(
+      AuroraBatcher.vertexBuffer,
+      0,
+      AuroraBatcher.vertices
+    );
+    Aurora.device.queue.writeBuffer(
+      AuroraBatcher.addDataBuffer,
+      0,
+      AuroraBatcher.addData
+    );
     AuroraBatcher.bindGroupsData.forEach((bind) => {
       commandPass.setBindGroup(bind.shaderGroup, bind.bindgroup);
     });
@@ -67,7 +75,10 @@ export default class AuroraBatcher {
     commandPass.setVertexBuffer(0, AuroraBatcher.vertexBuffer);
     commandPass.setVertexBuffer(1, AuroraBatcher.addDataBuffer);
     commandPass.setIndexBuffer(this.indexBuffer, "uint32");
-    commandPass.drawIndexed(INDICIES_PER_QUAD, AuroraBatcher.numberOfQuadsInBatch);
+    commandPass.drawIndexed(
+      INDICIES_PER_QUAD,
+      AuroraBatcher.numberOfQuadsInBatch
+    );
     commandPass.end();
     Aurora.device.queue.submit([encoder.finish()]);
   }
@@ -79,23 +90,50 @@ export default class AuroraBatcher {
     crop,
     alpha,
     tint,
-    isTexture
+    isTexture,
   }: SpriteProps) {
-    AuroraBatcher.vertices[AuroraBatcher.numberOfQuadsInBatch * VERTEX_ATT_COUNT] = position.x;
-    AuroraBatcher.vertices[AuroraBatcher.numberOfQuadsInBatch * VERTEX_ATT_COUNT + 1] = position.y;
-    AuroraBatcher.vertices[AuroraBatcher.numberOfQuadsInBatch * VERTEX_ATT_COUNT + 2] = size.width;
-    AuroraBatcher.vertices[AuroraBatcher.numberOfQuadsInBatch * VERTEX_ATT_COUNT + 3] = size.height;
-    AuroraBatcher.vertices[AuroraBatcher.numberOfQuadsInBatch * VERTEX_ATT_COUNT + 4] = crop[0];
-    AuroraBatcher.vertices[AuroraBatcher.numberOfQuadsInBatch * VERTEX_ATT_COUNT + 5] = crop[1];
-    AuroraBatcher.vertices[AuroraBatcher.numberOfQuadsInBatch * VERTEX_ATT_COUNT + 6] = crop[2];
-    AuroraBatcher.vertices[AuroraBatcher.numberOfQuadsInBatch * VERTEX_ATT_COUNT + 7] = crop[3];
-    AuroraBatcher.addData[AuroraBatcher.numberOfQuadsInBatch * ADDDATA_ATT_COUNT] = tint[0];
-    AuroraBatcher.addData[AuroraBatcher.numberOfQuadsInBatch * ADDDATA_ATT_COUNT + 1] = tint[1];
-    AuroraBatcher.addData[AuroraBatcher.numberOfQuadsInBatch * ADDDATA_ATT_COUNT + 2] = tint[2];
-    AuroraBatcher.addData[AuroraBatcher.numberOfQuadsInBatch * ADDDATA_ATT_COUNT + 3] = alpha;
-    AuroraBatcher.addData[AuroraBatcher.numberOfQuadsInBatch * ADDDATA_ATT_COUNT + 4] =
-      textureToUse;
-    AuroraBatcher.addData[AuroraBatcher.numberOfQuadsInBatch * ADDDATA_ATT_COUNT + 5] = isTexture;
+    AuroraBatcher.vertices[
+      AuroraBatcher.numberOfQuadsInBatch * VERTEX_ATT_COUNT
+    ] = position.x;
+    AuroraBatcher.vertices[
+      AuroraBatcher.numberOfQuadsInBatch * VERTEX_ATT_COUNT + 1
+    ] = position.y;
+    AuroraBatcher.vertices[
+      AuroraBatcher.numberOfQuadsInBatch * VERTEX_ATT_COUNT + 2
+    ] = size.width;
+    AuroraBatcher.vertices[
+      AuroraBatcher.numberOfQuadsInBatch * VERTEX_ATT_COUNT + 3
+    ] = size.height;
+    AuroraBatcher.vertices[
+      AuroraBatcher.numberOfQuadsInBatch * VERTEX_ATT_COUNT + 4
+    ] = crop[0];
+    AuroraBatcher.vertices[
+      AuroraBatcher.numberOfQuadsInBatch * VERTEX_ATT_COUNT + 5
+    ] = crop[1];
+    AuroraBatcher.vertices[
+      AuroraBatcher.numberOfQuadsInBatch * VERTEX_ATT_COUNT + 6
+    ] = crop[2];
+    AuroraBatcher.vertices[
+      AuroraBatcher.numberOfQuadsInBatch * VERTEX_ATT_COUNT + 7
+    ] = crop[3];
+    AuroraBatcher.addData[
+      AuroraBatcher.numberOfQuadsInBatch * ADDDATA_ATT_COUNT
+    ] = tint[0];
+    AuroraBatcher.addData[
+      AuroraBatcher.numberOfQuadsInBatch * ADDDATA_ATT_COUNT + 1
+    ] = tint[1];
+    AuroraBatcher.addData[
+      AuroraBatcher.numberOfQuadsInBatch * ADDDATA_ATT_COUNT + 2
+    ] = tint[2];
+    AuroraBatcher.addData[
+      AuroraBatcher.numberOfQuadsInBatch * ADDDATA_ATT_COUNT + 3
+    ] = alpha;
+    AuroraBatcher.addData[
+      AuroraBatcher.numberOfQuadsInBatch * ADDDATA_ATT_COUNT + 4
+    ] = textureToUse;
+    AuroraBatcher.addData[
+      AuroraBatcher.numberOfQuadsInBatch * ADDDATA_ATT_COUNT + 5
+    ] = isTexture;
     AuroraBatcher.numberOfQuadsInBatch++;
   }
 
@@ -103,26 +141,30 @@ export default class AuroraBatcher {
     AuroraBatcher.vertexBuffer = Aurora.device.createBuffer({
       label: "batch renderer vertex buffer",
       size: this.vertices.byteLength,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
     AuroraBatcher.addDataBuffer = Aurora.device.createBuffer({
       label: "batch renderer vertex buffer",
       size: this.addData.byteLength,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
 
     AuroraBatcher.indexBuffer = Aurora.device.createBuffer({
       label: "batch renderer vertex buffer",
       size: Uint32Array.BYTES_PER_ELEMENT * INDICIES_PER_QUAD,
       usage: GPUBufferUsage.INDEX,
-      mappedAtCreation: true
+      mappedAtCreation: true,
     });
     new Uint32Array(this.indexBuffer.getMappedRange()).set([0, 1, 2, 1, 2, 3]);
     this.indexBuffer.unmap();
   }
   private static createBuffersTypedArrays() {
-    this.vertices = new Float32Array(MAX_NUMBER_OF_QUADS_PER_BATCH * VERTEX_ATT_COUNT);
-    this.addData = new Uint32Array(MAX_NUMBER_OF_QUADS_PER_BATCH * ADDDATA_ATT_COUNT);
+    this.vertices = new Float32Array(
+      MAX_NUMBER_OF_QUADS_PER_BATCH * VERTEX_ATT_COUNT
+    );
+    this.addData = new Uint32Array(
+      MAX_NUMBER_OF_QUADS_PER_BATCH * ADDDATA_ATT_COUNT
+    );
   }
   private static createPipeline() {
     const shader = AuroraShader.createShader(universalShader, "shader shader");
@@ -133,19 +175,19 @@ export default class AuroraBatcher {
         {
           format: "float32x2",
           offset: 0,
-          shaderLocation: 0 // Position, see vertex shader
+          shaderLocation: 0, // Position, see vertex shader
         },
         {
           format: "float32x2",
           offset: 2 * Float32Array.BYTES_PER_ELEMENT,
-          shaderLocation: 1 // size, see vertex shader
+          shaderLocation: 1, // size, see vertex shader
         },
         {
           format: "float32x4",
           offset: 4 * Float32Array.BYTES_PER_ELEMENT,
-          shaderLocation: 2 // crop, see vertex shader
-        }
-      ]
+          shaderLocation: 2, // crop, see vertex shader
+        },
+      ],
     };
     const addDataBufferLayout: GPUVertexBufferLayout = {
       arrayStride: 6 * Uint32Array.BYTES_PER_ELEMENT, // ile bitow skipu do nastepnego verta(x,y - 2 floaty po 4 bajty = 8)
@@ -154,19 +196,19 @@ export default class AuroraBatcher {
         {
           format: "uint32x4",
           offset: 0,
-          shaderLocation: 3 // color, see vertex shader
+          shaderLocation: 3, // color, see vertex shader
         },
         {
           format: "uint32",
           offset: 4 * Uint32Array.BYTES_PER_ELEMENT,
-          shaderLocation: 4 // textureIndex, see vertex shader
+          shaderLocation: 4, // textureIndex, see vertex shader
         },
         {
           format: "uint32",
           offset: 5 * Uint32Array.BYTES_PER_ELEMENT,
-          shaderLocation: 5 // isTextureOrColor, see vertex shader
-        }
-      ]
+          shaderLocation: 5, // isTextureOrColor, see vertex shader
+        },
+      ],
     };
     AuroraBatcher.pipeline = AuroraRenderer.createRenderPipeline({
       label: "batch pipeline",
@@ -174,18 +216,18 @@ export default class AuroraBatcher {
       vertex: {
         module: shader,
         entryPoint: "vertexMain",
-        buffers: [vertexBufferLayout, addDataBufferLayout]
+        buffers: [vertexBufferLayout, addDataBufferLayout],
       },
       fragment: {
         module: shader,
         entryPoint: "fragmentMain",
-        targets: [AuroraRenderer.getColorTargetTemplate("standard")]
-      }
+        targets: [AuroraRenderer.getColorTargetTemplate("standard")],
+      },
     });
   }
   private static setOptions(options?: BatcherOptions) {
     const template: BatcherOptions = {
-      backgroundColor: [255, 255, 255, 255]
+      backgroundColor: [255, 255, 255, 255],
     };
     const result = {};
     if (!options) return template;

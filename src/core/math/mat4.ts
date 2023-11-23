@@ -17,7 +17,14 @@ export default class Mat4 {
   set setMatrix(data: number[]) {
     this.matrix = new Float32Array(data);
   }
-  ortho(left: number, right: number, bottom: number, top: number, near: number, far: number) {
+  ortho(
+    left: number,
+    right: number,
+    bottom: number,
+    top: number,
+    near: number,
+    far: number
+  ) {
     const lr = 1 / (left - right);
     const bt = 1 / (bottom - top);
     const nf = 1 / (near - far);
@@ -37,7 +44,7 @@ export default class Mat4 {
       (left + right) * lr,
       (top + bottom) * bt,
       near * nf,
-      1
+      1,
     ];
     return new Mat4(out);
   }
@@ -104,7 +111,7 @@ export default class Mat4 {
       -(x0 * eye[0] + x1 * eye[1] + x2 * eye[2]),
       -(y0 * eye[0] + y1 * eye[1] + y2 * eye[2]),
       -(z0 * eye[0] + z1 * eye[1] + z2 * eye[2]),
-      1
+      1,
     ];
 
     return new Mat4(data);
@@ -225,7 +232,7 @@ export default class Mat4 {
       this.matrix[12],
       this.matrix[13],
       this.matrix[14],
-      this.matrix[15]
+      this.matrix[15],
     ];
     return new Mat4(data);
   }

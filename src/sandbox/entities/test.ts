@@ -1,4 +1,3 @@
-import Entity from "../core/ecs/entity";
 import { OrthographicCameraProps } from "../components/OrthographicCamera";
 import { AnimationProps } from "../components/animation";
 import { SpriteRendererProps } from "../components/spriteRenderer";
@@ -6,7 +5,8 @@ import { IndieRigidBodyProps } from "../components/indieRigidBody";
 import { MouseEventsProps } from "../components/mouseEvents";
 import { PointLightProps } from "../components/pointLight";
 import { TransformProps } from "../components/transform";
-import tete from "../../../assets/webGpuMap.json";
+import tete from "../../assets/webGpuMap.json";
+import Entity from "../../core/ecs/entity";
 export default class Tester extends Entity {
   constructor(x, y, z, p, f) {
     super();
@@ -27,14 +27,14 @@ export default class Tester extends Entity {
           offset: data.offset ?? undefined,
           cropSize: { width: data.crop[2] * 32, height: data.crop[3] * 32 },
           tint: [data.tint[0], data.tint[1], data.tint[2]],
-          alpha: data.tint[3]
+          alpha: data.tint[3],
         };
-      })
+      }),
     });
     this.addComponent<TransformProps>("transform", {
       position: { x: x, y: y },
       size: { width: 32, height: 32 },
-      rotation: 0
+      rotation: 0,
     });
     // this.addComponent<MeshProps>("mesh", {
     //   type: "shape",
@@ -49,25 +49,25 @@ export default class Tester extends Entity {
         top: { numberOfFrames: 6, rowInSpritesheet: 4 },
         down: { numberOfFrames: 6, rowInSpritesheet: 1 },
         left: { numberOfFrames: 6, rowInSpritesheet: 2 },
-        right: { numberOfFrames: 6, rowInSpritesheet: 3 }
+        right: { numberOfFrames: 6, rowInSpritesheet: 3 },
       },
       isAnimate: true,
       cropSize: { height: 32, width: 32 },
-      spriteSheet: { gpuAtlas: "char", image: "vite" }
+      spriteSheet: { gpuAtlas: "char", image: "vite" },
     });
     this.addComponent<IndieRigidBodyProps>("indieRigidBody", {
       bodyType: z,
       mass: p,
-      friction: f
+      friction: f,
     });
     this.addComponent<MouseEventsProps>("mouseEvents", {
       action: { left: "sdsd", right: "sss" },
-      objectType: "translated"
+      objectType: "translated",
     });
     this.addComponent<PointLightProps>("pointLight", {
       color: "red",
       intencity: 5,
-      typeOfLight: "radial"
+      typeOfLight: "radial",
     });
   }
 }

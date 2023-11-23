@@ -26,13 +26,17 @@ export default class AuroraBuffer {
     const shouldWrite = options.writeBufferToGPU === "write" ? true : false;
     const vertexData = this.chooseTypedArray(options.type, vertices);
     const maped = options.mapedAtCreation ?? false;
-    const usage = maped ? GPUBufferUsage.STORAGE : GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST;
+    const usage = maped
+      ? GPUBufferUsage.STORAGE
+      : GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST;
     const vertexBuffer = Aurora.device.createBuffer({
       label: options.label ?? "generic vertex buffer",
       size: vertexData.byteLength,
-      usage: usage
+      usage: usage,
     });
-    shouldWrite && !maped && Aurora.device.queue.writeBuffer(vertexBuffer, 0, vertexData);
+    shouldWrite &&
+      !maped &&
+      Aurora.device.queue.writeBuffer(vertexBuffer, 0, vertexData);
     maped && this.mapBuffer(options.type, vertexBuffer, vertices);
 
     return [vertexBuffer, vertexData];
@@ -45,14 +49,18 @@ export default class AuroraBuffer {
     const shouldWrite = options.writeBufferToGPU === "write" ? true : false;
     const maped = options.mapedAtCreation ?? false;
     const indexData = this.chooseTypedArray(options.type, indexes);
-    const usage = maped ? GPUBufferUsage.INDEX : GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST;
+    const usage = maped
+      ? GPUBufferUsage.INDEX
+      : GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST;
     const indexBuffer = Aurora.device.createBuffer({
       label: options.label ?? "generic storage buffer",
       size: indexData.byteLength,
       usage: usage,
-      mappedAtCreation: maped
+      mappedAtCreation: maped,
     });
-    shouldWrite && !maped && Aurora.device.queue.writeBuffer(indexBuffer, 0, indexData);
+    shouldWrite &&
+      !maped &&
+      Aurora.device.queue.writeBuffer(indexBuffer, 0, indexData);
     maped && this.mapBuffer(options.type, indexBuffer, indexes);
     return [indexBuffer, indexData];
   }
@@ -64,13 +72,16 @@ export default class AuroraBuffer {
     const shouldWrite = options.writeBufferToGPU === "write" ? true : false;
     const maped = options.mapedAtCreation ?? false;
     const storageData = this.chooseTypedArray(options.type, storage);
-    const usage = maped ? GPUBufferUsage.STORAGE : GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST;
+    const usage = maped
+      ? GPUBufferUsage.STORAGE
+      : GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST;
     const storageBuffer = Aurora.device.createBuffer({
       label: options.label ?? "generic storage buffer",
       size: storageData.byteLength,
-      usage: usage
+      usage: usage,
     });
-    shouldWrite && Aurora.device.queue.writeBuffer(storageBuffer, 0, storageData);
+    shouldWrite &&
+      Aurora.device.queue.writeBuffer(storageBuffer, 0, storageData);
     maped && this.mapBuffer(options.type, storageBuffer, storage);
 
     return [storageBuffer, storageData];
@@ -83,13 +94,16 @@ export default class AuroraBuffer {
     const shouldWrite = options.writeBufferToGPU === "write" ? true : false;
     const maped = options.mapedAtCreation ?? false;
     const uniformData = this.chooseTypedArray(options.type, uniform);
-    const usage = maped ? GPUBufferUsage.UNIFORM : GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST;
+    const usage = maped
+      ? GPUBufferUsage.UNIFORM
+      : GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST;
     const uniformBuffer = Aurora.device.createBuffer({
       label: options.label ?? "generic uniform buffer",
       size: uniformData.byteLength,
-      usage: usage
+      usage: usage,
     });
-    shouldWrite && Aurora.device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+    shouldWrite &&
+      Aurora.device.queue.writeBuffer(uniformBuffer, 0, uniformData);
     maped && this.mapBuffer(options.type, uniformBuffer, uniform);
 
     return [uniformBuffer, uniformData];
@@ -102,18 +116,28 @@ export default class AuroraBuffer {
     const projectionData = projection.getMatrix;
     const shouldWrite = options.writeBufferToGPU === "write" ? true : false;
     const maped = options.mapedAtCreation ?? false;
-    const usage = maped ? GPUBufferUsage.UNIFORM : GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST;
+    const usage = maped
+      ? GPUBufferUsage.UNIFORM
+      : GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST;
     const projectionBuffer = Aurora.device.createBuffer({
       label: options.label ?? "generic projection buffer",
       size: projectionData.byteLength,
-      usage: usage
+      usage: usage,
     });
-    shouldWrite && !maped && Aurora.device.queue.writeBuffer(projectionBuffer, 0, projectionData);
-    maped && this.mapBuffer("Float32Array", projectionBuffer, [...projection.getMatrix]);
+    shouldWrite &&
+      !maped &&
+      Aurora.device.queue.writeBuffer(projectionBuffer, 0, projectionData);
+    maped &&
+      this.mapBuffer("Float32Array", projectionBuffer, [
+        ...projection.getMatrix,
+      ]);
 
     return [projectionBuffer, projectionData];
   }
-  private static chooseTypedArray(typed: AuroraStringifytypedArray, data: number[] | ArrayBuffer) {
+  private static chooseTypedArray(
+    typed: AuroraStringifytypedArray,
+    data: number[] | ArrayBuffer
+  ) {
     switch (typed) {
       case "Float32Array":
         return new Float32Array(data);
@@ -129,7 +153,11 @@ export default class AuroraBuffer {
         return new Float32Array(data);
     }
   }
-  private static mapBuffer(typed: AuroraStringifytypedArray, buffer: GPUBuffer, data: number[]) {
+  private static mapBuffer(
+    typed: AuroraStringifytypedArray,
+    buffer: GPUBuffer,
+    data: number[]
+  ) {
     this.chooseTypedArray(typed, buffer.getMappedRange()).set(data);
     buffer.unmap();
   }

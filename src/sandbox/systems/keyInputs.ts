@@ -1,7 +1,7 @@
-import Vec2D from "../math/vec2D";
+import System from "../../core/ecs/system";
+import Vec2D from "../../core/math/vec2D";
 import { AnimationType } from "../components/animation";
 import { IndieRigidBodyType } from "../components/indieRigidBody";
-import System from "../core/ecs/system";
 import { OrthographicCameraType } from "../components/OrthographicCamera";
 import { TransformType } from "../components/transform";
 export default class KeyInputs extends System {
@@ -53,7 +53,8 @@ export default class KeyInputs extends System {
     else if (this.keyPressed.has("m"))
       this.othCam.zoom < this.othCam.maxZoom &&
         (this.othCam.zoom += 0.01 * Math.log(this.othCam.zoom + 1));
-    if (this.keyPressed.has("k")) this.pos.position = this.pos.position.set([512, 512]);
+    if (this.keyPressed.has("k"))
+      this.pos.position = this.pos.position.set([512, 512]);
     this.playerRigid.velocity = new Vec2D([dirX, dirY]);
     const forcedirection = new Vec2D([dirX, dirY]).normalize();
     const forceVector = forcedirection.multiply(this.playerRigid.newtons);

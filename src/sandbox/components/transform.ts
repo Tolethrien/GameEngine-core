@@ -1,5 +1,6 @@
-import Vec2D from "../math/vec2D";
-import Component from "../core/ecs/component";
+import Component from "../../core/ecs/component";
+import Vec2D from "../../core/math/vec2D";
+
 export interface TransformProps {
   position: {
     x: number;
@@ -18,7 +19,11 @@ export default class Transform extends Component {
   rotation: number;
   constructor(
     componentProps: ComponentProps,
-    { position = { x: 10, y: 10 }, size = { width: 20, height: 20 }, rotation = 0 }: TransformProps
+    {
+      position = { x: 10, y: 10 },
+      size = { width: 20, height: 20 },
+      rotation = 0,
+    }: TransformProps
   ) {
     super(componentProps);
     this.position = new Vec2D([position.x, position.y]);

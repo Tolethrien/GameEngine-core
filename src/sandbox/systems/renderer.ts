@@ -1,14 +1,14 @@
 import { IndieRigidBodyType } from "../components/indieRigidBody";
-import System from "../core/ecs/system";
 import { OrthographicCameraType } from "../components/OrthographicCamera";
-import AuroraBatcher from "../aurora/auroraBatcher";
-import AuroraBindGroup from "../aurora/auroraBindGroup";
-import AuroraBuffer from "../aurora/auroraBuffer";
-import Aurora from "../aurora/auroraCore";
 import { TransformType } from "../components/transform";
-import AssetStore from "../core/assetStore";
 import { SpriteRendererType } from "../components/spriteRenderer";
 import { GroundRendererType } from "../components/groundRenderer";
+import System from "../../core/ecs/system";
+import AuroraBatcher from "../../core/aurora/auroraBatcher";
+import Aurora from "../../core/aurora/auroraCore";
+import AuroraBuffer from "../../core/aurora/auroraBuffer";
+import AuroraBindGroup from "../../core/aurora/auroraBindGroup";
+import AssetStore from "../../core/stores/assetStore";
 export default class Renderer extends System {
   transforms!: GetComponentsList<TransformType>;
   spriteRenderers!: GetComponentsList<SpriteRendererType>;
@@ -41,7 +41,7 @@ export default class Renderer extends System {
     );
     AuroraBatcher.setBindGroups([
       { shaderGroup: 0, bindgroup: this.textureBind },
-      { shaderGroup: 1, bindgroup: this.cameraBind }
+      { shaderGroup: 1, bindgroup: this.cameraBind },
     ]);
     this.groundRenderers.forEach((ground) => {
       const transform = this.transforms.get(ground.entityID)!;
@@ -49,17 +49,17 @@ export default class Renderer extends System {
         AuroraBatcher.drawQuad({
           position: {
             x: transform.position.x,
-            y: transform.position.y
+            y: transform.position.y,
           },
           size: {
             width: transform.size.x,
-            height: transform.size.y
+            height: transform.size.y,
           },
           textureToUse: layer.textureIndex,
           tint: layer.tint,
           alpha: layer.alpha,
           crop: layer.cashedCropData,
-          isTexture: layer.isTexture
+          isTexture: layer.isTexture,
         });
       });
     });
@@ -71,17 +71,17 @@ export default class Renderer extends System {
           AuroraBatcher.drawQuad({
             position: {
               x: x,
-              y: y
+              y: y,
             },
             size: {
               width: w,
-              height: h
+              height: h,
             },
             textureToUse: layer.textureIndex,
             tint: layer.tint,
             alpha: layer.alpha,
             crop: layer.cashedCropData,
-            isTexture: layer.isTexture
+            isTexture: layer.isTexture,
           });
         });
       });
@@ -121,14 +121,14 @@ export default class Renderer extends System {
         x: transform.position.get.x,
         y: transform.position.get.y,
         w: transform.size.get.x,
-        h: transform.size.get.y
+        h: transform.size.get.y,
       };
 
     const data = {
       x: transform.position.get.x + layer.offset[0],
       y: transform.position.get.y + layer.offset[1],
       w: layer.offset[2],
-      h: layer.offset[3]
+      h: layer.offset[3],
     };
     if (renderer.isStatic) renderer.layers[layerIndex].cashedOffsetData = data;
 
@@ -139,7 +139,7 @@ export default class Renderer extends System {
     const [projectionUniform] = AuroraBuffer.createProjectionBuffer(
       this.othCam.projectionViewMatrix,
       {
-        writeBufferToGPU: "manual"
+        writeBufferToGPU: "manual",
       }
     );
     this.projectionUniform = projectionUniform;
@@ -150,14 +150,14 @@ export default class Renderer extends System {
           {
             binding: 0,
             visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-            buffer: { type: "uniform" }
-          }
-        ]
+            buffer: { type: "uniform" },
+          },
+        ],
       },
       data: {
         label: "camera renderer bind group",
-        entries: [{ binding: 0, resource: { buffer: projectionUniform } }]
-      }
+        entries: [{ binding: 0, resource: { buffer: projectionUniform } }],
+      },
     });
     const texture = AssetStore.getAsset("GPUAtlas", "char");
     const [texturesBind] = AuroraBindGroup.createBindGroup({
@@ -167,28 +167,28 @@ export default class Renderer extends System {
           {
             binding: 0,
             visibility: GPUShaderStage.FRAGMENT,
-            sampler: {}
+            sampler: {},
           },
           {
             binding: 1,
             visibility: GPUShaderStage.FRAGMENT,
-            texture: { viewDimension: "2d-array" }
-          }
-        ]
+            texture: { viewDimension: "2d-array" },
+          },
+        ],
       },
       data: {
         label: "textures renderer bind group",
         entries: [
           {
             binding: 0,
-            resource: texture.sampler
+            resource: texture.sampler,
           },
           {
             binding: 1,
-            resource: texture.texture.createView()
-          }
-        ]
-      }
+            resource: texture.texture.createView(),
+          },
+        ],
+      },
     });
     this.cameraBind = cameraBind;
     this.textureBind = texturesBind;

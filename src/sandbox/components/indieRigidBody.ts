@@ -1,6 +1,7 @@
-import { clamp } from "../math/engineMath";
-import Vec2D from "../math/vec2D";
-import Component from "../core/ecs/component";
+import Component from "../../core/ecs/component";
+import { clamp } from "../../core/math/engineMath";
+import Vec2D from "../../core/math/vec2D";
+
 export interface IndieRigidBodyProps {
   bodyType: "static" | "dynamic";
   offset?: { x: number; y: number; w: number; h: number };
@@ -30,7 +31,7 @@ export default class IndieRigidBody extends Component {
       friction = 0.1,
       restitution = 0.6,
       speed = 240,
-      offset = undefined
+      offset = undefined,
     }: IndieRigidBodyProps
   ) {
     super(componentProps);

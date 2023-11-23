@@ -1,4 +1,5 @@
-import Component from "../core/ecs/component";
+import Component from "../../core/ecs/component";
+
 export interface MouseEventsProps {
   objectType: "fixed" | "translated";
   action: { left?: string; right?: string; middle?: string };

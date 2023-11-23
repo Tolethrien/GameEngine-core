@@ -1,8 +1,8 @@
-import { canvas } from "../core/engine";
+import { canvas } from "../engine";
 import Mat4 from "../math/mat4";
 
 export const cameraData = {
-  keyPressed: new Set()
+  keyPressed: new Set(),
 };
 
 export default class AuroraCamera {

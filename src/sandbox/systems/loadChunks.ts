@@ -1,11 +1,10 @@
+import System from "../../core/ecs/system";
 import { TransformType } from "../components/transform";
-import System from "../core/ecs/system";
-import { ChunkMapJson } from "../core/ecs/world";
-import Tile from "../map/tile";
+import Tile from "../entities/tile";
 export default class LoadChunks extends System {
   loadedChunks!: number[];
   lastKnownLoadedChunks: number[];
-  map!: ChunkMapJson;
+  map!: object;
   loadingRange: number;
   entityTransform!: GetExplicitComponent<TransformType>;
   entityOnChunk: number;
@@ -33,13 +32,13 @@ export default class LoadChunks extends System {
     const mapChunkLengthY = this.map.mapdata.heightInChunks;
     const entityGridPos = {
       x: Math.floor(this.entityOnChunk / mapChunkLengthX),
-      y: this.entityOnChunk % mapChunkLengthX
+      y: this.entityOnChunk % mapChunkLengthX,
     };
     for (let i = -this.loadingRange; i <= this.loadingRange; i++) {
       for (let j = -this.loadingRange; j <= this.loadingRange; j++) {
         const chunkGridPos = {
           x: entityGridPos.x + i,
-          y: entityGridPos.y + j
+          y: entityGridPos.y + j,
         };
         const chunkIndex = chunkGridPos.x * mapChunkLengthX + chunkGridPos.y;
 
@@ -61,7 +60,10 @@ export default class LoadChunks extends System {
     for (const chunk of this.loadedChunks) {
       if (
         this.entityOnChunk !== chunk &&
-        this.targetInChunk(this.map.chunks[chunk].posInPixels, this.map.chunkData)
+        this.targetInChunk(
+          this.map.chunks[chunk].posInPixels,
+          this.map.chunkData
+        )
       ) {
         this.entityOnChunk = chunk;
         this.getSurroundingChunks();
@@ -71,7 +73,9 @@ export default class LoadChunks extends System {
     }
   }
   private manageTilesSwap() {
-    const added = this.loadedChunks.filter((chunk) => !this.lastKnownLoadedChunks.includes(chunk));
+    const added = this.loadedChunks.filter(
+      (chunk) => !this.lastKnownLoadedChunks.includes(chunk)
+    );
     const removed = this.lastKnownLoadedChunks.filter(
       (chunk) => !this.loadedChunks.includes(chunk)
     );
@@ -85,9 +89,14 @@ export default class LoadChunks extends System {
       const tileList: string[] = [];
       for (let j = 0; j < this.map.chunkData.heightInTiles; j++) {
         for (let i = 0; i < this.map.chunkData.widthInTiles; i++) {
-          const centerX = this.map.chunks[chunkIndex].posInPixels.x + i * tileWidth + tileWidth / 2;
+          const centerX =
+            this.map.chunks[chunkIndex].posInPixels.x +
+            i * tileWidth +
+            tileWidth / 2;
           const centerY =
-            this.map.chunks[chunkIndex].posInPixels.y + j * tileHeight + tileHeight / 2;
+            this.map.chunks[chunkIndex].posInPixels.y +
+            j * tileHeight +
+            tileHeight / 2;
           const tileIndex = j * this.map.chunkData.widthInTiles + i;
           new Tile({
             world: this.worldName,
@@ -100,9 +109,10 @@ export default class LoadChunks extends System {
             rigid: this.map.chunks[chunkIndex].tiles[tileIndex].collider.is
               ? "static-block"
               : undefined,
-            groundData: this.map.chunks[chunkIndex].tiles[tileIndex].ground.length
+            groundData: this.map.chunks[chunkIndex].tiles[tileIndex].ground
+              .length
               ? this.map.chunks[chunkIndex].tiles[tileIndex].ground
-              : undefined
+              : undefined,
           });
         }
       }
@@ -130,13 +140,18 @@ export default class LoadChunks extends System {
       );
   }
 
-  targetInChunk(chunkPosition: { x: number; y: number }, chunkData: ChunkMapJson["chunkData"]) {
+  targetInChunk(
+    chunkPosition: { x: number; y: number },
+    chunkData: ChunkMapJson["chunkData"]
+  ) {
     //TODO: jeden pixel rowny koncowi chunka i poczatkowi nstepnego sprawi ze swiat nie bedzie sie wczytywal jesli po nim idealnie bedzie szedl gracz(<=)
     return (
       this.entityTransform.position.x > chunkPosition.x &&
-      this.entityTransform.position.x < chunkPosition.x + chunkData.widthInPixels &&
+      this.entityTransform.position.x <
+        chunkPosition.x + chunkData.widthInPixels &&
       this.entityTransform.position.y > chunkPosition.y &&
-      this.entityTransform.position.y < chunkPosition.y + chunkData.heightInPixels &&
+      this.entityTransform.position.y <
+        chunkPosition.y + chunkData.heightInPixels &&
       true
     );
   }
