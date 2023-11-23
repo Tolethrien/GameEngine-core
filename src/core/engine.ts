@@ -1,0 +1,134 @@
+import World from "./ecs/world";
+import { ActionsControllerType } from "./ecs/actions";
+import Time from "./time";
+import Aurora from "../aurora/auroraCore";
+
+export const canvas = document.getElementById("gameWindow") as HTMLCanvasElement;
+const framer = document.getElementById("framer")!;
+
+let mod = 0;
+export const filesObjects: Map<string, HTMLImageElement | HTMLAudioElement | OffscreenCanvas> =
+  new Map();
+
+interface EngineConfig {
+  // core: "2d" | "3d"
+  //   renderer: "Aurora";
+  preload: () => Promise<unknown>;
+  setup: () => void;
+}
+
+export default class Engine {
+  private static isInitialized = false;
+  public static worlds: Map<string, WorldType> = new Map();
+  public static activeWorld = "main";
+  public static actions: ActionsControllerType | undefined = undefined;
+  public static globalContext: Map<string, unknown> = Engine.createGlobalContext();
+  public static time: Time = new Time();
+  private static meter: FPSM;
+
+  public static async Initialize({ preload, setup }: EngineConfig) {
+    if (Engine.isInitialized)
+      throw new Error("Engine already Initialize,you can only have one instance of engine");
+    Engine.meter = new FPSMeter();
+    await Aurora.initialize(canvas); // needs to be before preload
+    await preload();
+    Engine.setFirstAuroraFrame();
+    Engine.createDebugFrame();
+    Engine.setGlobalContexts();
+    Engine.addGlobalListeners();
+    setup();
+    Engine.worlds.forEach((world) => world.onStart());
+    Engine.isInitialized = true;
+    Engine.loop();
+  }
+  private static loop() {
+    Engine.time.calculateTimeStamp();
+    Engine.worlds.get(Engine.activeWorld)?.onUpdate();
+    Engine.clearOnFrame();
+    Engine.meter.tick();
+    Engine.framerTick();
+    requestAnimationFrame(Engine.loop);
+  }
+  private static createGlobalContext() {
+    const data: [string, unknown][] = [["EntitiesManipulatedInFrame", { added: [], removed: [] }]];
+    return new Map<string, unknown>(data);
+  }
+  private static framerTick = () => {
+    if (mod % 60 === 0 && mod !== 0) {
+      const fps = String(Math.floor(1000 / Engine.time.getSeconds / 100));
+      const children = framer.children as unknown as HTMLParagraphElement[];
+      children[0].innerText = `FPS: ${fps[0]}${fps[1]},${fps[2]}`;
+      children[1].innerText = `FrameTime: ${(performance.now() - Engine.time.now).toFixed(2)}MS`;
+      children[2].innerText = `CPUTime: 0.0MS`;
+      children[3].innerText = `GPUTime: 0.0MS`;
+      mod = 0;
+    } else mod++;
+  };
+  private static setFirstAuroraFrame() {
+    const encoder = Aurora.device.createCommandEncoder();
+    const commandPass = encoder.beginRenderPass({
+      colorAttachments: [
+        {
+          view: Aurora.context.getCurrentTexture().createView(),
+          loadOp: "clear",
+          storeOp: "store",
+          clearValue: [0, 0, 0, 1]
+        }
+      ]
+    });
+    commandPass.end();
+    Aurora.device.queue.submit([encoder.finish()]);
+  }
+  public static createWorld = (wordlName: string) => {
+    Engine.worlds.set(wordlName, new World(wordlName));
+    return Engine.worlds.get(wordlName)!;
+  };
+  public static addDynamicEntity = <T extends EntityType>(world: string, entity: T) => {
+    entity.world = world;
+    return entity;
+  };
+  public static addActionsController = (controller: ActionsControllerType) => {
+    Engine.actions = controller;
+    Engine.actions?.onStart();
+  };
+  private static createDebugFrame() {
+    let mouseDown = false;
+    let offset = { x: 0, y: 0 };
+    framer.addEventListener("mousedown", function (e) {
+      mouseDown = true;
+      offset = {
+        x: framer.offsetLeft - e.clientX,
+        y: framer.offsetTop - e.clientY
+      };
+    });
+    framer.addEventListener("mouseup", function () {
+      mouseDown = false;
+    });
+    framer.addEventListener("mousemove", function (e) {
+      e.preventDefault();
+      if (mouseDown) {
+        framer.style.left = e.clientX + offset.x + "px";
+        framer.style.top = e.clientY + offset.y + "px";
+      }
+    });
+  }
+  private static setGlobalContexts() {
+    Engine.globalContext.set("EntitiesManipulatedInFrame", { added: [], removed: [] });
+    Engine.globalContext.set("mousePosition", { x: 0, y: 0 });
+    Engine.globalContext.set("mousePressed", false);
+  }
+  private static clearOnFrame() {
+    Engine.globalContext.set("EntitiesManipulatedInFrame", { added: [], removed: [] });
+  }
+  private static addGlobalListeners() {
+    canvas.onmousedown = () => {
+      Engine.globalContext.set("mousePressed", true);
+    };
+    canvas.onmouseup = () => {
+      Engine.globalContext.set("mousePressed", false);
+    };
+    canvas.addEventListener("mousemove", (event) => {
+      Engine.globalContext.set("mousePosition", { x: event.offsetX, y: event.offsetY });
+    });
+  }
+}

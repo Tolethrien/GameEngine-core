@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';"
+    />
     <meta charset="UTF-8" />
     <title>Hello World!</title>
   </head>
   <body>
     <h1>💖 Hello World!</h1>
     <p>Welcome to your Electron application.</p>
-    <script type="module" src="/src/frontend/renderer.ts"></script>
+    <script type="module" src="/src/sandbox/index.ts"></script>
   </body>
 </html>
