@@ -1,5 +1,5 @@
 import Component from "../../core/ecs/component";
-import { clamp } from "../../core/math/engineMath";
+import { clamp } from "../../core/math/math";
 import AssetStore from "../../core/stores/assetStore";
 
 interface GeneralProps {
@@ -31,7 +31,7 @@ interface RendererPassLayer {
   cashedCropData: Float32Array;
   alpha: number;
   tint: Uint8ClampedArray;
-  offset?: { x: number; y: number; w: number; h: number };
+  offset?: [number, number, number, number];
   isTexture: number;
   cashedOffsetData: { x: number; y: number; w: number; h: number } | undefined;
 }
@@ -59,7 +59,9 @@ export default class SpriteRenderer extends Component {
         cashedCropData: new Float32Array([0, 0, 1, 1]),
         textureIndex: 0,
         alpha: props.alpha !== undefined ? clamp(props.alpha, 0, 255) : 255,
-        offset: props.offset ?? undefined,
+        offset: props.offset
+          ? (Object.values(props.offset) as RendererPassLayer["offset"])
+          : undefined,
         tint: new Uint8ClampedArray(props.tint ?? [255, 255, 255]),
         isTexture: 0,
         cashedOffsetData: undefined,
@@ -73,7 +75,9 @@ export default class SpriteRenderer extends Component {
         cashedCropData: new Float32Array([0, 0, 1, 1]),
         textureIndex: index,
         alpha: props.alpha !== undefined ? clamp(props.alpha, 0, 255) : 255,
-        offset: props.offset ?? undefined,
+        offset: props.offset
+          ? (Object.values(props.offset) as RendererPassLayer["offset"])
+          : undefined,
         tint: new Uint8ClampedArray(props.tint ?? [255, 255, 255]),
         isTexture: 1,
         cashedOffsetData: undefined,
@@ -97,7 +101,9 @@ export default class SpriteRenderer extends Component {
           cashedCropData: layerCrop,
           textureIndex: index,
           alpha: layer.alpha !== undefined ? clamp(layer.alpha, 0, 255) : 255,
-          offset: layer.offset ?? undefined,
+          offset: layer.offset
+            ? (Object.values(layer.offset) as RendererPassLayer["offset"])
+            : undefined,
           tint: new Uint8ClampedArray(layer.tint ?? [255, 255, 255]),
           isTexture: 1,
           cashedOffsetData: undefined,

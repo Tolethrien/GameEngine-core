@@ -4,6 +4,7 @@ import char from "../assets/char.png";
 import Engine from "../core/engine";
 import Player from "./entities/player";
 import AssetStore from "../core/stores/assetStore";
+import MyFrame from "../core/debugger/renderStats/renderFrame";
 // import { loadImage } from "./src/engine/core/loadAssets";
 // const canvas = document.getElementById("gameWindow") as HTMLCanvasElement;
 console.log(mapFile);
@@ -34,17 +35,15 @@ function setup() {
   // worldd.addEntity(new Tester(550, 440, "static"));
   // worldd.addEntity(new Tester(630, 440, "static"));
   worldd.addWorldMap(mapFile);
-  worldd.addSystem("keyInputs");
-  worldd.addSystem("mouseInputs");
-  worldd.addSystem("loadChunks");
+  worldd.addSystem("KeyInputs");
+  worldd.addSystem("IndiePhysics");
+  worldd.addSystem("MouseInputs");
+  worldd.addSystem("LoadChunks");
   // tutaj powinno sie wykonywac jakies glowne dodwania
-  worldd.addSystem("indiePhysics");
+  worldd.addSystem("IndiePhysics");
   // worldd.addSystem("animator");
-  worldd.addSystem("cameras");
-  worldd.addSystem("renderer");
+  worldd.addSystem("Cameras");
+  worldd.addSystem("Renderer");
   // worldd.addSystem("lightMap");
 }
 Engine.Initialize({ preload, setup });
-// const ca = document.createElement("canvas");
-// await Aurora.initialize(ca);
-// new Engine(setup, preload);

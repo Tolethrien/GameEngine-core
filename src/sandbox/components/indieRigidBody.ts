@@ -1,5 +1,5 @@
 import Component from "../../core/ecs/component";
-import { clamp } from "../../core/math/engineMath";
+import { clamp } from "../../core/math/math";
 import Vec2D from "../../core/math/vec2D";
 
 export interface IndieRigidBodyProps {

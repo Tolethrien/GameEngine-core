@@ -7,7 +7,7 @@ export interface QuadProps {
   boundry: Boundry;
   depth?: number;
 }
-
+type QuadPathSideIndex = 0 | 1 | 2 | 3;
 export interface DepthQuadTreeType extends DepthQuadTree {}
 export default class DepthQuadTree {
   static maxDepth = 10;
@@ -91,7 +91,7 @@ export default class DepthQuadTree {
     }
     return arr;
   }
-  private insertToQuad(entity: EntityBody, path?: number[]) {
+  private insertToQuad(entity: EntityBody, path?: QuadPathSideIndex[]) {
     if (!path) path = [];
     if (
       this.DepthInTree === 0 &&
@@ -112,7 +112,7 @@ export default class DepthQuadTree {
     return;
   }
 
-  private writeToQuad(entity: EntityBody, path: number[]) {
+  private writeToQuad(entity: EntityBody, path: QuadPathSideIndex[]) {
     DepthQuadTree.quadEntitiesList.set(
       entity.entityId,
       path.map((ind) => DepthQuadTree.indexToDir[ind])

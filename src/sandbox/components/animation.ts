@@ -8,6 +8,7 @@ interface AnimationData {
     startAnimation?: boolean;
   };
 }
+type CashedFrame = Record<number, Float32Array>;
 export interface AnimationProps {
   isAnimate?: boolean;
   stopOnAnimationFinished?: boolean;
@@ -30,7 +31,7 @@ export default class Animation extends Component {
   spriteSheet: { gpuAtlas: string; image: string };
 
   cashedAnimationData: {
-    [key: number]: { x: number; y: number; w: number; h: number };
+    [key: string]: CashedFrame;
   };
 
   constructor(
@@ -62,11 +63,11 @@ export default class Animation extends Component {
       this.spriteSheet.gpuAtlas,
       this.spriteSheet.image
     );
-    const data = {};
+    const data: Record<string, CashedFrame> = {};
     for (const animState in this.animationData) {
       const { numberOfFrames, rowInSpritesheet } =
         this.animationData[animState];
-      const frames = {};
+      const frames: CashedFrame = {};
       Array(numberOfFrames)
         .fill(null)
         .forEach((_, index) => {

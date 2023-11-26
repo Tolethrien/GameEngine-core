@@ -9,6 +9,7 @@ import Aurora from "../../core/aurora/auroraCore";
 import AuroraBuffer from "../../core/aurora/auroraBuffer";
 import AuroraBindGroup from "../../core/aurora/auroraBindGroup";
 import AssetStore from "../../core/stores/assetStore";
+import RenderFrame from "../../core/debugger/renderStats/renderFrame";
 export default class Renderer extends System {
   transforms!: GetComponentsList<TransformType>;
   spriteRenderers!: GetComponentsList<SpriteRendererType>;
@@ -22,13 +23,16 @@ export default class Renderer extends System {
     super(props);
   }
   onStart() {
-    this.transforms = this.getComponents("transform");
-    this.spriteRenderers = this.getComponents("spriteRenderer");
-    this.groundRenderers = this.getComponents("groundRenderer");
-    this.rigids = this.getComponents("indieRigidBody");
-    this.othCam = this.getEntityComponentByTag("orthographicCamera", "player");
+    this.transforms = this.getComponents("Transform");
+    this.spriteRenderers = this.getComponents("SpriteRenderer");
+    this.groundRenderers = this.getComponents("GroundRenderer");
+    this.rigids = this.getComponents("IndieRigidBody");
+    this.othCam = this.getEntityComponentByTag("OrthographicCamera", "player");
     this.createBinds();
-    AuroraBatcher.createBatcher({ backgroundColor: [0, 0, 0, 255] });
+    AuroraBatcher.createBatcher({
+      backgroundColor: [255, 0, 255, 255],
+      maxQuadPerBatch: 10000,
+    });
     console.log(this.spriteRenderers);
   }
   onUpdate() {
@@ -101,6 +105,8 @@ export default class Renderer extends System {
     //   crop: new Float32Array([0, 0, 0, 0]),
     //   isTexture: 0
     // });
+    RenderFrame.swapToGPU();
+    RenderFrame.setQuadCount(AuroraBatcher.numberOfQuadsInBatch);
     AuroraBatcher.endBatch();
   }
   private sortByPositionY = (a: SpriteRendererType, b: SpriteRendererType) => {
@@ -159,7 +165,7 @@ export default class Renderer extends System {
         entries: [{ binding: 0, resource: { buffer: projectionUniform } }],
       },
     });
-    const texture = AssetStore.getAsset("GPUAtlas", "char");
+    const texture = AssetStore.getAsset("GPUTextureAtlas", "char");
     const [texturesBind] = AuroraBindGroup.createBindGroup({
       shaderGroupPosition: 0,
       layout: {

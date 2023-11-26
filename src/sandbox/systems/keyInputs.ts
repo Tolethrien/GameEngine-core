@@ -17,10 +17,10 @@ export default class KeyInputs extends System {
     this.handleKeyInputs();
   }
   onStart() {
-    this.playerRigid = this.getEntityComponentByTag("indieRigidBody", "player");
-    this.playerAnim = this.getEntityComponentByTag("animation", "player");
-    this.othCam = this.getEntityComponentByTag("orthographicCamera", "player");
-    this.pos = this.getEntityComponentByTag("transform", "player");
+    this.playerRigid = this.getEntityComponentByTag("IndieRigidBody", "player");
+    this.playerAnim = this.getEntityComponentByTag("Animation", "player");
+    this.othCam = this.getEntityComponentByTag("OrthographicCamera", "player");
+    this.pos = this.getEntityComponentByTag("Transform", "player");
   }
   onUpdate() {
     let dirX = 0;

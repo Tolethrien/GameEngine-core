@@ -4,14 +4,14 @@ import { canvas } from "../../core/engine";
 import { MouseEventsType } from "../components/mouseEvents";
 import OrthographicCamera from "../components/OrthographicCamera";
 import { TransformType } from "../components/transform";
-type Button = "left" | "right" | "middle" | "hold";
+type Button = "left" | "right" | "middle";
 type mousePosition = { x: number; y: number };
 export default class MouseInputs extends System {
   mouseEvents!: GetComponentsList<MouseEventsType>;
   transforms!: GetComponentsList<TransformType>;
   camera!: GetExplicitComponent<OrthographicCamera>;
   proximityFilterList: Map<string, TransformType>;
-  clearScroll: number | null;
+  clearScroll: NodeJS.Timeout | null;
 
   constructor(props: SystemProps) {
     super(props);
@@ -19,9 +19,9 @@ export default class MouseInputs extends System {
     this.clearScroll = null;
   }
   onStart(): void {
-    this.mouseEvents = this.getComponents("mouseEvents");
-    this.transforms = this.getComponents("transform");
-    this.camera = this.getEntityComponentByTag("orthographicCamera", "player");
+    this.mouseEvents = this.getComponents("MouseEvents");
+    this.transforms = this.getComponents("Transform");
+    this.camera = this.getEntityComponentByTag("OrthographicCamera", "player");
     this.globalContext("set", "mousePosition", { x: 0, y: 0 });
     this.handleCanvasListeners();
   }

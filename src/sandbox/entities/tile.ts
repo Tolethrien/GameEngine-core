@@ -1,6 +1,4 @@
-import { SpriteRendererProps } from "../components/spriteRenderer";
 import { IndieRigidBodyProps } from "../components/indieRigidBody";
-import { TransformProps } from "../components/transform";
 import Entity from "../../core/ecs/entity";
 interface TileData {
   crop: [number, number, number, number];
@@ -33,24 +31,24 @@ export default class Tile extends Entity {
   }: TileProps) {
     super(world);
     tileList.push(this.id);
-    this.addComponent<TransformProps>("transform", {
+    this.addComponent("Transform", {
       position: pos,
       size: size,
       rotation: 0,
     });
     if (rigid) {
       if (rigid === "static-block") {
-        this.addComponent<IndieRigidBodyProps>("indieRigidBody", {
+        this.addComponent("IndieRigidBody", {
           bodyType: "static",
           // friction: 1,
           // mass: 200
         });
       } else {
-        this.addComponent<IndieRigidBodyProps>("indieRigidBody", rigid);
+        this.addComponent("IndieRigidBody", rigid);
       }
     }
     if (groundData) {
-      this.addComponent<SpriteRendererProps>("groundRenderer", {
+      this.addComponent("GroundRenderer", {
         type: "spritesheet",
         image: "vite",
         GPUAtlas: "char",
@@ -66,14 +64,14 @@ export default class Tile extends Entity {
         }),
       });
     } else {
-      this.addComponent<SpriteRendererProps>("groundRenderer", {
+      this.addComponent("GroundRenderer", {
         type: "shape",
         isStatic: true,
         tint: [1, 0, 0],
       });
     }
     if (tileData) {
-      this.addComponent<SpriteRendererProps>("spriteRenderer", {
+      this.addComponent("SpriteRenderer", {
         type: "spritesheet",
         image: "vite",
         GPUAtlas: "char",

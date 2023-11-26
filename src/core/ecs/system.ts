@@ -1,7 +1,4 @@
 import Engine from "../engine";
-import { nameToUpper } from "../utils/utils";
-import World from "./world";
-type EntitiesManipulatedInFrame = { added: string[]; removed: string[] };
 
 export default abstract class System {
   protected worldName: string;
@@ -10,43 +7,38 @@ export default abstract class System {
     this.worldName = props.name;
     this.shared = props.shared;
   }
-  onStart() {}
-  onUpdate() {}
-  getComponents<T = ComponentType>(
-    component: Uncapitalize<keyof AvalibleComponents>
-  ) {
-    //TODO: get component jesli nie znajdzie tej listy wywala error ale jest szansa ze lista powstanie pozniej niz na stworzeniu gry
-    // jesli obiekt z dana lista zostanie dodany pozniej, dynamicznie, ale system dalej bedzie wymagal na poczatku programu by
-    // ta lista istniała
+  onStart() {
+    // ready to override
+  }
+  onUpdate() {
+    //ready to override
+  }
+  getComponents<T = ComponentType>(component: keyof AvalibleComponents) {
     if (
       Engine.worlds.has(this.worldName) &&
-      Engine.worlds
-        .get(this.worldName)!
-        .componentsLists.has(nameToUpper(component))
+      Engine.worlds.get(this.worldName)!.componentsLists.has(component)
     ) {
       return Engine.worlds
         .get(this.worldName)!
-        .componentsLists.get(nameToUpper(component)) as T;
+        .componentsLists.get(component) as T;
     } else
-      throw new ReferenceError(
-        `${this.constructor.name} is trying to get list ${component} but this type of list is not exist in avalible Components.\r\nSee if you added it when creating system `
+      throw console.warn(
+        `${this.constructor.name} is trying to get list ${component} but this type of list is not exist in avalible Components.\r\nSee if you added it when creating system or ake sure it will be created before accesing `
       );
   }
 
   getEntityComponentByTag<T = ComponentType>(
-    component: Uncapitalize<keyof AvalibleComponents>,
+    component: keyof AvalibleComponents,
     tag: string
   ) {
     if (
       Engine.worlds.has(this.worldName) &&
-      Engine.worlds
-        .get(this.worldName)
-        ?.componentsLists.has(nameToUpper(component))
+      Engine.worlds.get(this.worldName)?.componentsLists.has(component)
     ) {
       const entityFound = Array.from(
         Engine.worlds
           .get(this.worldName)!
-          .componentsLists.get(nameToUpper(component))!
+          .componentsLists.get(component)!
           .values()
       ).find((element) => element.entityTags.includes(tag));
       if (entityFound) return entityFound as T;
@@ -55,35 +47,20 @@ export default abstract class System {
       `${this.constructor.name} is trying to get list ${component} but this type of list is not exist in avalible Components `
     );
   }
-  getEntityComponentByID() {}
+  // getEntityComponentByID() {}
   getEntitiesManipulatedInFrame() {
     return Engine.globalContext.get("EntitiesManipulatedInFrame") as {
       added: string[];
       removed: string[];
     };
   }
-  getMapChunks() {
-    if (Engine.worlds.has(this.worldName))
-      return Engine.worlds.get(this.worldName)!.worldChunks;
-    else
-      throw new ReferenceError(
-        `${this.constructor.name} trying to get all Chunks from the world ${this.worldName} but they are undefined`
-      );
-  }
+
   getMapData() {
     if (!Engine.worlds.has(this.worldName))
       throw new ReferenceError(
         `${this.constructor.name} trying to get mapData from the world ${this.worldName} but they are undefined`
       );
     return Engine.worlds.get(this.worldName)!.mapData;
-  }
-  getLoadedChunks() {
-    if (Engine.worlds.has(this.worldName))
-      return Engine.worlds.get(this.worldName)!.loadedChunks;
-    else
-      throw new ReferenceError(
-        `${this.constructor.name} trying to get loaded Chunks from the world ${this.worldName} but they are undefined`
-      );
   }
 
   globalContext(

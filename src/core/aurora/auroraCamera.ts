@@ -24,26 +24,27 @@ export default class AuroraCamera {
     this.maxZoom = 10;
     this.minZoom = 0.1;
 
-    // window.onkeydown = (event: KeyboardEvent) => {
-    //   const pressedKey = event.key === " " ? "space" : event.key;
-    //   !event.repeat && cameraData.keyPressed.add(pressedKey);
-    // };
-    // window.onkeyup = (event: KeyboardEvent) => {
-    //   const pressedKey = event.key === " " ? "space" : event.key;
-    //   cameraData.keyPressed.has(pressedKey) && cameraData.keyPressed.delete(pressedKey);
-    // };
+    window.onkeydown = (event: KeyboardEvent) => {
+      const pressedKey = event.key === " " ? "space" : event.key;
+      !event.repeat && cameraData.keyPressed.add(pressedKey);
+    };
+    window.onkeyup = (event: KeyboardEvent) => {
+      const pressedKey = event.key === " " ? "space" : event.key;
+      cameraData.keyPressed.has(pressedKey) &&
+        cameraData.keyPressed.delete(pressedKey);
+    };
 
     //===========================================
   }
   update() {
-    // if (cameraData.keyPressed.has("d")) this.x += this.speed;
-    // else if (cameraData.keyPressed.has("a")) this.x -= this.speed;
-    // if (cameraData.keyPressed.has("w")) this.y -= this.speed;
-    // else if (cameraData.keyPressed.has("s")) this.y += this.speed;
-    // if (cameraData.keyPressed.has("n"))
-    //   this.zoom > this.minZoom && (this.zoom -= 0.01 * Math.log(this.zoom + 1));
-    // else if (cameraData.keyPressed.has("m"))
-    //   this.zoom < this.maxZoom && (this.zoom += 0.01 * Math.log(this.zoom + 1));
+    if (cameraData.keyPressed.has("d")) this.x += this.speed;
+    else if (cameraData.keyPressed.has("a")) this.x -= this.speed;
+    if (cameraData.keyPressed.has("w")) this.y -= this.speed;
+    else if (cameraData.keyPressed.has("s")) this.y += this.speed;
+    if (cameraData.keyPressed.has("n"))
+      this.zoom > this.minZoom && (this.zoom -= 0.01 * Math.log(this.zoom + 1));
+    else if (cameraData.keyPressed.has("m"))
+      this.zoom < this.maxZoom && (this.zoom += 0.01 * Math.log(this.zoom + 1));
 
     this.projectionViewMatrix = Mat4.create()
       .ortho(

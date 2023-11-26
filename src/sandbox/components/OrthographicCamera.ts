@@ -7,6 +7,7 @@ export interface OrthographicCameraProps {
   zoom?: number;
   offset?: { x: number; y: number };
   position?: { x: number; y: number };
+  zoomClamp?: { min: number; max: number };
 }
 export interface OrthographicCameraType extends OrthographicCamera {}
 export default class OrthographicCamera extends Component {
@@ -25,6 +26,7 @@ export default class OrthographicCamera extends Component {
     {
       zoom = 1,
       offset = { x: canvas.width / 2, y: canvas.height / 2 },
+      zoomClamp = { min: 0.1, max: 10 },
     }: OrthographicCameraProps
   ) {
     super(componentProps);
@@ -36,29 +38,7 @@ export default class OrthographicCamera extends Component {
     this.x = canvas.width / 2;
     this.y = canvas.height / 2;
     this.speed = 5;
-    // this.zoom = 1;
-    this.maxZoom = 10;
-    this.minZoom = 0.1;
+    this.minZoom = zoomClamp.min;
+    this.maxZoom = zoomClamp.max;
   }
 }
-// export interface OrthographicCameraProps {
-//   zoom?: number;
-//   offset?: { x: number; y: number };
-//   position?: { x: number; y: number };
-// }
-// export interface OrthographicCameraType extends OrthographicCamera {}
-// export default class OrthographicCamera extends Component {
-//   zoom: number;
-//   offset: { x: number; y: number };
-//   position: Vec2DType;
-
-//   constructor(
-//     componentProps: ComponentProps,
-//     { zoom = 1, offset = { x: canvas.width / 2, y: canvas.height / 2 } }: OrthographicCameraProps
-//   ) {
-//     super(componentProps);
-//     this.zoom = zoom;
-//     this.offset = offset;
-//     this.position = Vec2D.Zero;
-//   }
-// }

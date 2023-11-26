@@ -1,21 +1,11 @@
-import { OrthographicCameraProps } from "../components/OrthographicCamera";
-import { AnimationProps } from "../components/animation";
-import { SpriteRendererProps } from "../components/spriteRenderer";
-import { IndieRigidBodyProps } from "../components/indieRigidBody";
-import { MouseEventsProps } from "../components/mouseEvents";
-import { PointLightProps } from "../components/pointLight";
-import { TransformProps } from "../components/transform";
 import tete from "../../assets/webGpuMap.json";
 import Entity from "../../core/ecs/entity";
 export default class Tester extends Entity {
   constructor(x, y, z, p, f) {
     super();
-    //TODO: zastanowic sie czy nie lepiej zrobic bazy obiektow i po prostu odnosci sie do niej zamiast przekazywac kazdemu obiektowi crop
-    //TODO: w sumie nie musisz miec chunkow, mozesz tile wczytywac bezposrednio z jsona, a zmienianie chunkow moze odbywac sie na tym ze jesli player jest wiecej niz promien chunka to ustaw odpowiedni nastepny ergo wczytaj odpowiednie nowe
-    //TODO: wczytanie chunka to po prostu stworzenie nowych tilow dla niego, bezposrednio z JSONA za pomoca indexu
     const tetedata = tete.chunks[0].tiles[0].tileData;
     this.addTag("tester");
-    this.addComponent<SpriteRendererProps>("spriteRenderer", {
+    this.addComponent("SpriteRenderer", {
       type: "spritesheet",
       image: "vite",
       GPUAtlas: "char",
@@ -31,18 +21,13 @@ export default class Tester extends Entity {
         };
       }),
     });
-    this.addComponent<TransformProps>("transform", {
+    this.addComponent("Transform", {
       position: { x: x, y: y },
       size: { width: 32, height: 32 },
       rotation: 0,
     });
-    // this.addComponent<MeshProps>("mesh", {
-    //   type: "shape",
-    //   round: 0,
-    //   color: [255, 250, 0],
-    //   alpha: 0.5
-    // });
-    this.addComponent<AnimationProps>("animation", {
+
+    this.addComponent("Animation", {
       animationSpeed: 8,
       state: "down",
       animationData: {
@@ -55,16 +40,16 @@ export default class Tester extends Entity {
       cropSize: { height: 32, width: 32 },
       spriteSheet: { gpuAtlas: "char", image: "vite" },
     });
-    this.addComponent<IndieRigidBodyProps>("indieRigidBody", {
+    this.addComponent("IndieRigidBody", {
       bodyType: z,
       mass: p,
       friction: f,
     });
-    this.addComponent<MouseEventsProps>("mouseEvents", {
+    this.addComponent("MouseEvents", {
       action: { left: "sdsd", right: "sss" },
       objectType: "translated",
     });
-    this.addComponent<PointLightProps>("pointLight", {
+    this.addComponent("PointLight", {
       color: "red",
       intencity: 5,
       typeOfLight: "radial",

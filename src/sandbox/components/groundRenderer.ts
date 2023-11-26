@@ -1,5 +1,5 @@
 import Component from "../../core/ecs/component";
-import { clamp } from "../../core/math/engineMath";
+import { clamp } from "../../core/math/math";
 import AssetStore from "../../core/stores/assetStore";
 
 interface GeneralProps {

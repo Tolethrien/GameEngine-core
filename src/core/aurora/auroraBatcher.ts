@@ -13,18 +13,19 @@ interface SpriteProps {
   alpha: number;
   isTexture: number;
 }
-
-const MAX_NUMBER_OF_QUADS_PER_BATCH = 60000;
+type BindGroupsData = { shaderGroup: number; bindgroup: GPUBindGroup }[];
+type BatcherOptions = typeof OPTIONS_TEMPLATE;
+const OPTIONS_TEMPLATE = {
+  backgroundColor: [0, 0, 0, 255],
+  maxQuadPerBatch: 10000,
+};
+const MAX_NUMBER_OF_QUADS_PER_BATCH = OPTIONS_TEMPLATE.maxQuadPerBatch;
 const VERTEX_ATT_COUNT = 8;
 const ADDDATA_ATT_COUNT = 6;
 const INDICIES_PER_QUAD = 6;
 
-type BindGroupsData = { shaderGroup: number; bindgroup: GPUBindGroup }[];
-interface BatcherOptions {
-  backgroundColor: [number, number, number, number];
-}
 export default class AuroraBatcher {
-  private static numberOfQuadsInBatch = 0;
+  public static numberOfQuadsInBatch = 0;
   private static vertexBuffer: GPUBuffer;
   private static indexBuffer: GPUBuffer;
   private static addDataBuffer: GPUBuffer;
@@ -168,8 +169,9 @@ export default class AuroraBatcher {
   }
   private static createPipeline() {
     const shader = AuroraShader.createShader(universalShader, "shader shader");
+    //TODO: rozkminic liczenie długosci strida ktory ma i floaty i uinty i polaczyc buffery w jeden
     const vertexBufferLayout: GPUVertexBufferLayout = {
-      arrayStride: 8 * Float32Array.BYTES_PER_ELEMENT, // ile bitow skipu do nastepnego verta(x,y - 2 floaty po 4 bajty = 8)
+      arrayStride: 8 * Float32Array.BYTES_PER_ELEMENT,
       stepMode: "instance",
       attributes: [
         {
@@ -190,7 +192,7 @@ export default class AuroraBatcher {
       ],
     };
     const addDataBufferLayout: GPUVertexBufferLayout = {
-      arrayStride: 6 * Uint32Array.BYTES_PER_ELEMENT, // ile bitow skipu do nastepnego verta(x,y - 2 floaty po 4 bajty = 8)
+      arrayStride: 6 * Uint32Array.BYTES_PER_ELEMENT,
       stepMode: "instance",
       attributes: [
         {
@@ -226,18 +228,8 @@ export default class AuroraBatcher {
     });
   }
   private static setOptions(options?: BatcherOptions) {
-    const template: BatcherOptions = {
-      backgroundColor: [255, 255, 255, 255],
-    };
-    const result = {};
-    if (!options) return template;
-    for (const key in template) {
-      if (options.backgroundColor) {
-        result["backgroundColor"] = normalizeColor(
-          options.backgroundColor ?? template.backgroundColor
-        );
-      } else result[key] = options[key] ?? template[key];
-    }
-    return result as BatcherOptions;
+    const template = { ...OPTIONS_TEMPLATE, ...options };
+    template.backgroundColor = normalizeColor(template.backgroundColor);
+    return template;
   }
 }

@@ -29,8 +29,8 @@ export default class indiePhysics extends System {
     this.debugQuad = false;
   }
   onStart() {
-    this.rigidBodies = this.getComponents("indieRigidBody");
-    this.transforms = this.getComponents("transform");
+    this.rigidBodies = this.getComponents("IndieRigidBody");
+    this.transforms = this.getComponents("Transform");
     this.createQuad();
   }
 

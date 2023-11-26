@@ -1,5 +1,4 @@
-import { avalibleSystems } from "src/sandbox/ECSList";
-import { nameToUpper } from "../utils/utils";
+import { avalibleSystems } from "../../sandbox/ECSList";
 
 export default abstract class SystemsGroup {
   /**
@@ -13,13 +12,11 @@ export default abstract class SystemsGroup {
     this.worldName = props.name;
     this.systemsList = new Map();
   }
-  addSystem(system: Uncapitalize<keyof avalibleSystems>) {
-    const createdSystem = new avalibleSystems[
-      nameToUpper(system as keyof avalibleSystems)
-    ]({
+  addSystem(system: keyof AvalibleSystems) {
+    const createdSystem = new avalibleSystems[system]({
       name: this.worldName,
       shared: this.shared,
-    } as SystemProps);
+    });
     this.systemsList.set(createdSystem.constructor.name, createdSystem);
   }
   removeSystem(name: string) {

@@ -1,5 +1,4 @@
 import Engine from "../engine";
-import { nameToUpper } from "../utils/utils";
 export interface UseProps {
   entityId: string;
   [key: string]: unknown;
@@ -11,37 +10,31 @@ export abstract class Actions {
   }
   abstract useAction(props: UseProps): void;
   abstract onStart(): void;
-  getComponents<T = ComponentType>(
-    component: Uncapitalize<keyof AvalibleComponents>
-  ) {
+  getComponents<T = ComponentType>(component: keyof AvalibleComponents) {
     if (
       Engine.worlds.has(this.worldName) &&
-      Engine.worlds
-        .get(this.worldName)!
-        .componentsLists.has(nameToUpper(component))
+      Engine.worlds.get(this.worldName)!.componentsLists.has(component)
     ) {
       return Engine.worlds
         .get(this.worldName)!
-        .componentsLists.get(nameToUpper(component)) as T;
+        .componentsLists.get(component) as T;
     } else
       throw new Error(
         `Action: ${this.constructor.name} is trying to get list ${component} but this type of list is not exist in avalible Components.\r\nSee if you added it when creating system or create Actions in right order`
       );
   }
   getEntityComponentByTag<T = ComponentType>(
-    component: Uncapitalize<keyof AvalibleComponents>,
+    component: keyof AvalibleComponents,
     tag: string
   ) {
     if (
       Engine.worlds.has(this.worldName) &&
-      Engine.worlds
-        .get(this.worldName)
-        ?.componentsLists.has(nameToUpper(component))
+      Engine.worlds.get(this.worldName)?.componentsLists.has(component)
     ) {
       const entityFound = Array.from(
         Engine.worlds
           .get(this.worldName)!
-          .componentsLists.get(nameToUpper(component))!
+          .componentsLists.get(component)!
           .values()
       ).find((element) => element.entityTags.includes(tag));
       if (entityFound) return entityFound as T;

@@ -19,7 +19,7 @@ export default class LoadChunks extends System {
   }
   onStart() {
     this.map = this.getMapData()!;
-    this.entityTransform = this.getEntityComponentByTag("transform", "player");
+    this.entityTransform = this.getEntityComponentByTag("Transform", "player");
     this.getFirstChunk();
     this.getSurroundingChunks();
     this.addTiles(this.loadedChunks);

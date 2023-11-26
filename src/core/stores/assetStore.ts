@@ -3,14 +3,14 @@ interface AssetsStore {
   sound: Map<string, typetype["sound"]>;
   image: Map<string, typetype["image"]>;
   GPUTexture: Map<string, typetype["GPUTexture"]>;
-  GPUTextureAtlas: Map<string, typetype["GPUAtlas"]>;
+  GPUTextureAtlas: Map<string, typetype["GPUTextureAtlas"]>;
 }
 type GPUAtlasDataReturn = {
   name: string;
   image: HTMLImageElement;
   index: number;
 };
-type AssetsTypes = "sound" | "image" | "GPUTexture" | "GPUAtlas";
+type AssetsTypes = "sound" | "image" | "GPUTexture" | "GPUTextureAtlas";
 interface typetype {
   sound: HTMLAudioElement;
   image: HTMLImageElement;
@@ -19,7 +19,7 @@ interface typetype {
     texture: GPUTexture;
     sampler: GPUSampler;
   };
-  GPUAtlas: {
+  GPUTextureAtlas: {
     texture: GPUTexture;
     sampler: GPUSampler;
     data: { name: string; image: HTMLImageElement; index: number }[];
@@ -29,7 +29,7 @@ type AssetTypeMap = {
   sound: typetype["sound"];
   image: typetype["image"];
   GPUTexture: typetype["GPUTexture"];
-  GPUAtlas: typetype["GPUAtlas"];
+  GPUTextureAtlas: typetype["GPUTextureAtlas"];
 };
 export default class AssetStore {
   private static store: AssetsStore = {
@@ -50,7 +50,7 @@ export default class AssetStore {
       case "sound":
         asset = AssetStore.store.sound.get(name);
         break;
-      case "GPUAtlas":
+      case "GPUTextureAtlas":
         asset = AssetStore.store.GPUTextureAtlas.get(name);
         break;
       case "GPUTexture":
@@ -63,7 +63,7 @@ export default class AssetStore {
       throw new Error(
         `Error occur trying to load asset "${name}", in Store.${assetType}. Asset not found`
       );
-    return asset;
+    return asset as AssetTypeMap[T];
   }
   static get getStore() {
     return AssetStore.store;

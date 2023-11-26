@@ -1,9 +1,8 @@
 import { avalibleSystems, avalibleSystemsGroups } from "../../sandbox/ECSList";
-import { nameToUpper } from "../utils/utils";
 
 export default class World {
   componentsLists: Map<string, Map<string, ComponentType>>;
-  systemsList: Map<string, SystemType>;
+  systemsList: Map<string, SystemType | SystemsGroupType>;
   mapData: object | undefined;
 
   private worldName: string;
@@ -13,18 +12,20 @@ export default class World {
     this.mapData = undefined;
     this.worldName = name;
   }
-  addSystem(system: Uncapitalize<keyof avalibleSystems>) {
+  addSystem(system: keyof AvalibleSystems) {
     const createdSystem = new avalibleSystems[
-      nameToUpper(system as keyof avalibleSystems)
+      system as keyof AvalibleSystems | "CoreSystem"
     ]({
       name: this.worldName,
     } as SystemProps);
     this.systemsList.set(createdSystem.constructor.name, createdSystem);
   }
-  addSystemsGroup(systemsGroup: Uncapitalize<keyof avalibleSystemsGroups>) {
+  addSystemsGroup(systemsGroup: keyof AvalibleSystemsGroups) {
     const createdSystemsGroup = new avalibleSystemsGroups[
-      nameToUpper(systemsGroup as keyof avalibleSystemsGroups)
-    ]({ name: this.worldName });
+      systemsGroup as keyof AvalibleSystemsGroups | "CoreGroupSystem"
+    ]({
+      name: this.worldName,
+    });
     this.systemsList.set(
       createdSystemsGroup.constructor.name,
       createdSystemsGroup
@@ -48,11 +49,12 @@ export default class World {
   }
   addWorldMap(map: object) {
     this.mapData = map;
-    // new MapECS(map, this.worldChunks, this.worldName);
   }
   addEntity(entity: EntityType) {
     entity.world = this.worldName;
     entity.distributeComponents();
   }
-  addActions() {}
+  addActions() {
+    //todo
+  }
 }

@@ -2,13 +2,13 @@ import World from "./ecs/world";
 import { ActionsControllerType } from "./ecs/actions";
 import Time from "./utils/timers/time";
 import Aurora from "./aurora/auroraCore";
-
+import "../css/index.css";
+import AuroraBatcher from "./aurora/auroraBatcher";
+import DebugFrame from "./debugger/renderStats/renderFrame";
 export const canvas = document.getElementById(
   "gameWindow"
 ) as HTMLCanvasElement;
-const framer = document.getElementById("framer")!;
 
-let mod = 0;
 export const filesObjects: Map<
   string,
   HTMLImageElement | HTMLAudioElement | OffscreenCanvas
@@ -38,7 +38,7 @@ export default class Engine {
     await Aurora.initialize(canvas); // needs to be before preload
     await preload();
     Engine.setFirstAuroraFrame();
-    Engine.createDebugFrame();
+    DebugFrame.Initialize();
     Engine.setGlobalContexts();
     Engine.addGlobalListeners();
     setup();
@@ -48,9 +48,15 @@ export default class Engine {
   }
   private static loop() {
     Engine.time.calculateTimeStamp();
+    DebugFrame.start();
     Engine.worlds.get(Engine.activeWorld)?.onUpdate();
     Engine.clearOnFrame();
-    Engine.framerTick();
+    // DebugFrame.tick(
+    //   Engine.time.now,
+    //   Engine.time.getSeconds,
+    //   AuroraBatcher.numberOfQuadsInBatch
+    // );
+    DebugFrame.stop();
     requestAnimationFrame(Engine.loop);
   }
   private static createGlobalContext() {
@@ -59,19 +65,7 @@ export default class Engine {
     ];
     return new Map<string, unknown>(data);
   }
-  private static framerTick = () => {
-    if (mod % 60 === 0 && mod !== 0) {
-      const fps = String(Math.floor(1000 / Engine.time.getSeconds / 100));
-      const children = framer.children as unknown as HTMLParagraphElement[];
-      children[0].innerText = `FPS: ${fps[0]}${fps[1]},${fps[2]}`;
-      children[1].innerText = `FrameTime: ${(
-        performance.now() - Engine.time.now
-      ).toFixed(2)}MS`;
-      children[2].innerText = `CPUTime: 0.0MS`;
-      children[3].innerText = `GPUTime: 0.0MS`;
-      mod = 0;
-    } else mod++;
-  };
+
   private static setFirstAuroraFrame() {
     const encoder = Aurora.device.createCommandEncoder();
     const commandPass = encoder.beginRenderPass({
@@ -102,27 +96,6 @@ export default class Engine {
     Engine.actions = controller;
     Engine.actions?.onStart();
   };
-  private static createDebugFrame() {
-    let mouseDown = false;
-    let offset = { x: 0, y: 0 };
-    framer.addEventListener("mousedown", function (e) {
-      mouseDown = true;
-      offset = {
-        x: framer.offsetLeft - e.clientX,
-        y: framer.offsetTop - e.clientY,
-      };
-    });
-    framer.addEventListener("mouseup", function () {
-      mouseDown = false;
-    });
-    framer.addEventListener("mousemove", function (e) {
-      e.preventDefault();
-      if (mouseDown) {
-        framer.style.left = e.clientX + offset.x + "px";
-        framer.style.top = e.clientY + offset.y + "px";
-      }
-    });
-  }
   private static setGlobalContexts() {
     Engine.globalContext.set("EntitiesManipulatedInFrame", {
       added: [],

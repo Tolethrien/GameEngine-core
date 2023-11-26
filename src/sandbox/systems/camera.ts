@@ -10,8 +10,8 @@ export default class Cameras extends System {
     super(props);
   }
   onStart() {
-    this.playerTransform = this.getEntityComponentByTag("transform", "player");
-    this.othCam = this.getEntityComponentByTag("orthographicCamera", "player");
+    this.playerTransform = this.getEntityComponentByTag("Transform", "player");
+    this.othCam = this.getEntityComponentByTag("OrthographicCamera", "player");
   }
 
   onUpdate() {
@@ -48,10 +48,4 @@ export default class Cameras extends System {
       .multiply(this.othCam.view)
       .scale(this.othCam.zoom);
   }
-  // findPosition() {
-  //   return new Vec2D([
-  //     this.playerTransform.position.get.x * this.othCam.zoom - this.othCam.offset.x,
-  //     this.playerTransform.position.get.y * this.othCam.zoom - this.othCam.offset.y
-  //   ]);
-  // }
 }

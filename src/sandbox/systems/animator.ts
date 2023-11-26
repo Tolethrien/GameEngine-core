@@ -8,8 +8,8 @@ export default class Animator extends System {
     super(list);
   }
   onStart() {
-    this.animations = this.getComponents("animation");
-    this.spriteRenderers = this.getComponents("spriteRenderer");
+    this.animations = this.getComponents("Animation");
+    this.spriteRenderers = this.getComponents("SpriteRenderer");
   }
   onUpdate() {
     this.animations.forEach((animation) => {
@@ -32,6 +32,7 @@ export default class Animator extends System {
               animation.animationData[animation.state].numberOfFrames
           ) {
             animation.currentFrame++;
+            //TODO: animacja teraz nie dziala bo dodales layery wiec cashed jest w nim a nie globalny
             this.spriteRenderers.get(animation.entityID)!.cashedCropData =
               animation.cashedAnimationData[animation.state][
                 animation.currentFrame

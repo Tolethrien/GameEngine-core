@@ -10,9 +10,12 @@ import {
 } from "../sandbox/ECSList";
 import Component from "../core/ecs/component";
 declare global {
-  type AvalibleComponents = typeof avalibleComponents;
-  type avalibleSystems = typeof avalibleSystems;
-  type avalibleSystemsGroups = typeof avalibleSystemsGroups;
+  type AvalibleComponents = Omit<typeof avalibleComponents, "CoreComponent">;
+  type AvalibleSystems = Omit<typeof avalibleSystems, "CoreSystem">;
+  type AvalibleSystemsGroups = Omit<
+    typeof avalibleSystemsGroups,
+    "CoreGroupSystem"
+  >;
   type GetComponentsList<T> = Map<string, T>;
   type GetExplicitComponent<T> = Required<T>;
   type SystemProps = { name: string; shared?: Map<string, unknown> };
@@ -22,6 +25,9 @@ declare global {
   interface SystemsGroupType extends SystemsGroup {}
   interface WorldType extends World {}
   interface EntityType extends Entity {}
+  type EntitiesManipulatedInFrame = { added: string[]; removed: string[] };
+  type SystemInitType<T> = Record<string, new (props: SystemProps) => T>;
+
   interface ComponentProps {
     entityID: string;
     entityTags: string[];

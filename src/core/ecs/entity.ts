@@ -1,7 +1,7 @@
 import { avalibleComponents } from "../../sandbox/ECSList";
 import Engine from "../engine";
-import { nameToUpper } from "../utils/utils";
-type EntitiesManipulatedInFrame = { added: string[]; removed: string[] };
+// import { nameToUpper } from "../utils/utils";
+
 export default abstract class Entity {
   id: string;
   tags: string[];
@@ -13,14 +13,15 @@ export default abstract class Entity {
     this.components = new Map();
     this.world = worldName ?? "";
   }
-  addComponent<T = unknown>(
-    component: Uncapitalize<keyof AvalibleComponents>,
-    props?: T
+  addComponent<K extends keyof AvalibleComponents>(
+    component: K,
+    props?: ConstructorParameters<(typeof avalibleComponents)[K]>[1]
   ) {
     this.components.set(
       component,
-      new avalibleComponents[nameToUpper(component)](
+      new avalibleComponents[component as K | "CoreComponent"](
         { entityID: this.id, entityTags: this.tags },
+        // @ts-ignore
         props ?? {}
       )
     );
@@ -30,13 +31,11 @@ export default abstract class Entity {
     if (world) {
       Entity.setManipulatedEntities("add", this.id);
       this.components.forEach((component, componentName) => {
-        if (world.componentsLists.has(nameToUpper(componentName)))
-          world.componentsLists
-            .get(nameToUpper(componentName))
-            ?.set(this.id, component);
+        if (world.componentsLists.has(componentName))
+          world.componentsLists.get(componentName)?.set(this.id, component);
         else
           world.componentsLists.set(
-            nameToUpper(componentName),
+            componentName,
             new Map().set(this.id, component)
           );
       });
