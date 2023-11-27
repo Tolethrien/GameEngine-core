@@ -1,8 +1,8 @@
 {
-  "name": "core",
-  "productName": "core",
+  "name": "game-engine-core",
+  "productName": "game-engine-core",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "dev branch of a core element of engine",
   "main": ".vite/build/main.js",
   "scripts": {
     "dev": "electron-forge start",
