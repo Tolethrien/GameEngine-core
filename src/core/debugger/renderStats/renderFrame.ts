@@ -66,7 +66,6 @@ export default class RenderFrame {
       mouseDown = false;
     });
     this.frame.addEventListener("mousemove", (e) => {
-      //   e.preventDefault();
       if (mouseDown) {
         this.frame.style.left = e.clientX + offset.x + "px";
         this.frame.style.top = e.clientY + offset.y + "px";

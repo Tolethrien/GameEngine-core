@@ -8,46 +8,41 @@ export default class Animator extends System {
     super(list);
   }
   onStart() {
-    this.animations = this.getComponents("Animation");
-    this.spriteRenderers = this.getComponents("SpriteRenderer");
+    this.animations = this.getComponents("Animation")!;
+    this.spriteRenderers = this.getComponents("SpriteRenderer")!;
   }
   onUpdate() {
     this.animations.forEach((animation) => {
-      if (this.spriteRenderers.get(animation.entityID)?.type !== "spritesheet")
-        return;
-      if (animation.isAnimate && this.spriteRenderers.has(animation.entityID)) {
+      const renderer = this.spriteRenderers.get(animation.entityID);
+      if (!renderer || renderer?.type !== "spritesheet") return;
+      animation.layerData.forEach((layer) => {
+        if (!layer.isAnimate) return;
         if (
-          animation.frameCounter >=
-          animation.animationSpeed *
-            animation.animationData[animation.state].numberOfFrames
+          layer.frameCounter >=
+          layer.animationSpeed *
+            animation.animationData[layer.state].numberOfFrames
+        )
+          layer.frameCounter = 0;
+        layer.frameCounter++;
+        if (layer.frameCounter % layer.animationSpeed !== 0) return;
+        if (
+          layer.frameCounter <
+          layer.animationSpeed *
+            animation.animationData[layer.state].numberOfFrames
         ) {
-          animation.frameCounter = 0;
-        }
-        animation.frameCounter++;
-        if (animation.frameCounter % animation.animationSpeed === 0) {
-          // console.log(animation.frameCounter);
-          if (
-            animation.frameCounter <
-            animation.animationSpeed *
-              animation.animationData[animation.state].numberOfFrames
-          ) {
-            animation.currentFrame++;
-            //TODO: animacja teraz nie dziala bo dodales layery wiec cashed jest w nim a nie globalny
-            this.spriteRenderers.get(animation.entityID)!.cashedCropData =
-              animation.cashedAnimationData[animation.state][
-                animation.currentFrame
-              ];
+          layer.currentFrame++;
+          renderer.layers[layer.renderLayerIndex].cashedCropData =
+            animation.cashedAnimationData[layer.state][layer.currentFrame];
+        } else {
+          if (layer.stopOnAnimationFinished) {
+            layer.isAnimate = false;
           } else {
-            animation.stopOnAnimationFinished
-              ? (animation.isAnimate = false)
-              : ((animation.currentFrame = 0),
-                (this.spriteRenderers.get(animation.entityID)!.cashedCropData =
-                  animation.cashedAnimationData[animation.state][
-                    animation.currentFrame
-                  ]));
+            layer.currentFrame = 0;
+            renderer.layers[layer.renderLayerIndex].cashedCropData =
+              animation.cashedAnimationData[layer.state][layer.currentFrame];
           }
         }
-      }
+      });
     });
   }
 }

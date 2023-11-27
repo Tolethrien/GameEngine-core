@@ -22,7 +22,7 @@ export default abstract class System {
         .get(this.worldName)!
         .componentsLists.get(component) as T;
     } else
-      throw console.warn(
+      console.warn(
         `${this.constructor.name} is trying to get list ${component} but this type of list is not exist in avalible Components.\r\nSee if you added it when creating system or ake sure it will be created before accesing `
       );
   }

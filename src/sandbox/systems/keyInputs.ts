@@ -26,17 +26,17 @@ export default class KeyInputs extends System {
     let dirX = 0;
     let dirY = 0;
     if (this.keyPressed.has("w")) {
-      this.playerAnim.state = "top";
+      this.playerAnim.layerData[0].state = "top";
       dirY--;
     } else if (this.keyPressed.has("s")) {
-      this.playerAnim.state = "down";
+      this.playerAnim.layerData[0].state = "down";
       dirY++;
     }
     if (this.keyPressed.has("a")) {
-      this.playerAnim.state = "left";
+      this.playerAnim.layerData[0].state = "left";
       dirX--;
     } else if (this.keyPressed.has("d")) {
-      this.playerAnim.state = "right";
+      this.playerAnim.layerData[0].state = "right";
       dirX++;
     }
     if (this.keyPressed.has("ArrowRight"))

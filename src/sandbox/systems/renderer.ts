@@ -33,11 +33,9 @@ export default class Renderer extends System {
       backgroundColor: [255, 0, 255, 255],
       maxQuadPerBatch: 10000,
     });
-    console.log(this.spriteRenderers);
   }
   onUpdate() {
     AuroraBatcher.startBatch();
-
     Aurora.device.queue.writeBuffer(
       this.projectionUniform,
       0,
@@ -47,9 +45,14 @@ export default class Renderer extends System {
       { shaderGroup: 0, bindgroup: this.textureBind },
       { shaderGroup: 1, bindgroup: this.cameraBind },
     ]);
-    this.groundRenderers.forEach((ground) => {
+    this.groundRenderers?.forEach((ground) => {
       const transform = this.transforms.get(ground.entityID)!;
       ground.layers.forEach((layer) => {
+        //TODO: blad gdzie na poczatku gry masz skos 5ms na kilka sekund by potem zniknac
+        // wystepuje tutaj w drawQuadzie z jakiegos powodu i tylko przy ruchu postaci
+        // pomimo iz ten draw sie wykonuje non stop pred ruchem postaci i nie ma problemu wczesniej!
+        // im szybciej sie rusze tym mniejszy czas czekania na poprawe, jak sie rusze odrazu to sie nie dzieje
+
         AuroraBatcher.drawQuad({
           position: {
             x: transform.position.x,
@@ -122,13 +125,22 @@ export default class Renderer extends System {
     const layer = renderer.layers[layerIndex];
     if (layer.cashedOffsetData) return layer.cashedOffsetData;
     const transform = this.transforms.get(renderer.entityID)!;
-    if (!layer.offset)
+
+    if (!layer.offset) {
+      if (renderer.isStatic)
+        renderer.layers[layerIndex].cashedOffsetData = {
+          x: transform.position.get.x,
+          y: transform.position.get.y,
+          w: transform.size.get.x,
+          h: transform.size.get.y,
+        };
       return {
         x: transform.position.get.x,
         y: transform.position.get.y,
         w: transform.size.get.x,
         h: transform.size.get.y,
       };
+    }
 
     const data = {
       x: transform.position.get.x + layer.offset[0],

@@ -51,11 +51,6 @@ export default class Engine {
     DebugFrame.start();
     Engine.worlds.get(Engine.activeWorld)?.onUpdate();
     Engine.clearOnFrame();
-    // DebugFrame.tick(
-    //   Engine.time.now,
-    //   Engine.time.getSeconds,
-    //   AuroraBatcher.numberOfQuadsInBatch
-    // );
     DebugFrame.stop();
     requestAnimationFrame(Engine.loop);
   }

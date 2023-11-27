@@ -46,8 +46,6 @@ export default class SpriteRenderer extends Component {
   image?: string;
   gpuAtlas?: string;
   isStatic: GeneralProps["isStatic"];
-  cashedOffsetData: { x: number; y: number; w: number; h: number } | undefined;
-  offset: GeneralProps["offset"];
   layers: RendererPassLayer[];
   constructor(componentProps: ComponentProps, props: SpriteRendererProps) {
     super(componentProps);

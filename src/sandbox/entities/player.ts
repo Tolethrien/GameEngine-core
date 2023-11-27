@@ -4,10 +4,30 @@ export default class Player extends Entity {
     super();
     this.addTag("player");
     this.addComponent("SpriteRenderer", {
-      type: "sprite",
-      image: "vite",
+      type: "spritesheet",
+      image: "cyberu",
       GPUAtlas: "char",
-      isStatic: true,
+      isStatic: false,
+      layers: [{ crop: { x: 0, y: 0 }, cropSize: { width: 32, height: 32 } }],
+    });
+    this.addComponent("Animation", {
+      cropSize: { width: 32, height: 32 },
+      spriteSheet: { gpuAtlas: "char", image: "cyberu" },
+      animationData: {
+        top: { numberOfFrames: 6, rowInSpritesheet: 4 },
+        down: { numberOfFrames: 6, rowInSpritesheet: 1 },
+        left: { numberOfFrames: 6, rowInSpritesheet: 2 },
+        right: { numberOfFrames: 6, rowInSpritesheet: 3 },
+      },
+      layers: [
+        {
+          renderLayerIndex: 0,
+          state: "down",
+          animationSpeed: 8,
+          isAnimate: true,
+          stopOnAnimationFinished: false,
+        },
+      ],
     });
     // this.addComponent<SpriteRendererProps>("spriteRenderer", {
     //   type: "shape",
@@ -29,19 +49,6 @@ export default class Player extends Entity {
       rotation: 0,
     });
     this.addComponent("OrthographicCamera");
-    this.addComponent("Animation", {
-      animationSpeed: 8,
-      state: "down",
-      cropSize: { width: 32, height: 32 },
-      spriteSheet: { gpuAtlas: "char", image: "cyberu" },
-      animationData: {
-        top: { numberOfFrames: 6, rowInSpritesheet: 4 },
-        down: { numberOfFrames: 6, rowInSpritesheet: 1 },
-        left: { numberOfFrames: 6, rowInSpritesheet: 2 },
-        right: { numberOfFrames: 6, rowInSpritesheet: 3 },
-      },
-      isAnimate: false,
-    });
     this.addComponent("IndieRigidBody", {
       bodyType: "dynamic",
       mass: 10,

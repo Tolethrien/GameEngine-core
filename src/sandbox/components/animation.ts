@@ -8,55 +8,53 @@ interface AnimationData {
     startAnimation?: boolean;
   };
 }
-type CashedFrame = Record<number, Float32Array>;
-export interface AnimationProps {
+interface LayerDataProps {
+  renderLayerIndex: number;
   isAnimate?: boolean;
   stopOnAnimationFinished?: boolean;
   state: string;
   animationSpeed: number;
+}
+interface LayerData {
+  frameCounter: number;
+  currentFrame: number;
+}
+
+type CashedFrame = Record<number, Float32Array>;
+export interface AnimationProps {
   animationData: AnimationData;
+  layers: LayerDataProps[];
   spriteSheet: { gpuAtlas: string; image: string };
   cropSize: { width: number; height: number };
 }
 export interface AnimationType extends Animation {}
 export default class Animation extends Component {
-  frameCounter: number;
-  animationSpeed: number;
-  isAnimate: boolean;
-  state: string;
-  stopOnAnimationFinished: boolean;
+  // frameCounter: number;
   animationData: AnimationData;
-  currentFrame: number;
+  // currentFrame: number;
   cropSize: { width: number; height: number };
   spriteSheet: { gpuAtlas: string; image: string };
-
   cashedAnimationData: {
     [key: string]: CashedFrame;
   };
+  layerData: (LayerData & LayerDataProps)[];
 
   constructor(
     componentProps: ComponentProps,
     {
-      state = "idle",
-      isAnimate = false,
-      stopOnAnimationFinished = false,
-      animationSpeed = 8,
       cropSize = { width: 32, height: 32 },
       animationData = {},
+      layers = [],
       spriteSheet,
     }: AnimationProps
   ) {
     super(componentProps);
-    this.frameCounter = 0;
-    this.animationSpeed = animationSpeed;
-    this.isAnimate = isAnimate;
-    this.state = state;
-    this.currentFrame = 0;
     this.cropSize = cropSize;
-    this.stopOnAnimationFinished = stopOnAnimationFinished;
     this.animationData = animationData;
     this.spriteSheet = spriteSheet;
     this.cashedAnimationData = this.createCashedAnimData();
+    this.layerData = this.createLayerData(layers);
+    console.log(this.cashedAnimationData, this.layerData);
   }
   private createCashedAnimData() {
     const { image } = AssetStore.getDataFromAtlas(
@@ -83,5 +81,14 @@ export default class Animation extends Component {
       data[animState] = frames;
     }
     return data;
+  }
+  private createLayerData(layers: LayerDataProps[]) {
+    const layerData: (LayerData & LayerDataProps)[] = [];
+    layers.forEach((layer) => {
+      console.log(layer);
+      layerData.push({ ...layer, frameCounter: 0, currentFrame: 0 });
+    });
+
+    return layerData;
   }
 }
