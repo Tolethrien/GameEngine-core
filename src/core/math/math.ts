@@ -5,7 +5,10 @@ export const mapRange = (
   outputMin: number,
   outputMax: number
 ) => {
-  return outputMin + ((value - inputMin) / (inputMax - inputMin)) * (outputMax - outputMin);
+  return (
+    outputMin +
+    ((value - inputMin) / (inputMax - inputMin)) * (outputMax - outputMin)
+  );
 };
 export const clamp = (value: number, min: number, max: number) => {
   if (min === max) return min;
@@ -15,6 +18,11 @@ export const clamp = (value: number, min: number, max: number) => {
   return value;
 };
 //=====================================
-export const equalfloatingPointErrorCheck = (valueA: number, valueB: number) => {
+export const equalfloatingPointErrorCheck = (
+  valueA: number,
+  valueB: number
+) => {
   return Math.abs(valueA - valueB) < 0.0005;
 };
+export const normalizeColor = (color: number[]) =>
+  color.map((value) => value / 255);

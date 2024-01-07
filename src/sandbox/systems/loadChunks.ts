@@ -19,6 +19,7 @@ export default class LoadChunks extends System {
   }
   onStart() {
     this.map = this.getMapData()!;
+    window.API.startSync("isMap", "isInd", { tiles: 256, chunks: 256 });
     this.entityTransform = this.getEntityComponentByTag("Transform", "player");
     this.getFirstChunk();
     this.getSurroundingChunks();
@@ -86,6 +87,7 @@ export default class LoadChunks extends System {
     const tileWidth = this.map.tileData.width;
     const tileHeight = this.map.tileData.height;
     addedChunks.forEach((chunkIndex) => {
+      // window.API.getChunk(chunkIndex);
       const tileList: string[] = [];
       for (let j = 0; j < this.map.chunkData.heightInTiles; j++) {
         for (let i = 0; i < this.map.chunkData.widthInTiles; i++) {

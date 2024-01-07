@@ -6,7 +6,6 @@ import Player from "./entities/player";
 import AssetStore from "../core/stores/assetStore";
 // import { loadImage } from "./src/engine/core/loadAssets";
 // const canvas = document.getElementById("gameWindow") as HTMLCanvasElement;
-console.log(mapFile);
 async function preload() {
   await AssetStore.addGPUAtlas("char", [
     { name: "vite", url: tilemap },

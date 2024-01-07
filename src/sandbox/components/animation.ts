@@ -54,7 +54,6 @@ export default class Animation extends Component {
     this.spriteSheet = spriteSheet;
     this.cashedAnimationData = this.createCashedAnimData();
     this.layerData = this.createLayerData(layers);
-    console.log(this.cashedAnimationData, this.layerData);
   }
   private createCashedAnimData() {
     const { image } = AssetStore.getDataFromAtlas(
@@ -85,7 +84,6 @@ export default class Animation extends Component {
   private createLayerData(layers: LayerDataProps[]) {
     const layerData: (LayerData & LayerDataProps)[] = [];
     layers.forEach((layer) => {
-      console.log(layer);
       layerData.push({ ...layer, frameCounter: 0, currentFrame: 0 });
     });
 

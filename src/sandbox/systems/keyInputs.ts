@@ -39,6 +39,15 @@ export default class KeyInputs extends System {
       this.playerAnim.layerData[0].state = "right";
       dirX++;
     }
+
+    if (this.keyPressed.has("j")) {
+      window.API.getChunk(20);
+      this.keyPressed.delete("j");
+    }
+    if (this.keyPressed.has("k")) {
+      window.API.endSync();
+      this.keyPressed.delete("k");
+    }
     if (this.keyPressed.has("ArrowRight"))
       this.othCam.x += this.othCam.speed / Math.log(this.othCam.zoom + 1);
     else if (this.keyPressed.has("ArrowLeft"))

@@ -1,8 +1,7 @@
 import { app, BrowserWindow } from "electron";
 import path from "path";
-import installExtension, {
-  REACT_DEVELOPER_TOOLS,
-} from "electron-devtools-installer";
+import installExtension from "electron-devtools-installer";
+import { IPCHandlers } from "../preload/ipcHandlers";
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {
   app.quit();
@@ -26,8 +25,9 @@ const createWindow = () => {
       path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)
     );
   }
+  IPCHandlers();
 
-  // Open the DevTools.
+  //DevTools.
   installExtension("ckabpgjkjmbkfmichbbgcgbelkbbpopi");
   mainWindow.webContents.openDevTools();
 };

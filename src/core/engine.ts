@@ -3,7 +3,6 @@ import { ActionsControllerType } from "./ecs/actions";
 import Time from "./utils/timers/time";
 import Aurora from "./aurora/auroraCore";
 import "../css/index.css";
-import AuroraBatcher from "./aurora/auroraBatcher";
 import DebugFrame from "./debugger/renderStats/renderFrame";
 export const canvas = document.getElementById(
   "gameWindow"
