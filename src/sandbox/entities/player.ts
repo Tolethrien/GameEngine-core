@@ -44,7 +44,7 @@ export default class Player extends Entity {
     //   alpha: 255
     // });
     this.addComponent("Transform", {
-      position: { x: 511, y: 33 },
+      position: { x: 512 + 512 / 2, y: 512 / 2 },
       size: { width: 32, height: 32 },
       rotation: 0,
     });
@@ -53,6 +53,7 @@ export default class Player extends Entity {
       bodyType: "dynamic",
       mass: 10,
       friction: 0,
+      speed: 540,
       // offset: { x: 0, y: 16, w: 32, h: 16 }
     });
     this.addComponent("MouseEvents", {

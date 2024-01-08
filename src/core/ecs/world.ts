@@ -1,4 +1,8 @@
-import { avalibleSystems, avalibleSystemsGroups } from "../../sandbox/ECSList";
+import {
+  avalibleSystems,
+  avalibleSystemsGroups,
+  avalibleComponents,
+} from "../../sandbox/ECSList";
 
 export default class World {
   componentsLists: Map<string, Map<string, ComponentType>>;
@@ -8,6 +12,7 @@ export default class World {
   private worldName: string;
   constructor(name: string) {
     this.componentsLists = new Map();
+    this.generateComponentLists();
     this.systemsList = new Map();
     this.mapData = undefined;
     this.worldName = name;
@@ -56,5 +61,10 @@ export default class World {
   }
   addActions() {
     //todo
+  }
+  private generateComponentLists() {
+    Object.keys(avalibleComponents).forEach((component) => {
+      this.componentsLists.set(component, new Map());
+    });
   }
 }

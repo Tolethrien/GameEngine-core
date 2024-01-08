@@ -36,17 +36,16 @@ export default class Tile extends Entity {
       size: size,
       rotation: 0,
     });
-    if (rigid) {
-      if (rigid === "static-block") {
-        this.addComponent("IndieRigidBody", {
-          bodyType: "static",
-          // friction: 1,
-          // mass: 200
-        });
-      } else {
-        this.addComponent("IndieRigidBody", rigid);
-      }
-    }
+    // console.log(groundData);
+    // this.addComponent("GroundRenderer", {
+    //   type: "shape",
+    //   isStatic: true,
+    //   tint: [
+    //     Math.floor(Math.random() * 255) + 1,
+    //     Math.floor(Math.random() * 255) + 1,
+    //     Math.floor(Math.random() * 255) + 1,
+    //   ],
+    // });
     if (groundData) {
       this.addComponent("GroundRenderer", {
         type: "spritesheet",
@@ -56,10 +55,10 @@ export default class Tile extends Entity {
         //TODO: skoro i tak to jest parsowwanie mozesz podawac po prostu array i obliczac w constructorze
         layers: groundData.map((data) => {
           return {
-            crop: { x: data.crop[0] * 32, y: data.crop[1] * 32 },
-            cropSize: { width: data.crop[2] * 32, height: data.crop[3] * 32 },
-            tint: [data.tint[0], data.tint[1], data.tint[2]],
-            alpha: data.tint[3],
+            crop: { x: data[0], y: data[1] },
+            cropSize: { width: data[2], height: data[3] },
+            tint: [255, 55, 255],
+            alpha: 255,
           };
         }),
       });
@@ -68,24 +67,6 @@ export default class Tile extends Entity {
         type: "shape",
         isStatic: true,
         tint: [1, 0, 0],
-      });
-    }
-    if (tileData) {
-      this.addComponent("SpriteRenderer", {
-        type: "spritesheet",
-        image: "vite",
-        GPUAtlas: "char",
-        isStatic: true,
-        //TODO: skoro i tak to jest parsowwanie mozesz podawac po prostu array i obliczac w constructorze
-        layers: tileData.map((data) => {
-          return {
-            crop: { x: data.crop[0] * 32, y: data.crop[1] * 32 },
-            offset: data.offset,
-            cropSize: { width: data.crop[2] * 32, height: data.crop[3] * 32 },
-            tint: [data.tint[0], data.tint[1], data.tint[2]],
-            alpha: data.tint[3],
-          };
-        }),
       });
     }
     this.distributeComponents();

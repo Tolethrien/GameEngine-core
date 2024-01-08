@@ -17,7 +17,7 @@ type BindGroupsData = { shaderGroup: number; bindgroup: GPUBindGroup }[];
 type BatcherOptions = typeof OPTIONS_TEMPLATE;
 const OPTIONS_TEMPLATE = {
   backgroundColor: [0, 0, 0, 255],
-  maxQuadPerBatch: 10000,
+  maxQuadPerBatch: 100000,
 };
 const MAX_NUMBER_OF_QUADS_PER_BATCH = OPTIONS_TEMPLATE.maxQuadPerBatch;
 const VERTEX_ATT_COUNT = 8;

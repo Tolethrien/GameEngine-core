@@ -34,9 +34,8 @@ export default abstract class Entity {
         if (world.componentsLists.has(componentName))
           world.componentsLists.get(componentName)?.set(this.id, component);
         else
-          world.componentsLists.set(
-            componentName,
-            new Map().set(this.id, component)
+          throw new Error(
+            `Invalid Component ${componentName}. Make sure is added to the ECS List`
           );
       });
     } else
