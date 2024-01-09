@@ -36,16 +36,7 @@ export default class Tile extends Entity {
       size: size,
       rotation: 0,
     });
-    // console.log(groundData);
-    // this.addComponent("GroundRenderer", {
-    //   type: "shape",
-    //   isStatic: true,
-    //   tint: [
-    //     Math.floor(Math.random() * 255) + 1,
-    //     Math.floor(Math.random() * 255) + 1,
-    //     Math.floor(Math.random() * 255) + 1,
-    //   ],
-    // });
+
     if (groundData) {
       this.addComponent("GroundRenderer", {
         type: "spritesheet",
@@ -57,7 +48,11 @@ export default class Tile extends Entity {
           return {
             crop: { x: data[0], y: data[1] },
             cropSize: { width: data[2], height: data[3] },
-            tint: [255, 55, 255],
+            tint: [
+              Math.floor(Math.random() * 255) + 1,
+              Math.floor(Math.random() * 255) + 1,
+              Math.floor(Math.random() * 255) + 1,
+            ],
             alpha: 255,
           };
         }),
@@ -66,7 +61,25 @@ export default class Tile extends Entity {
       this.addComponent("GroundRenderer", {
         type: "shape",
         isStatic: true,
-        tint: [1, 0, 0],
+        tint: [0, 0, 0],
+      });
+    }
+    if (tileData) {
+      this.addComponent("SpriteRenderer", {
+        type: "spritesheet",
+        image: "vite",
+        GPUAtlas: "char",
+        isStatic: true,
+        //TODO: skoro i tak to jest parsowwanie mozesz podawac po prostu array i obliczac w constructorze
+        layers: tileData.map((data) => {
+          return {
+            crop: { x: data[0], y: data[1] },
+            offset: [0, -16, 16, 48],
+            cropSize: { width: data[2], height: data[3] },
+            tint: [255, 255, 255],
+            alpha: 255,
+          };
+        }),
       });
     }
     this.distributeComponents();

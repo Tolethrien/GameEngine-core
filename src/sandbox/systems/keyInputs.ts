@@ -44,10 +44,10 @@ export default class KeyInputs extends System {
       window.API.getChunk(20);
       this.keyPressed.delete("j");
     }
-    if (this.keyPressed.has("k")) {
-      window.API.endSync();
-      this.keyPressed.delete("k");
-    }
+    // if (this.keyPressed.has("k")) {
+    //   window.API.endSync();
+    //   this.keyPressed.delete("k");
+    // }
     if (this.keyPressed.has("ArrowRight"))
       this.othCam.x += this.othCam.speed / Math.log(this.othCam.zoom + 1);
     else if (this.keyPressed.has("ArrowLeft"))
@@ -62,8 +62,7 @@ export default class KeyInputs extends System {
     else if (this.keyPressed.has("m"))
       this.othCam.zoom < this.othCam.maxZoom &&
         (this.othCam.zoom += 0.01 * Math.log(this.othCam.zoom + 1));
-    if (this.keyPressed.has("k"))
-      this.pos.position = this.pos.position.set([512, 512]);
+
     this.playerRigid.velocity = new Vec2D([dirX, dirY]);
     const forcedirection = new Vec2D([dirX, dirY]).normalize();
     const forceVector = forcedirection.multiply(this.playerRigid.newtons);
