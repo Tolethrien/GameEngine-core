@@ -36,7 +36,11 @@ export default class Tile extends Entity {
       size: size,
       rotation: 0,
     });
-
+    if (rigid === "static-block") {
+      this.addComponent("IndieRigidBody", {
+        bodyType: "static",
+      });
+    }
     if (groundData) {
       this.addComponent("GroundRenderer", {
         type: "spritesheet",
@@ -48,11 +52,12 @@ export default class Tile extends Entity {
           return {
             crop: { x: data[0], y: data[1] },
             cropSize: { width: data[2], height: data[3] },
-            tint: [
-              Math.floor(Math.random() * 255) + 1,
-              Math.floor(Math.random() * 255) + 1,
-              Math.floor(Math.random() * 255) + 1,
-            ],
+            // tint: [
+            //   Math.floor(Math.random() * 255) + 1,
+            //   Math.floor(Math.random() * 255) + 1,
+            //   Math.floor(Math.random() * 255) + 1,
+            // ],
+            tint: [rigid === "static-block" ? 0 : 255, 255, 255],
             alpha: 255,
           };
         }),
@@ -74,9 +79,9 @@ export default class Tile extends Entity {
         layers: tileData.map((data) => {
           return {
             crop: { x: data[0], y: data[1] },
-            offset: [0, -16, 16, 48],
+            offset: [data[4], data[5], data[6], data[7]],
             cropSize: { width: data[2], height: data[3] },
-            tint: [255, 255, 255],
+            tint: [255, 255, 55],
             alpha: 255,
           };
         }),

@@ -6,6 +6,7 @@ import DepthQuadTree, {
 } from "../../core/utils/quadTree/depthQuadTree";
 import { IndieRigidBodyType } from "../components/indieRigidBody";
 import { TransformType } from "../components/transform";
+import mapData from "../mapLUT.json";
 type IndieCollisionManifold = {
   bodyA: string;
   bodyB: string;
@@ -171,14 +172,15 @@ export default class indiePhysics extends System {
   }
   //QuadTree
   private createQuad() {
-    const map = this.getMapData();
-    if (map && map.mapdata)
+    //TODO: usunac mapData w ogole?
+    // const map = this.getMapData();
+    if (mapData)
       this.quadTree = new DepthQuadTree({
         boundry: {
-          x: map.mapdata.widthInPixels / 2,
-          y: map.mapdata.heightInPixels / 2,
-          h: map.mapdata.widthInPixels,
-          w: map.mapdata.heightInPixels,
+          x: mapData.MAP_INFO.sizes.map.inPixels.width / 2,
+          y: mapData.MAP_INFO.sizes.map.inPixels.height / 2,
+          h: mapData.MAP_INFO.sizes.map.inPixels.width,
+          w: mapData.MAP_INFO.sizes.map.inPixels.height,
         },
       });
     else

@@ -1,6 +1,7 @@
 import System from "../../core/ecs/system";
 import { TransformType } from "../components/transform";
 import Tile from "../entities/tile";
+import mapData from "../mapLUT.json";
 const MAP_SCHEMA = {
   Tiles: 256,
   chunks: 256,
@@ -16,101 +17,7 @@ const MAP_SCHEMA = {
 //TODO: jak robisz offsety obiektow i ich wielkosc to w sumie lepiej zacyznac od dolnego prawego rogu
 // bo obiekty idą w gore(sa wieksze niz tile) wiec ma to sens by nie musiec offfsetowac tylko
 // zawsze zaczynasz od odpowiedniego pixela ziemi
-const TILES_LUT = {
-  40: [0, 32],
-  41: [32, 32],
-  42: [64, 32],
-  43: [96, 32],
-  80: [0, 64],
-  81: [32, 64],
-  82: [64, 64],
-  83: [96, 64],
-  120: [0, 96],
-  121: [32, 96],
-  122: [64, 96],
-  123: [96, 96],
-  160: [0, 128],
-  161: [32, 128],
-  162: [64, 128],
-  163: [96, 128],
-  200: [0, 160],
-  201: [32, 160],
-  202: [64, 160],
-  203: [96, 160],
-  15: [480, 0],
-  16: [512, 0],
-  17: [512, 0],
-  55: [480, 32],
-  56: [512, 32],
-  57: [512, 32],
-  95: [480, 64],
-  96: [512, 64],
-  97: [512, 64],
-  135: [480, 96],
-  136: [512, 96],
-  137: [512, 96],
-  44: [128, 32],
-  10: [320, 0],
-  11: [352, 0],
-  12: [384, 0],
-  13: [416, 0],
-  14: [448, 0],
 
-  381: [672, 288],
-  382: [704, 288],
-  383: [736, 288],
-  421: [672, 320],
-  422: [704, 320],
-  423: [736, 320],
-  461: [672, 352],
-  462: [704, 352],
-  463: [736, 352],
-
-  506: [832, 384],
-  507: [864, 384],
-  546: [832, 416],
-  547: [864, 416],
-
-  740: [640, 576],
-  741: [672, 576],
-  742: [704, 576],
-  780: [640, 608],
-  781: [672, 608],
-  782: [704, 608],
-
-  367: [224, 288],
-  368: [256, 288],
-  369: [288, 288],
-  370: [320, 288],
-  371: [352, 288],
-
-  407: [224, 320],
-  408: [256, 320],
-  409: [288, 320],
-  410: [320, 320],
-  411: [352, 320],
-
-  447: [224, 352],
-  448: [256, 352],
-  449: [288, 352],
-  450: [320, 352],
-  451: [352, 352],
-
-  487: [224, 384],
-  488: [256, 384],
-  489: [288, 384],
-  490: [320, 384],
-  491: [352, 384],
-
-  527: [224, 416],
-  528: [256, 416],
-  529: [288, 416],
-  530: [320, 416],
-  531: [352, 416],
-  //drzewo
-  994: [960, 448, 256, 352],
-  66: [832, 448, 32, 96],
-};
 export default class LoadChunks extends System {
   loadedChunks!: number[];
   lastKnownLoadedChunks: number[];
@@ -200,11 +107,10 @@ export default class LoadChunks extends System {
     this.lastKnownLoadedChunks = this.loadedChunks;
     this.loadedChunks = surroundingChunks;
   }
-
+  //TODO: create quad musi miec info o mapie, inaczej nie tworzy quada
   private async generateChunks(addedChunks: number[]) {
     for (const chunkIndex of addedChunks) {
       const chunkMapData = await window.API.getChunk(chunkIndex);
-      console.log(chunkMapData);
       const tileList: string[] = [];
       for (let j = 0; j < MAP_SCHEMA.chunkSizeInTiles.height; j++) {
         for (let i = 0; i < MAP_SCHEMA.chunkSizeInTiles.width; i++) {
@@ -213,6 +119,7 @@ export default class LoadChunks extends System {
             i,
             j
           );
+
           new Tile({
             world: this.worldName,
             pos: { x: tileX, y: tileY },
@@ -277,13 +184,15 @@ export default class LoadChunks extends System {
   private getGroundDataFromID(grounds: number[]) {
     const data: number[][] = [];
     grounds.forEach((ground) => {
-      if (ground !== 0) {
+      if (ground !== 0 && mapData.TILESET_LUT.grounds[ground]) {
         data.push([
-          TILES_LUT[ground] ? TILES_LUT[ground][0] : 0,
-          TILES_LUT[ground] ? TILES_LUT[ground][1] : 0,
-          32,
-          32,
+          mapData.TILESET_LUT.grounds[ground].pos[0],
+          mapData.TILESET_LUT.grounds[ground].pos[1],
+          mapData.MAP_INFO.sizes.tile.width,
+          mapData.MAP_INFO.sizes.tile.height,
         ]);
+      } else {
+        data.push([0, 0, 0, 0]);
       }
     });
     return data;
@@ -291,20 +200,13 @@ export default class LoadChunks extends System {
   private getTileDataFromID(tiles: number[]) {
     const data: number[][] = [];
     for (let i = 0; i < tiles.length; i += 9) {
-      data.push([
-        TILES_LUT[tiles[i]] ? TILES_LUT[tiles[i]][0] : 0,
-        TILES_LUT[tiles[i]] ? TILES_LUT[tiles[i]][1] : 0,
-        TILES_LUT[tiles[i]] ? TILES_LUT[tiles[i]][2] : 0,
-        TILES_LUT[tiles[i]] ? TILES_LUT[tiles[i]][3] : 0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-      ]);
+      if (mapData.TILESET_LUT.tiles[tiles[i]]) {
+        data.push([
+          ...mapData.TILESET_LUT.tiles[tiles[i]].crop,
+          ...mapData.TILESET_LUT.tiles[tiles[i]].offset,
+          ...mapData.TILESET_LUT.tiles[tiles[i]].tint,
+        ]);
+      }
     }
     return data;
   }

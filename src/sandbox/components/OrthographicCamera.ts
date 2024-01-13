@@ -35,8 +35,8 @@ export default class OrthographicCamera extends Component {
     this.position = Vec2D.Zero;
     this.projectionViewMatrix = Mat4.create();
     this.view = Mat4.create().lookAt([0, 0, 1], [0, 0, 0], [0, 1, 0]);
-    this.x = canvas.width / 2;
-    this.y = canvas.height / 2;
+    this.x = canvas.width / 2 - 200;
+    this.y = canvas.height / 2 - 400;
     this.speed = 5;
     this.minZoom = zoomClamp.min;
     this.maxZoom = zoomClamp.max;
