@@ -1,4 +1,5 @@
 import Engine from "../engine";
+import Dispatcher, { DispatcherConnectionType } from "./dispatcher";
 
 export default abstract class System {
   protected worldName: string;
@@ -48,22 +49,21 @@ export default abstract class System {
     );
   }
   // getEntityComponentByID() {}
-  getEntitiesManipulatedInFrame() {
-    return Engine.globalContext.get("EntitiesManipulatedInFrame") as {
-      added: string[];
-      removed: string[];
-    };
-  }
 
   getMapData() {
     if (!Engine.worlds.has(this.worldName))
       throw new ReferenceError(
         `${this.constructor.name} trying to get mapData from the world ${this.worldName} but they are undefined`
       );
-    return Engine.worlds.get(this.worldName)!.mapData;
+    const data = Engine.worlds.get(this.worldName)!.mapData;
+    if (!data)
+      throw new ReferenceError(
+        `MapData in world ${this.worldName} is undefined`
+      );
+    return data;
   }
 
-  globalContext(
+  globalContext<T>(
     action: "set" | "delete" | "get",
     name: string,
     value?: unknown
@@ -76,7 +76,7 @@ export default abstract class System {
         Engine.globalContext.delete(name);
         break;
       case "get":
-        return Engine.globalContext.get(name);
+        return Engine.globalContext.get(name) as T;
       default:
         console.error(
           `global Context Error in ${this.constructor.name} System: ${action} is not valid action type `
@@ -106,8 +106,6 @@ export default abstract class System {
   deleteEntity(id: EntityType["id"]) {
     const world = Engine.worlds.get(this.worldName);
     if (world) {
-      System.setManipulatedEntities("remove", id);
-
       world.componentsLists.forEach((list) => {
         if (list.has(id)) list.delete(id);
       });
@@ -116,21 +114,8 @@ export default abstract class System {
         `cannot find world "${this.worldName} or components to remove`
       );
   }
-  private static setManipulatedEntities(
-    status: "remove" | "add",
-    entityId: string
-  ) {
-    if (status === "add")
-      (
-        Engine.globalContext.get(
-          "EntitiesManipulatedInFrame"
-        )! as EntitiesManipulatedInFrame
-      ).added.push(entityId);
-    else
-      (
-        Engine.globalContext.get(
-          "EntitiesManipulatedInFrame"
-        )! as EntitiesManipulatedInFrame
-      ).removed.push(entityId);
+
+  getFromDispacher() {
+    return Dispatcher.manipulatedInFrameList;
   }
 }

@@ -4,6 +4,7 @@ import Time from "./utils/timers/time";
 import Aurora from "./aurora/auroraCore";
 import "../css/index.css";
 import DebugFrame from "./debugger/renderStats/renderFrame";
+import Dispatcher from "./ecs/dispatcher";
 export const canvas = document.getElementById(
   "gameWindow"
 ) as HTMLCanvasElement;
@@ -16,6 +17,7 @@ export const filesObjects: Map<
 interface EngineConfig {
   // core: "2d" | "3d"
   //   renderer: "Aurora";
+  recordEntityChangedOnFrame?: boolean;
   preload: () => Promise<unknown>;
   setup: () => void;
 }
@@ -25,21 +27,26 @@ export default class Engine {
   public static worlds: Map<string, WorldType> = new Map();
   public static activeWorld = "main";
   public static actions: ActionsControllerType | undefined = undefined;
-  public static globalContext: Map<string, unknown> =
-    Engine.createGlobalContext();
+  public static globalContext: Map<string, unknown> = new Map();
   public static time: Time = new Time();
-
-  public static async Initialize({ preload, setup }: EngineConfig) {
+  public static entityIsRecorder: boolean;
+  public static async Initialize({
+    preload,
+    setup,
+    recordEntityChangedOnFrame = false,
+  }: EngineConfig) {
     if (Engine.isInitialized)
       throw new Error(
         "Engine already Initialize,you can only have one instance of engine"
       );
     await Aurora.initialize(canvas); // needs to be before preload
     await preload();
+    Engine.entityIsRecorder = recordEntityChangedOnFrame;
     Engine.setFirstAuroraFrame();
     DebugFrame.Initialize();
     Engine.setGlobalContexts();
     Engine.addGlobalListeners();
+    Dispatcher.Initialize();
     setup();
     Engine.worlds.forEach((world) => world.onStart());
     Engine.isInitialized = true;
@@ -48,16 +55,11 @@ export default class Engine {
   private static loop() {
     Engine.time.calculateTimeStamp();
     DebugFrame.start();
+    Dispatcher.dispatchComponents();
+    Dispatcher.removeComponents();
     Engine.worlds.get(Engine.activeWorld)?.onUpdate();
-    Engine.clearOnFrame();
     DebugFrame.stop();
     requestAnimationFrame(Engine.loop);
-  }
-  private static createGlobalContext() {
-    const data: [string, unknown][] = [
-      ["EntitiesManipulatedInFrame", { added: [], removed: [] }],
-    ];
-    return new Map<string, unknown>(data);
   }
 
   private static setFirstAuroraFrame() {
@@ -91,19 +93,20 @@ export default class Engine {
     Engine.actions?.onStart();
   };
   private static setGlobalContexts() {
-    Engine.globalContext.set("EntitiesManipulatedInFrame", {
-      added: [],
-      removed: [],
-    });
     Engine.globalContext.set("mousePosition", { x: 0, y: 0 });
     Engine.globalContext.set("mousePressed", false);
+    if (Engine.entityIsRecorder) {
+      Engine.globalContext.set(
+        "entityLastAdded",
+        new Set() as RecorderEntities
+      );
+      Engine.globalContext.set(
+        "entityLastRemoved",
+        new Set() as RecorderEntities
+      );
+    }
   }
-  private static clearOnFrame() {
-    Engine.globalContext.set("EntitiesManipulatedInFrame", {
-      added: [],
-      removed: [],
-    });
-  }
+
   private static addGlobalListeners() {
     canvas.onmousedown = () => {
       Engine.globalContext.set("mousePressed", true);

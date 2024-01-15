@@ -1,14 +1,11 @@
 import { IndieRigidBodyProps } from "../components/indieRigidBody";
 import Entity from "../../core/ecs/entity";
-interface TileData {
-  crop: [number, number, number, number];
-  offset: { x: number; y: number; w: number; h: number };
-  tint: [number, number, number, number];
+export interface TileData {
+  crop: number[];
+  offset: number[];
+  tint: number[];
 }
-interface GroundData {
-  crop: [number, number, number, number];
-  tint: [number, number, number, number];
-}
+export type GroundData = [number, number, number, number];
 export interface TileProps {
   pos: { x: number; y: number };
   size: { width: number; height: number };
@@ -69,6 +66,7 @@ export default class Tile extends Entity {
         tint: [0, 0, 0],
       });
     }
+    //2817
     if (tileData) {
       this.addComponent("SpriteRenderer", {
         type: "spritesheet",
@@ -78,15 +76,21 @@ export default class Tile extends Entity {
         //TODO: skoro i tak to jest parsowwanie mozesz podawac po prostu array i obliczac w constructorze
         layers: tileData.map((data) => {
           return {
-            crop: { x: data[0], y: data[1] },
-            offset: [data[4], data[5], data[6], data[7]],
-            cropSize: { width: data[2], height: data[3] },
-            tint: [255, 255, 55],
+            crop: { x: data.crop[0], y: data.crop[1] },
+            cropSize: { width: data.crop[2], height: data.crop[3] },
+            offset: {
+              x: data.offset[0],
+              y: data.offset[1],
+              w: data.offset[2],
+              h: data.offset[3],
+            },
+            tint: [255, 255, 255],
             alpha: 255,
           };
         }),
       });
     }
-    this.distributeComponents();
+    // this.distributeComponents();
+    this.dispatchComponents();
   }
 }

@@ -1,11 +1,12 @@
 import { avalibleComponents } from "../../sandbox/ECSList";
 import Engine from "../engine";
+import Dispatcher from "./dispatcher";
 // import { nameToUpper } from "../utils/utils";
 
 export default abstract class Entity {
   id: string;
   tags: string[];
-  components: Map<string, ComponentType>;
+  components: Map<keyof AvalibleComponents, ComponentType>;
   world: string;
   constructor(worldName?: string) {
     this.id = crypto.randomUUID();
@@ -29,7 +30,6 @@ export default abstract class Entity {
   distributeComponents() {
     const world = Engine.worlds.get(this.world);
     if (world) {
-      Entity.setManipulatedEntities("add", this.id);
       this.components.forEach((component, componentName) => {
         if (world.componentsLists.has(componentName))
           world.componentsLists.get(componentName)?.set(this.id, component);
@@ -44,8 +44,6 @@ export default abstract class Entity {
   deleteComponents() {
     const world = Engine.worlds.get(this.world);
     if (world) {
-      Entity.setManipulatedEntities("remove", this.id);
-
       world.componentsLists.forEach((list) => {
         if (list.has(this.id)) list.delete(this.id);
       });
@@ -57,21 +55,10 @@ export default abstract class Entity {
   addTag(tag: string) {
     if (!this.tags.includes(tag)) this.tags.push(tag);
   }
-  private static setManipulatedEntities(
-    status: "remove" | "add",
-    entityId: string
-  ) {
-    if (status === "add")
-      (
-        Engine.globalContext.get(
-          "EntitiesManipulatedInFrame"
-        )! as EntitiesManipulatedInFrame
-      ).added.push(entityId);
-    else
-      (
-        Engine.globalContext.get(
-          "EntitiesManipulatedInFrame"
-        )! as EntitiesManipulatedInFrame
-      ).removed.push(entityId);
+  dispatchComponents() {
+    Dispatcher.distributeEntity(this.components);
+  }
+  removeComponents() {
+    Dispatcher.removeEntity(this.id);
   }
 }

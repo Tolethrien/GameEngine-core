@@ -1,19 +1,8 @@
+import Dispatcher from "../../core/ecs/dispatcher";
 import System from "../../core/ecs/system";
 import { TransformType } from "../components/transform";
-import Tile from "../entities/tile";
-import mapData from "../mapLUT.json";
-const MAP_SCHEMA = {
-  Tiles: 256,
-  chunks: 256,
-  tileSize: {
-    width: 32,
-    height: 32,
-  },
-  mapInChunks: { width: 16, height: 16 },
-  mapInPixels: { width: 8192, height: 8192 },
-  chunkSizeInPixels: { width: 16 * 32, height: 16 * 32 },
-  chunkSizeInTiles: { width: 16, height: 16 },
-};
+import Tile, { GroundData, TileData } from "../entities/tile";
+
 //TODO: jak robisz offsety obiektow i ich wielkosc to w sumie lepiej zacyznac od dolnego prawego rogu
 // bo obiekty idą w gore(sa wieksze niz tile) wiec ma to sens by nie musiec offfsetowac tylko
 // zawsze zaczynasz od odpowiedniego pixela ziemi
@@ -21,7 +10,8 @@ const MAP_SCHEMA = {
 export default class LoadChunks extends System {
   loadedChunks!: number[];
   lastKnownLoadedChunks: number[];
-  map!: object;
+  mapSchema!: MapSchema["MAP_INFO"]["sizes"];
+  tilesLUT!: MapSchema["TILESET_LUT"];
   loadingRange: number;
   entityTransform!: GetExplicitComponent<TransformType>;
   entityOnChunk: number;
@@ -36,9 +26,12 @@ export default class LoadChunks extends System {
   }
   async onStart() {
     this.entityTransform = this.getEntityComponentByTag("Transform", "player");
-    window.API.startSync("isMap", "isInd", {
-      tiles: MAP_SCHEMA.Tiles,
-      chunks: MAP_SCHEMA.chunks,
+    const { indexFile, mapFile, mapSchema } = this.getMapData();
+    this.mapSchema = mapSchema.MAP_INFO.sizes;
+    this.tilesLUT = mapSchema.TILESET_LUT;
+    window.API.startSync(mapFile, indexFile, {
+      tiles: this.mapSchema.chunk.InTiles.total,
+      chunks: this.mapSchema.map.InChunks.total,
     });
     this.getFirstChunk();
     this.getSurroundingChunks();
@@ -54,7 +47,10 @@ export default class LoadChunks extends System {
   }
   private getFirstChunk() {
     this.entityOnChunk = this.targetInChunk();
-    if (this.entityOnChunk < 0 || this.entityOnChunk > MAP_SCHEMA.chunks)
+    if (
+      this.entityOnChunk < 0 ||
+      this.entityOnChunk > this.mapSchema.map.InChunks.total
+    )
       throw new Error(
         `Problem with setting first chunk, player is not overlaping with any map chunks. \r\nMake sure that player position is in valid spot on the map \r\nPlayerPosition:{x:${this.entityTransform.position.x},y:${this.entityTransform.position.y}},`
       );
@@ -62,16 +58,16 @@ export default class LoadChunks extends System {
 
   private targetInChunk() {
     const chunkX = Math.floor(
-      this.entityTransform.position.x / MAP_SCHEMA.chunkSizeInPixels.width
+      this.entityTransform.position.x / this.mapSchema.chunk.inPixels.width
     );
     const chunkY = Math.floor(
-      this.entityTransform.position.y / MAP_SCHEMA.chunkSizeInPixels.height
+      this.entityTransform.position.y / this.mapSchema.chunk.inPixels.height
     );
     if (
       chunkX < 0 ||
-      chunkX >= MAP_SCHEMA.mapInChunks.width ||
+      chunkX >= this.mapSchema.map.InChunks.width ||
       chunkY < 0 ||
-      chunkY >= MAP_SCHEMA.mapInChunks.height
+      chunkY >= this.mapSchema.map.InChunks.height
     ) {
       return -1;
     }
@@ -82,8 +78,8 @@ export default class LoadChunks extends System {
     const surroundingChunks: number[] = [];
     if (this.entityOnChunk == -1) return;
     const entityGridPos = {
-      x: Math.floor(this.entityOnChunk / MAP_SCHEMA.mapInChunks.width),
-      y: this.entityOnChunk % MAP_SCHEMA.mapInChunks.width,
+      x: Math.floor(this.entityOnChunk / this.mapSchema.map.InChunks.width),
+      y: this.entityOnChunk % this.mapSchema.map.InChunks.width,
     };
     for (let i = -this.loadingRange; i <= this.loadingRange; i++) {
       for (let j = -this.loadingRange; j <= this.loadingRange; j++) {
@@ -92,13 +88,13 @@ export default class LoadChunks extends System {
           y: entityGridPos.y + j,
         };
         const chunkIndex =
-          chunkGridPos.x * MAP_SCHEMA.mapInChunks.width + chunkGridPos.y;
+          chunkGridPos.x * this.mapSchema.map.InChunks.width + chunkGridPos.y;
 
         if (
           chunkGridPos.x >= 0 &&
-          chunkGridPos.x < MAP_SCHEMA.mapInChunks.height &&
+          chunkGridPos.x < this.mapSchema.map.InChunks.height &&
           chunkGridPos.y >= 0 &&
-          chunkGridPos.y < MAP_SCHEMA.mapInChunks.width
+          chunkGridPos.y < this.mapSchema.map.InChunks.width
         ) {
           surroundingChunks.push(chunkIndex);
         }
@@ -107,13 +103,13 @@ export default class LoadChunks extends System {
     this.lastKnownLoadedChunks = this.loadedChunks;
     this.loadedChunks = surroundingChunks;
   }
-  //TODO: create quad musi miec info o mapie, inaczej nie tworzy quada
   private async generateChunks(addedChunks: number[]) {
+    //TODO: out of focus na oknie na wiekszy czas psuje cos z usuwaniem chunkow bo niektore pozostają
     for (const chunkIndex of addedChunks) {
       const chunkMapData = await window.API.getChunk(chunkIndex);
       const tileList: string[] = [];
-      for (let j = 0; j < MAP_SCHEMA.chunkSizeInTiles.height; j++) {
-        for (let i = 0; i < MAP_SCHEMA.chunkSizeInTiles.width; i++) {
+      for (let j = 0; j < this.mapSchema.chunk.InTiles.height; j++) {
+        for (let i = 0; i < this.mapSchema.chunk.InTiles.width; i++) {
           const { tileIndex, tileX, tileY } = this.getTilePositionAndIndex(
             chunkIndex,
             i,
@@ -124,8 +120,8 @@ export default class LoadChunks extends System {
             world: this.worldName,
             pos: { x: tileX, y: tileY },
             size: {
-              height: MAP_SCHEMA.tileSize.height * 0.5,
-              width: MAP_SCHEMA.tileSize.width * 0.5,
+              height: this.mapSchema.tile.height * 0.5,
+              width: this.mapSchema.tile.width * 0.5,
             },
             tileList: tileList,
             tileData: this.getTileDataFromID(chunkMapData[tileIndex].tiles),
@@ -150,14 +146,14 @@ export default class LoadChunks extends System {
     const removed = this.lastKnownLoadedChunks.filter(
       (chunk) => !this.loadedChunks.includes(chunk)
     );
-    await this.generateChunks(added);
+    this.generateChunks(added);
     this.removeChunks(removed);
   }
   private removeChunks(removedChunks: number[]) {
     removedChunks.forEach((chunkIndex) => {
       const tiles = this.trackList.get(chunkIndex);
       if (tiles) {
-        tiles.forEach((tile) => this.deleteEntity(tile));
+        tiles.forEach((tile) => Dispatcher.removeEntity(tile));
         this.trackList.delete(chunkIndex);
       }
     });
@@ -168,84 +164,45 @@ export default class LoadChunks extends System {
     col: number
   ) {
     const tileX =
-      (chunkIndex % MAP_SCHEMA.mapInChunks.width) *
-        MAP_SCHEMA.chunkSizeInPixels.width +
-      row * MAP_SCHEMA.tileSize.width +
-      MAP_SCHEMA.tileSize.width * 0.5;
+      (chunkIndex % this.mapSchema.map.InChunks.width) *
+        this.mapSchema.chunk.inPixels.width +
+      row * this.mapSchema.tile.width +
+      this.mapSchema.tile.width * 0.5;
     const tileY =
-      Math.floor(chunkIndex / MAP_SCHEMA.mapInChunks.height) *
-        MAP_SCHEMA.chunkSizeInPixels.height +
-      col * MAP_SCHEMA.tileSize.height +
-      MAP_SCHEMA.tileSize.height * 0.5;
-    const tileIndex = col * MAP_SCHEMA.chunkSizeInTiles.width + row;
+      Math.floor(chunkIndex / this.mapSchema.map.InChunks.height) *
+        this.mapSchema.chunk.inPixels.height +
+      col * this.mapSchema.tile.height +
+      this.mapSchema.tile.height * 0.5;
+    const tileIndex = col * this.mapSchema.chunk.InTiles.height + row;
 
     return { tileX, tileY, tileIndex };
   }
   private getGroundDataFromID(grounds: number[]) {
-    const data: number[][] = [];
+    const data: GroundData[] = [];
     grounds.forEach((ground) => {
-      if (ground !== 0 && mapData.TILESET_LUT.grounds[ground]) {
+      if (ground !== 0 && this.tilesLUT.grounds[ground]) {
         data.push([
-          mapData.TILESET_LUT.grounds[ground].pos[0],
-          mapData.TILESET_LUT.grounds[ground].pos[1],
-          mapData.MAP_INFO.sizes.tile.width,
-          mapData.MAP_INFO.sizes.tile.height,
+          this.tilesLUT.grounds[ground].pos[0],
+          this.tilesLUT.grounds[ground].pos[1],
+          this.mapSchema.tile.width,
+          this.mapSchema.tile.height,
         ]);
-      } else {
-        data.push([0, 0, 0, 0]);
       }
     });
     return data;
   }
   private getTileDataFromID(tiles: number[]) {
-    const data: number[][] = [];
+    //3701
+    const data: TileData[] = [];
     for (let i = 0; i < tiles.length; i += 9) {
-      if (mapData.TILESET_LUT.tiles[tiles[i]]) {
-        data.push([
-          ...mapData.TILESET_LUT.tiles[tiles[i]].crop,
-          ...mapData.TILESET_LUT.tiles[tiles[i]].offset,
-          ...mapData.TILESET_LUT.tiles[tiles[i]].tint,
-        ]);
+      if (tiles[i] !== 0 && this.tilesLUT.tiles[tiles[i]]) {
+        data.push({
+          crop: this.tilesLUT.tiles[tiles[i]].crop,
+          offset: this.tilesLUT.tiles[tiles[i]].offset,
+          tint: this.tilesLUT.tiles[tiles[i]].tint,
+        });
       }
     }
     return data;
-  }
-  temt() {
-    const chunkX = Math.floor(
-      this.entityTransform.position.x / MAP_SCHEMA.chunkSizeInPixels.width
-    );
-    const chunkY = Math.floor(
-      this.entityTransform.position.y / MAP_SCHEMA.chunkSizeInPixels.height
-    );
-    if (
-      chunkX < 0 ||
-      chunkX >= MAP_SCHEMA.mapInChunks.width ||
-      chunkY < 0 ||
-      chunkY >= MAP_SCHEMA.mapInChunks.height
-    ) {
-      return { indeksChunka: -1, indeksKafelka: -1 };
-    }
-    const indeksChunka = chunkY * 16 + chunkX;
-
-    // Obliczanie pozycji jednostki w chunku
-    const tileX = Math.floor(
-      (this.entityTransform.position.x % MAP_SCHEMA.chunkSizeInPixels.width) /
-        MAP_SCHEMA.tileSize.width
-    );
-    const tileY = Math.floor(
-      (this.entityTransform.position.y % MAP_SCHEMA.chunkSizeInPixels.height) /
-        MAP_SCHEMA.tileSize.height
-    );
-
-    // Obliczanie indeksu kafelka w chunku
-    const indeksKafelka = tileY * MAP_SCHEMA.chunkSizeInTiles.width + tileX;
-
-    return { indeksChunka, indeksKafelka };
-  }
-  async tempt() {
-    const { indeksChunka, indeksKafelka } = this.temt();
-    const chunkMapData = await window.API.getChunk(indeksChunka);
-
-    console.log(chunkMapData[indeksKafelka].grounds);
   }
 }

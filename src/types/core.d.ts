@@ -25,11 +25,47 @@ declare global {
   interface SystemsGroupType extends SystemsGroup {}
   interface WorldType extends World {}
   interface EntityType extends Entity {}
-  type EntitiesManipulatedInFrame = { added: string[]; removed: string[] };
   type SystemInitType<T> = Record<string, new (props: SystemProps) => T>;
-
+  type RecorderEntities = Set<string>;
   interface ComponentProps {
     entityID: string;
     entityTags: string[];
+  }
+  interface MapSchema {
+    MAP_INFO: {
+      mapName: string;
+      sizes: {
+        map: {
+          InTiles: { width: number; height: number; total: number };
+          InChunks: { width: number; height: number; total: number };
+          inPixels: { width: number; height: number; total: number };
+        };
+        chunk: {
+          InTiles: { width: number; height: number; total: number };
+          inPixels: { width: number; height: number; total: number };
+        };
+        tile: {
+          width: number;
+          height: number;
+        };
+      };
+    };
+    TILESET_LUT: {
+      grounds: {
+        [key: string]: {
+          pos: number[];
+          collider: (boolean | number)[];
+        };
+      };
+      tiles: {
+        [key: string]: {
+          crop: number[];
+          offset: number[];
+          collider: (boolean | number)[];
+          tint: number[];
+          name: string;
+        };
+      };
+    };
   }
 }

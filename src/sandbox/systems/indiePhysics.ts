@@ -6,7 +6,6 @@ import DepthQuadTree, {
 } from "../../core/utils/quadTree/depthQuadTree";
 import { IndieRigidBodyType } from "../components/indieRigidBody";
 import { TransformType } from "../components/transform";
-import mapData from "../mapLUT.json";
 type IndieCollisionManifold = {
   bodyA: string;
   bodyB: string;
@@ -29,6 +28,7 @@ export default class indiePhysics extends System {
     this.precision = 2;
     this.debugQuad = false;
   }
+  //TODO: dodac opcje poza dynamic i static clip ktora pozwoli ci miec mozliwosc ruchu i wszystko zwiazane z fizyka ale nie bedzie na niego dzialac kolizja
   onStart() {
     this.rigidBodies = this.getComponents("IndieRigidBody");
     this.transforms = this.getComponents("Transform");
@@ -45,6 +45,7 @@ export default class indiePhysics extends System {
       this.calculateDeltaNormal();
       this.seperateEntities();
       this.aplyImpulses();
+
       // this.debugQuad && this.drawQuad();
     }
   }
@@ -69,14 +70,15 @@ export default class indiePhysics extends System {
     });
   }
   private manageEntities() {
-    const { added, removed } = this.getEntitiesManipulatedInFrame();
-    added.forEach((entity) => {
+    //TODO: nowa wersja - porownywc liste quadu z lista rigidow i patrzec ktore sa a ktorych  byc nie powinno?
+    const { added, removed } = this.getFromDispacher();
+    added?.forEach((entity) => {
       const rigid = this.rigidBodies.get(entity);
       if (rigid) {
         this.addEntitiesToQuad(rigid);
       }
     });
-    removed.forEach((entity) => {
+    removed?.forEach((entity) => {
       this.removeEntitiesFromQuad(entity);
     });
   }
@@ -172,21 +174,18 @@ export default class indiePhysics extends System {
   }
   //QuadTree
   private createQuad() {
-    //TODO: usunac mapData w ogole?
-    // const map = this.getMapData();
-    if (mapData)
-      this.quadTree = new DepthQuadTree({
-        boundry: {
-          x: mapData.MAP_INFO.sizes.map.inPixels.width / 2,
-          y: mapData.MAP_INFO.sizes.map.inPixels.height / 2,
-          h: mapData.MAP_INFO.sizes.map.inPixels.width,
-          w: mapData.MAP_INFO.sizes.map.inPixels.height,
-        },
-      });
-    else
-      throw new Error(
-        "MapData is undefined but required in QuadTree to quarter the world"
-      );
+    const map = this.getMapData().mapSchema.MAP_INFO.sizes.map;
+    this.quadTree = new DepthQuadTree({
+      boundry: {
+        x: map.inPixels.width / 2,
+        y: map.inPixels.height / 2,
+        h: map.inPixels.width,
+        w: map.inPixels.height,
+      },
+    });
+    this.rigidBodies.forEach((rigid) => {
+      this.addEntitiesToQuad(rigid);
+    });
   }
 
   private addEntitiesToQuad(rigid: IndieRigidBodyType) {

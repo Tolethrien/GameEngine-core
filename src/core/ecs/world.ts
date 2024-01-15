@@ -3,11 +3,15 @@ import {
   avalibleSystemsGroups,
   avalibleComponents,
 } from "../../sandbox/ECSList";
+import Engine from "../engine";
+import Dispatcher from "./dispatcher";
 
 export default class World {
   componentsLists: Map<string, Map<string, ComponentType>>;
   systemsList: Map<string, SystemType | SystemsGroupType>;
-  mapData: object | undefined;
+  mapData:
+    | { mapSchema: MapSchema; mapFile: string; indexFile: string }
+    | undefined;
 
   private worldName: string;
   constructor(name: string) {
@@ -52,12 +56,17 @@ export default class World {
   getComponents(list: string, id: string) {
     return this.componentsLists.get(list)?.get(id);
   }
-  addWorldMap(map: object) {
-    this.mapData = map;
+  addWorldMap(mapData: MapSchema, mapFileName: string, mapIndexName: string) {
+    this.mapData = {
+      mapSchema: mapData,
+      indexFile: mapIndexName,
+      mapFile: mapFileName,
+    };
   }
   addEntity(entity: EntityType) {
     entity.world = this.worldName;
     entity.distributeComponents();
+    Engine.globalContext.set("test", entity.id);
   }
   addActions() {
     //todo
