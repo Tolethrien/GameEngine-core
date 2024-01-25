@@ -22,7 +22,7 @@ export const IPCHandlers = () => {
       console.log("connection to file established");
     }
   );
-  ipcMain.on("endSync", (event) => {
+  ipcMain.on("endSync", () => {
     endMapSync();
     console.log("connection to file terminated");
   });

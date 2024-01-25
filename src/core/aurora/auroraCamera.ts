@@ -1,5 +1,5 @@
-import { canvas } from "../engine";
 import Mat4 from "../math/mat4";
+import Aurora from "./auroraCore";
 
 export const cameraData = {
   keyPressed: new Set(),
@@ -17,9 +17,9 @@ export default class AuroraCamera {
   constructor() {
     this.projectionViewMatrix = Mat4.create();
     this.view = Mat4.create().lookAt([0, 0, 1], [0, 0, 0], [0, 1, 0]);
-    this.x = canvas.width / 2;
-    this.y = canvas.height / 2;
-    this.speed = 5;
+    this.x = Aurora.canvas.width / 2;
+    this.y = Aurora.canvas.height / 2;
+    this.speed = 15;
     this.zoom = 1;
     this.maxZoom = 10;
     this.minZoom = 0.1;
@@ -41,17 +41,17 @@ export default class AuroraCamera {
     else if (cameraData.keyPressed.has("a")) this.x -= this.speed;
     if (cameraData.keyPressed.has("w")) this.y -= this.speed;
     else if (cameraData.keyPressed.has("s")) this.y += this.speed;
-    if (cameraData.keyPressed.has("n"))
+    if (cameraData.keyPressed.has("ArrowDown"))
       this.zoom > this.minZoom && (this.zoom -= 0.01 * Math.log(this.zoom + 1));
-    else if (cameraData.keyPressed.has("m"))
+    else if (cameraData.keyPressed.has("ArrowUp"))
       this.zoom < this.maxZoom && (this.zoom += 0.01 * Math.log(this.zoom + 1));
 
     this.projectionViewMatrix = Mat4.create()
       .ortho(
-        this.x * this.zoom - canvas.width / 2,
-        this.x * this.zoom + canvas.width / 2,
-        this.y * this.zoom + canvas.height / 2,
-        this.y * this.zoom - canvas.height / 2,
+        this.x * this.zoom - Aurora.canvas.width / 2,
+        this.x * this.zoom + Aurora.canvas.width / 2,
+        this.y * this.zoom + Aurora.canvas.height / 2,
+        this.y * this.zoom - Aurora.canvas.height / 2,
         -1,
         1
       )

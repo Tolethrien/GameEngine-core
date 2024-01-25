@@ -1,16 +1,17 @@
+import AuroraTexture from "../../core/aurora/auroraTexture";
 import Component from "../../core/ecs/component";
 import { clamp } from "../../core/math/math";
-import AssetStore from "../../core/stores/assetStore";
 
 interface GeneralProps {
   alpha?: number;
   tint?: [number, number, number];
   offset?: { x: number; y: number; w: number; h: number };
   isStatic: boolean;
+  bloom?: number;
 }
 interface QuadSpriteProps extends GeneralProps {
   type: "sprite";
-  image: string;
+  atlasIndex: number;
   GPUAtlas: string;
 }
 interface QuadColorProps extends GeneralProps {
@@ -18,7 +19,7 @@ interface QuadColorProps extends GeneralProps {
 }
 interface QuadAtlasProps {
   type: "spritesheet";
-  image: string;
+  atlasIndex: number;
   GPUAtlas: string;
   isStatic: GeneralProps["isStatic"];
   layers: (Omit<GeneralProps, "isStatic"> & {
@@ -31,6 +32,7 @@ interface RendererPassLayer {
   cashedCropData: Float32Array;
   alpha: number;
   tint: Uint8ClampedArray;
+  bloom: number;
   offset?: { x: number; y: number; w: number; h: number };
   isTexture: number;
   cashedOffsetData: { x: number; y: number; w: number; h: number } | undefined;
@@ -42,8 +44,8 @@ export type GroundRendererProps =
 export interface GroundRendererType extends GroundRenderer {}
 export default class GroundRenderer extends Component {
   type: GroundRendererProps["type"];
-  image?: string;
   gpuAtlas?: string;
+  atlasIndex?: number;
   isStatic: GeneralProps["isStatic"];
   cashedOffsetData: { x: number; y: number; w: number; h: number } | undefined;
   offset: GeneralProps["offset"];
@@ -62,46 +64,53 @@ export default class GroundRenderer extends Component {
         tint: new Uint8ClampedArray(props.tint ?? [255, 255, 255]),
         isTexture: 0,
         cashedOffsetData: undefined,
+        bloom: props.bloom ?? 0,
       });
     }
     if (props.type === "sprite") {
-      this.image = props.image;
       this.gpuAtlas = props.GPUAtlas;
-      const { index } = AssetStore.getDataFromAtlas(this.gpuAtlas, this.image);
+      this.atlasIndex = props.atlasIndex;
+      // const { index } = AssetStore.getDataFromAtlas(this.gpuAtlas, this.image);
       this.layers.push({
         cashedCropData: new Float32Array([0, 0, 1, 1]),
-        textureIndex: index,
+        textureIndex: this.atlasIndex,
         alpha: props.alpha !== undefined ? clamp(props.alpha, 0, 255) : 255,
         offset: props.offset ?? undefined,
         tint: new Uint8ClampedArray(props.tint ?? [255, 255, 255]),
         isTexture: 1,
         cashedOffsetData: undefined,
+        bloom: props.bloom ?? 0,
       });
     }
     if (props.type === "spritesheet") {
-      this.image = props.image;
+      this.atlasIndex = props.atlasIndex;
       this.gpuAtlas = props.GPUAtlas;
-      const { image, index } = AssetStore.getDataFromAtlas(
-        this.gpuAtlas,
-        this.image
-      );
-      props.layers.forEach((layer) => {
-        const layerCrop = new Float32Array([
-          layer.crop.x / image.width,
-          layer.crop.y / image.height,
-          (layer.crop.x + layer.cropSize.width) / image.width,
-          (layer.crop.y + layer.cropSize.height) / image.height,
-        ]);
-        this.layers.push({
-          cashedCropData: layerCrop,
-          textureIndex: index,
-          alpha: layer.alpha !== undefined ? clamp(layer.alpha, 0, 255) : 255,
-          offset: layer.offset ?? undefined,
-          tint: new Uint8ClampedArray(layer.tint ?? [255, 255, 255]),
-          isTexture: 1,
-          cashedOffsetData: undefined,
+      // const { image, index } = AssetStore.getDataFromAtlas(
+      //   this.gpuAtlas,
+      //   this.image
+      // );
+      const textureMeta = AuroraTexture.getTexture(this.gpuAtlas)?.meta;
+      if (!textureMeta)
+        console.error(`no data for texture with label ${this.gpuAtlas}`);
+      else
+        props.layers.forEach((layer) => {
+          const layerCrop = new Float32Array([
+            layer.crop.x / textureMeta.width,
+            layer.crop.y / textureMeta.height,
+            (layer.crop.x + layer.cropSize.width) / textureMeta.width,
+            (layer.crop.y + layer.cropSize.height) / textureMeta.height,
+          ]);
+          this.layers.push({
+            cashedCropData: layerCrop,
+            textureIndex: this.atlasIndex!,
+            alpha: layer.alpha !== undefined ? clamp(layer.alpha, 0, 255) : 255,
+            offset: layer.offset ?? undefined,
+            tint: new Uint8ClampedArray(layer.tint ?? [255, 255, 255]),
+            isTexture: 1,
+            cashedOffsetData: undefined,
+            bloom: layer.bloom ?? 0,
+          });
         });
-      });
     }
   }
 }

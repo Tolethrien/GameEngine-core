@@ -5,14 +5,14 @@ export default class Player extends Entity {
     this.addTag("player");
     this.addComponent("SpriteRenderer", {
       type: "spritesheet",
-      image: "cyberu",
-      GPUAtlas: "char",
+      atlasIndex: 1,
+      GPUAtlas: "userTextureAtlas",
       isStatic: false,
       layers: [{ crop: { x: 0, y: 0 }, cropSize: { width: 32, height: 32 } }],
     });
     this.addComponent("Animation", {
       cropSize: { width: 32, height: 32 },
-      spriteSheet: { gpuAtlas: "char", image: "cyberu" },
+      spriteSheet: { gpuAtlas: "userTextureAtlas", atlasIndex: 1 },
       animationData: {
         top: { numberOfFrames: 6, rowInSpritesheet: 4 },
         down: { numberOfFrames: 6, rowInSpritesheet: 1 },
@@ -44,7 +44,7 @@ export default class Player extends Entity {
     //   alpha: 255
     // });
     this.addComponent("Transform", {
-      position: { x: 950, y: 600 },
+      position: { x: 615, y: 615 },
       size: { width: 32, height: 32 },
       rotation: 0,
     });
@@ -53,17 +53,18 @@ export default class Player extends Entity {
       bodyType: "dynamic",
       mass: 10,
       friction: 0,
-      speed: 540,
-      // offset: { x: 0, y: 16, w: 32, h: 16 }
+      speed: 240,
+      offset: { x: 0, y: 16, w: 32, h: 16 },
     });
     this.addComponent("MouseEvents", {
       action: { left: "sdsd", right: "sss" },
       objectType: "translated",
     });
-    this.addComponent("PointLight", {
-      color: "white",
-      intencity: 1,
-      typeOfLight: "radial",
-    });
+    // this.addComponent("PointLight", {
+    //   color: [255, 250, 250],
+    //   intencity: 255,
+    //   type: "radial",
+    //   size: { width: 300, height: 300 },
+    // });
   }
 }

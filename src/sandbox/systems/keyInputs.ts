@@ -1,5 +1,6 @@
 import System from "../../core/ecs/system";
 import Vec2D from "../../core/math/vec2D";
+import InputManager from "../../core/modules/inputManager";
 import { AnimationType } from "../components/animation";
 import { IndieRigidBodyType } from "../components/indieRigidBody";
 import { OrthographicCameraType } from "../components/OrthographicCamera";
@@ -14,7 +15,7 @@ export default class KeyInputs extends System {
   constructor(list: SystemProps) {
     super(list);
     this.keyPressed = new Set();
-    this.handleKeyInputs();
+    // this.handleKeyInputs();
   }
   onStart() {
     this.playerRigid = this.getEntityComponentByTag("IndieRigidBody", "player");
@@ -23,6 +24,7 @@ export default class KeyInputs extends System {
     this.pos = this.getEntityComponentByTag("Transform", "player");
   }
   onUpdate() {
+    if (InputManager.isMouseHold("right")) console.log("klik");
     let dirX = 0;
     let dirY = 0;
     if (this.keyPressed.has("w")) {
@@ -48,13 +50,13 @@ export default class KeyInputs extends System {
     //   window.API.endSync();
     //   this.keyPressed.delete("k");
     // }
-    if (this.keyPressed.has("ArrowRight"))
+    if (InputManager.isKeyHold("ArrowRight"))
       this.othCam.x += this.othCam.speed / Math.log(this.othCam.zoom + 1);
-    else if (this.keyPressed.has("ArrowLeft"))
+    else if (InputManager.isKeyPressed("ArrowLeft"))
       this.othCam.x -= this.othCam.speed / Math.log(this.othCam.zoom + 1);
-    if (this.keyPressed.has("ArrowUp"))
+    if (InputManager.isKeyPressed("ArrowUp"))
       this.othCam.y -= this.othCam.speed / Math.log(this.othCam.zoom + 1);
-    else if (this.keyPressed.has("ArrowDown"))
+    else if (InputManager.isKeyPressed("ArrowDown"))
       this.othCam.y += this.othCam.speed / Math.log(this.othCam.zoom + 1);
     if (this.keyPressed.has("n"))
       this.othCam.zoom > this.othCam.minZoom &&
@@ -86,14 +88,14 @@ export default class KeyInputs extends System {
   //     }
   //   }
   // }
-  handleKeyInputs() {
-    window.onkeydown = (event: KeyboardEvent) => {
-      const pressedKey = event.key === " " ? "space" : event.key;
-      !event.repeat && this.keyPressed.add(pressedKey);
-    };
-    window.onkeyup = (event: KeyboardEvent) => {
-      const pressedKey = event.key === " " ? "space" : event.key;
-      this.keyPressed.has(pressedKey) && this.keyPressed.delete(pressedKey);
-    };
-  }
+  // handleKeyInputs() {
+  //   window.onkeydown = (event: KeyboardEvent) => {
+  //     const pressedKey = event.key === " " ? "space" : event.key;
+  //     !event.repeat && this.keyPressed.add(pressedKey);
+  //   };
+  //   window.onkeyup = (event: KeyboardEvent) => {
+  //     const pressedKey = event.key === " " ? "space" : event.key;
+  //     this.keyPressed.has(pressedKey) && this.keyPressed.delete(pressedKey);
+  //   };
+  // }
 }

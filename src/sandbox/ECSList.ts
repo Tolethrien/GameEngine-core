@@ -13,7 +13,7 @@ import KeyInputs from "./systems/keyInputs";
 import Renderer from "./systems/renderer";
 import Cameras from "./systems/camera";
 import Animator from "./systems/animator";
-import LoadChunks from "./systems/loadChunks2";
+import LoadChunks from "./systems/loadChunks";
 import MouseInputs from "./systems/mouseInputs";
 import IndiePhysics from "./systems/indiePhysics";
 export const avalibleComponents = {

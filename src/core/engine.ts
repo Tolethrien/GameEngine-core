@@ -5,19 +5,16 @@ import Aurora from "./aurora/auroraCore";
 import "../css/index.css";
 import DebugFrame from "./debugger/renderStats/renderFrame";
 import Dispatcher from "./ecs/dispatcher";
+import InputManager from "./modules/inputManager";
 export const canvas = document.getElementById(
   "gameWindow"
 ) as HTMLCanvasElement;
-
-export const filesObjects: Map<
-  string,
-  HTMLImageElement | HTMLAudioElement | OffscreenCanvas
-> = new Map();
+// canvas.width = window.innerWidth;
+// canvas.height = window.innerHeight;
 
 interface EngineConfig {
   // core: "2d" | "3d"
   //   renderer: "Aurora";
-  recordEntityChangedOnFrame?: boolean;
   preload: () => Promise<unknown>;
   setup: () => void;
 }
@@ -29,23 +26,17 @@ export default class Engine {
   public static actions: ActionsControllerType | undefined = undefined;
   public static globalContext: Map<string, unknown> = new Map();
   public static time: Time = new Time();
-  public static entityIsRecorder: boolean;
-  public static async Initialize({
-    preload,
-    setup,
-    recordEntityChangedOnFrame = false,
-  }: EngineConfig) {
+  public static async Initialize({ preload, setup }: EngineConfig) {
     if (Engine.isInitialized)
       throw new Error(
         "Engine already Initialize,you can only have one instance of engine"
       );
     await Aurora.initialize(canvas); // needs to be before preload
     await preload();
-    Engine.entityIsRecorder = recordEntityChangedOnFrame;
     Engine.setFirstAuroraFrame();
     DebugFrame.Initialize();
-    Engine.setGlobalContexts();
-    Engine.addGlobalListeners();
+    InputManager.initialize();
+
     Dispatcher.Initialize();
     setup();
     Engine.worlds.forEach((world) => world.onStart());
@@ -92,33 +83,4 @@ export default class Engine {
     Engine.actions = controller;
     Engine.actions?.onStart();
   };
-  private static setGlobalContexts() {
-    Engine.globalContext.set("mousePosition", { x: 0, y: 0 });
-    Engine.globalContext.set("mousePressed", false);
-    if (Engine.entityIsRecorder) {
-      Engine.globalContext.set(
-        "entityLastAdded",
-        new Set() as RecorderEntities
-      );
-      Engine.globalContext.set(
-        "entityLastRemoved",
-        new Set() as RecorderEntities
-      );
-    }
-  }
-
-  private static addGlobalListeners() {
-    canvas.onmousedown = () => {
-      Engine.globalContext.set("mousePressed", true);
-    };
-    canvas.onmouseup = () => {
-      Engine.globalContext.set("mousePressed", false);
-    };
-    canvas.addEventListener("mousemove", (event) => {
-      Engine.globalContext.set("mousePosition", {
-        x: event.offsetX,
-        y: event.offsetY,
-      });
-    });
-  }
 }

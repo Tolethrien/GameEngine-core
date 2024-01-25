@@ -1,164 +1,66 @@
-import Mat4 from "../math/mat4";
 import Aurora from "./auroraCore";
-type AuroraStringifytypedArray =
-  | "Float32Array"
-  | "Float64Array"
-  | "Uint16Array"
-  | "Uint32Array"
-  | "Uint8Array";
-
-interface AuroraBufferOptions {
-  type: AuroraStringifytypedArray;
-  writeBufferToGPU?: "write" | "manual";
-  label?: string;
-  mapedAtCreation?: boolean;
+type bufferType = "vertex" | "index" | "storage" | "uniform";
+interface DynamicBufferOptions {
+  bufferType: bufferType;
+  typedArr: InstanceType<(typeof TYPED_MAP)[keyof typeof TYPED_MAP]>;
+  label: string;
+  storeInMap?: boolean;
 }
-type AuroraBufferReturnType = [
-  GPUBuffer,
-  Float32Array | Float64Array | Uint16Array | Uint32Array | Uint8Array
-];
+interface MapedBufferOptions {
+  bufferType: bufferType;
+  type: keyof typeof TYPED_MAP;
+  data: number[];
+  label: string;
+  storeInMap?: boolean;
+}
+type Buffers = Map<string, GPUBuffer>;
+const TYPED_MAP = {
+  Float32Array,
+  Float64Array,
+  Uint16Array,
+  Uint32Array,
+  Uint8Array,
+};
+const USAGE_MAP = {
+  dynamic: {
+    vertex: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+    index: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+    storage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    uniform: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  },
+  maped: {
+    vertex: GPUBufferUsage.VERTEX,
+    index: GPUBufferUsage.INDEX,
+    storage: GPUBufferUsage.STORAGE,
+    uniform: GPUBufferUsage.UNIFORM,
+  },
+};
 export default class AuroraBuffer {
-  /**@description Creates vertex buffer, it can be written do device automaticly on create or manualy when you need to modify data on every frame */
-  public static createVertexBuffer(
-    vertices: number[],
-    options: AuroraBufferOptions
-  ): AuroraBufferReturnType {
-    const shouldWrite = options.writeBufferToGPU === "write" ? true : false;
-    const vertexData = this.chooseTypedArray(options.type, vertices);
-    const maped = options.mapedAtCreation ?? false;
-    const usage = maped
-      ? GPUBufferUsage.STORAGE
-      : GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST;
-    const vertexBuffer = Aurora.device.createBuffer({
-      label: options.label ?? "generic vertex buffer",
-      size: vertexData.byteLength,
-      usage: usage,
+  private static createdBuffers: Buffers = new Map();
+  public static createDynamicBuffer(settings: DynamicBufferOptions) {
+    const buffer = Aurora.device.createBuffer({
+      label: settings.label ?? "generic vertex buffer",
+      size: settings.typedArr.byteLength,
+      usage: USAGE_MAP.dynamic[settings.bufferType],
     });
-    shouldWrite &&
-      !maped &&
-      Aurora.device.queue.writeBuffer(vertexBuffer, 0, vertexData);
-    maped && this.mapBuffer(options.type, vertexBuffer, vertices);
-
-    return [vertexBuffer, vertexData];
+    settings.storeInMap && this.createdBuffers.set(settings.label, buffer);
+    return buffer;
   }
-  /**@description Creates index buffer, it can be written do device automaticly on create or manualy when you need to modify data on every frame */
-  public static createIndexBuffer(
-    indexes: number[],
-    options: AuroraBufferOptions
-  ): AuroraBufferReturnType {
-    const shouldWrite = options.writeBufferToGPU === "write" ? true : false;
-    const maped = options.mapedAtCreation ?? false;
-    const indexData = this.chooseTypedArray(options.type, indexes);
-    const usage = maped
-      ? GPUBufferUsage.INDEX
-      : GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST;
-    const indexBuffer = Aurora.device.createBuffer({
-      label: options.label ?? "generic storage buffer",
-      size: indexData.byteLength,
-      usage: usage,
-      mappedAtCreation: maped,
+  public static createBufferMaped(settings: MapedBufferOptions) {
+    const buffer = Aurora.device.createBuffer({
+      label: settings.label ?? "generic vertex buffer",
+      size: TYPED_MAP[settings.type].BYTES_PER_ELEMENT * settings.data.length,
+      usage: USAGE_MAP.maped[settings.bufferType],
+      mappedAtCreation: true,
     });
-    shouldWrite &&
-      !maped &&
-      Aurora.device.queue.writeBuffer(indexBuffer, 0, indexData);
-    maped && this.mapBuffer(options.type, indexBuffer, indexes);
-    return [indexBuffer, indexData];
-  }
-  /**@description Creates Storage buffer, it can be written do device automaticly on create or manualy when you need to modify data on every frame */
-  public static createStorageBuffer(
-    storage: number[],
-    options: AuroraBufferOptions
-  ): AuroraBufferReturnType {
-    const shouldWrite = options.writeBufferToGPU === "write" ? true : false;
-    const maped = options.mapedAtCreation ?? false;
-    const storageData = this.chooseTypedArray(options.type, storage);
-    const usage = maped
-      ? GPUBufferUsage.STORAGE
-      : GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST;
-    const storageBuffer = Aurora.device.createBuffer({
-      label: options.label ?? "generic storage buffer",
-      size: storageData.byteLength,
-      usage: usage,
-    });
-    shouldWrite &&
-      Aurora.device.queue.writeBuffer(storageBuffer, 0, storageData);
-    maped && this.mapBuffer(options.type, storageBuffer, storage);
-
-    return [storageBuffer, storageData];
-  }
-  /**@description Creates uniform buffer, it can be written do device automaticly on create or manualy when you need to modify data on every frame */
-  public static createUniformBuffer(
-    uniform: number[],
-    options: AuroraBufferOptions
-  ): AuroraBufferReturnType {
-    const shouldWrite = options.writeBufferToGPU === "write" ? true : false;
-    const maped = options.mapedAtCreation ?? false;
-    const uniformData = this.chooseTypedArray(options.type, uniform);
-    const usage = maped
-      ? GPUBufferUsage.UNIFORM
-      : GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST;
-    const uniformBuffer = Aurora.device.createBuffer({
-      label: options.label ?? "generic uniform buffer",
-      size: uniformData.byteLength,
-      usage: usage,
-    });
-    shouldWrite &&
-      Aurora.device.queue.writeBuffer(uniformBuffer, 0, uniformData);
-    maped && this.mapBuffer(options.type, uniformBuffer, uniform);
-
-    return [uniformBuffer, uniformData];
-  }
-  /**@description Creates Projection buffer which is type of Uniform buffer specify for camera and matrix uses, it can be written do device automaticly on create or manualy when you need to modify data on every frame */
-  public static createProjectionBuffer(
-    projection: Mat4,
-    options: Omit<AuroraBufferOptions, "type">
-  ): AuroraBufferReturnType {
-    const projectionData = projection.getMatrix;
-    const shouldWrite = options.writeBufferToGPU === "write" ? true : false;
-    const maped = options.mapedAtCreation ?? false;
-    const usage = maped
-      ? GPUBufferUsage.UNIFORM
-      : GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST;
-    const projectionBuffer = Aurora.device.createBuffer({
-      label: options.label ?? "generic projection buffer",
-      size: projectionData.byteLength,
-      usage: usage,
-    });
-    shouldWrite &&
-      !maped &&
-      Aurora.device.queue.writeBuffer(projectionBuffer, 0, projectionData);
-    maped &&
-      this.mapBuffer("Float32Array", projectionBuffer, [
-        ...projection.getMatrix,
-      ]);
-
-    return [projectionBuffer, projectionData];
-  }
-  private static chooseTypedArray(
-    typed: AuroraStringifytypedArray,
-    data: number[] | ArrayBuffer
-  ) {
-    switch (typed) {
-      case "Float32Array":
-        return new Float32Array(data);
-      case "Float64Array":
-        return new Float64Array(data);
-      case "Uint16Array":
-        return new Uint16Array(data);
-      case "Uint32Array":
-        return new Uint32Array(data);
-      case "Uint8Array":
-        return new Uint8Array(data);
-      default:
-        return new Float32Array(data);
-    }
-  }
-  private static mapBuffer(
-    typed: AuroraStringifytypedArray,
-    buffer: GPUBuffer,
-    data: number[]
-  ) {
-    this.chooseTypedArray(typed, buffer.getMappedRange()).set(data);
+    new TYPED_MAP[settings.type](buffer.getMappedRange()).set(settings.data);
     buffer.unmap();
+    settings.storeInMap && this.createdBuffers.set(settings.label, buffer);
+    return buffer;
+  }
+  public static getBuffer(bufferName: string) {
+    if (this.createdBuffers.has(bufferName))
+      return this.createdBuffers.get(bufferName);
+    else throw new Error(`there is no buffer named ${bufferName}`);
   }
 }

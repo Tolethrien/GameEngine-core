@@ -41,8 +41,8 @@ export default class Tile extends Entity {
     if (groundData) {
       this.addComponent("GroundRenderer", {
         type: "spritesheet",
-        image: "vite",
-        GPUAtlas: "char",
+        GPUAtlas: "userTextureAtlas",
+        atlasIndex: 0,
         isStatic: true,
         //TODO: skoro i tak to jest parsowwanie mozesz podawac po prostu array i obliczac w constructorze
         layers: groundData.map((data) => {
@@ -54,8 +54,9 @@ export default class Tile extends Entity {
             //   Math.floor(Math.random() * 255) + 1,
             //   Math.floor(Math.random() * 255) + 1,
             // ],
-            tint: [rigid === "static-block" ? 0 : 255, 255, 255],
+            tint: [255, 255, 255],
             alpha: 255,
+            bloom: 0,
           };
         }),
       });
@@ -70,8 +71,8 @@ export default class Tile extends Entity {
     if (tileData) {
       this.addComponent("SpriteRenderer", {
         type: "spritesheet",
-        image: "vite",
-        GPUAtlas: "char",
+        atlasIndex: 0,
+        GPUAtlas: "userTextureAtlas",
         isStatic: true,
         //TODO: skoro i tak to jest parsowwanie mozesz podawac po prostu array i obliczac w constructorze
         layers: tileData.map((data) => {
@@ -90,7 +91,6 @@ export default class Tile extends Entity {
         }),
       });
     }
-    // this.distributeComponents();
     this.dispatchComponents();
   }
 }

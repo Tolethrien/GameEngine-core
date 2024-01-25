@@ -6,6 +6,11 @@ export interface MapSchema {
 let indexSync: number;
 let fileSync: number;
 let schema: MapSchema;
+export type ChunkSchema = {
+  grounds: number[];
+  tiles: number[];
+  collider: boolean;
+}[];
 export const startMapSync = (
   mapfile: string,
   indexFile: string,
@@ -19,7 +24,7 @@ export const endMapSync = () => {
   closeSync(indexSync);
   closeSync(fileSync);
 };
-export const getChunk = (chunk: number) => {
+export const getChunk = (chunk: number): ChunkSchema => {
   const indexBuffer = Buffer.alloc(
     (schema.tiles + 1) * Uint32Array.BYTES_PER_ELEMENT
   );
@@ -65,7 +70,6 @@ function mapData(chunk: number[], sizes: number[]) {
       tiles: tile.slice(2 + tile[1]),
       collider: tile[0] === 0 ? false : true,
     };
-    // console.log(dat);
     data.push(dat);
     index += sizes[i];
   }

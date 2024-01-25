@@ -1,11 +1,11 @@
 import { contextBridge, ipcRenderer } from "electron";
-import { MapSchema } from "../backend/worldMap/getChunk";
+import { ChunkSchema, MapSchema } from "../backend/worldMap/getChunk";
 
 export const API = {
   startSync: (mapName: string, indexName: string, schema: MapSchema) =>
     ipcRenderer.send("startSync", mapName, indexName, schema),
   endSync: () => ipcRenderer.send("endSync"),
-  getChunk: async (chunk: number) => {
+  getChunk: async (chunk: number): Promise<ChunkSchema> => {
     return await ipcRenderer.invoke("getChunk", chunk);
   },
 };

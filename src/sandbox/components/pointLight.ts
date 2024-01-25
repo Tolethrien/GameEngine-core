@@ -1,22 +1,26 @@
 import Component from "../../core/ecs/component";
+import { clamp } from "../../core/math/math";
 
 export interface PointLightProps {
-  typeOfLight: "radial";
-  color: "white" | "yellow" | "red" | "blue";
+  type: "radial";
   intencity: number;
+  size: { width: number; height: number };
+  color: [number, number, number];
 }
 export interface PointLightType extends PointLight {}
 export default class PointLight extends Component {
-  typeOfLight: PointLightProps["typeOfLight"];
+  typeOfLight: PointLightProps["type"];
   color: PointLightProps["color"];
   intencity: PointLightProps["intencity"];
+  size: PointLightProps["size"];
   constructor(
     componentProps: ComponentProps,
-    { color, intencity, typeOfLight }: PointLightProps
+    { color, intencity, size, type }: PointLightProps
   ) {
     super(componentProps);
     this.color = color;
-    this.intencity = intencity;
-    this.typeOfLight = typeOfLight;
+    this.intencity = clamp(intencity, 0, 255);
+    this.typeOfLight = type;
+    this.size = size;
   }
 }

@@ -7,13 +7,13 @@ import System from "../../core/ecs/system";
 import AuroraBatcher from "../../core/aurora/auroraBatcher";
 import Aurora from "../../core/aurora/auroraCore";
 import AuroraBuffer from "../../core/aurora/auroraBuffer";
-import AuroraBindGroup from "../../core/aurora/auroraBindGroup";
-import AssetStore from "../../core/stores/assetStore";
 import RenderFrame from "../../core/debugger/renderStats/renderFrame";
+import { PointLightType } from "../components/pointLight";
 export default class Renderer extends System {
   transforms!: GetComponentsList<TransformType>;
   spriteRenderers!: GetComponentsList<SpriteRendererType>;
   groundRenderers!: GetComponentsList<GroundRendererType>;
+  lights!: GetComponentsList<PointLightType>;
   rigids!: GetComponentsList<IndieRigidBodyType>;
   othCam!: GetExplicitComponent<OrthographicCameraType>;
   textureBind!: GPUBindGroup;
@@ -26,25 +26,16 @@ export default class Renderer extends System {
     this.transforms = this.getComponents("Transform");
     this.spriteRenderers = this.getComponents("SpriteRenderer");
     this.groundRenderers = this.getComponents("GroundRenderer");
+    this.lights = this.getComponents("PointLight");
     this.rigids = this.getComponents("IndieRigidBody");
     this.othCam = this.getEntityComponentByTag("OrthographicCamera", "player");
-    this.createBinds();
-    AuroraBatcher.createBatcher({
-      backgroundColor: [255, 0, 255, 255],
-      maxQuadPerBatch: 10000,
-    });
   }
   onUpdate() {
+    AuroraBatcher.setCameraBuffer(this.othCam.projectionViewMatrix.getMatrix);
+    // AuroraBatcher.setGlobalColorCorrection([0.2, 0.05, 0.0]);
+    // AuroraBatcher.setScreenShader("chromaticAbber", 1);
     AuroraBatcher.startBatch();
-    Aurora.device.queue.writeBuffer(
-      this.projectionUniform,
-      0,
-      this.othCam.projectionViewMatrix.getMatrix
-    );
-    AuroraBatcher.setBindGroups([
-      { shaderGroup: 0, bindgroup: this.textureBind },
-      { shaderGroup: 1, bindgroup: this.cameraBind },
-    ]);
+
     this.groundRenderers?.forEach((ground) => {
       const transform = this.transforms.get(ground.entityID)!;
       ground.layers.forEach((layer) => {
@@ -67,6 +58,7 @@ export default class Renderer extends System {
           alpha: layer.alpha,
           crop: layer.cashedCropData,
           isTexture: layer.isTexture,
+          bloom: layer.bloom,
         });
       });
     });
@@ -89,27 +81,48 @@ export default class Renderer extends System {
             alpha: layer.alpha,
             crop: layer.cashedCropData,
             isTexture: layer.isTexture,
+            bloom: layer.bloom,
           });
         });
       });
+    this.lights.forEach((light) => {
+      const transform = this.transforms.get(light.entityID)!;
 
-    // AuroraBatcher.drawQuad({
-    //   position: {
-    //     x: canvas.width / 2,
-    //     y: canvas.height / 2
-    //   },
-    //   size: {
-    //     height: 4,
-    //     width: 4
-    //   },
-    //   textureToUse: 0,
-    //   tint: new Uint8ClampedArray([255, 255, 0]),
+      AuroraBatcher.drawLight({
+        intensity: light.intencity,
+        position: { x: transform.position.get.x, y: transform.position.get.y },
+        size: light.size,
+        tint: light.color,
+        type: light.typeOfLight,
+      });
+    });
+    // AuroraBatcher.drawText({
     //   alpha: 255,
-    //   crop: new Float32Array([0, 0, 0, 0]),
-    //   isTexture: 0
+    //   bloom: 0,
+    //   color: new Uint8ClampedArray([5, 5, 5]),
+    //   position: { x: 0, y: 0 },
+    //   text: "jebie sledzien",
+    //   textureToUse: 0,
+    //   weight: 1.5,
     // });
+    const rend = AuroraBatcher.getRendererData;
+    const opt = AuroraBatcher.getOptionsData;
+    RenderFrame.setGameData({
+      lightCurrent: rend.lights,
+      quadsCurrent: rend.quads,
+      lightsLimit: opt.maxLightsPerSceen,
+      quadsLimit: opt.maxQuadPerSceen,
+      blooming: opt.bloom,
+      bloomStr: opt.bloomStrength,
+      camera: opt.customCamera ? "custome" : "built-in",
+      colorCorr: rend.colorCorr,
+      globalEffect: rend.globalEffect.type,
+      globalEffectStr: rend.globalEffect.str,
+      lighting: opt.lights,
+      computeCalls: AuroraBatcher.getGPUCalls.compute,
+      drawCalls: AuroraBatcher.getGPUCalls.render,
+    });
     RenderFrame.swapToGPU();
-    RenderFrame.setQuadCount(AuroraBatcher.numberOfQuadsInBatch);
     AuroraBatcher.endBatch();
   }
   private sortByPositionY = (a: SpriteRendererType, b: SpriteRendererType) => {
@@ -151,64 +164,5 @@ export default class Renderer extends System {
     if (renderer.isStatic) renderer.layers[layerIndex].cashedOffsetData = data;
 
     return data;
-  }
-
-  private createBinds() {
-    const [projectionUniform] = AuroraBuffer.createProjectionBuffer(
-      this.othCam.projectionViewMatrix,
-      {
-        writeBufferToGPU: "manual",
-      }
-    );
-    this.projectionUniform = projectionUniform;
-    const [cameraBind] = AuroraBindGroup.createBindGroup({
-      shaderGroupPosition: 1,
-      layout: {
-        entries: [
-          {
-            binding: 0,
-            visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-            buffer: { type: "uniform" },
-          },
-        ],
-      },
-      data: {
-        label: "camera renderer bind group",
-        entries: [{ binding: 0, resource: { buffer: projectionUniform } }],
-      },
-    });
-    const texture = AssetStore.getAsset("GPUTextureAtlas", "char");
-    const [texturesBind] = AuroraBindGroup.createBindGroup({
-      shaderGroupPosition: 0,
-      layout: {
-        entries: [
-          {
-            binding: 0,
-            visibility: GPUShaderStage.FRAGMENT,
-            sampler: {},
-          },
-          {
-            binding: 1,
-            visibility: GPUShaderStage.FRAGMENT,
-            texture: { viewDimension: "2d-array" },
-          },
-        ],
-      },
-      data: {
-        label: "textures renderer bind group",
-        entries: [
-          {
-            binding: 0,
-            resource: texture.sampler,
-          },
-          {
-            binding: 1,
-            resource: texture.texture.createView(),
-          },
-        ],
-      },
-    });
-    this.cameraBind = cameraBind;
-    this.textureBind = texturesBind;
   }
 }
