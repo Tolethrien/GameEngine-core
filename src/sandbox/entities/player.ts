@@ -1,4 +1,5 @@
-import Entity from "../../core/ecs/entity";
+import Entity from "../../core/dogma/entity";
+
 export default class Player extends Entity {
   constructor() {
     super();

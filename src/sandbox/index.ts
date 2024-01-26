@@ -8,6 +8,7 @@ import AuroraBatcher from "../core/aurora/auroraBatcher";
 import fontLato from "../assets/lato_regular_32.png";
 import latoData from "../core/aurora/fonts/lato_regular_32.json";
 import DogmaCore from "../core/dogma/core";
+import EntityManager from "../core/dogma/entityManager";
 /**
  * 2) rozkminic trzon ECS'a
  * 3) napisac trzon ECS'a
@@ -28,18 +29,15 @@ async function preload() {
   });
 }
 function setup() {
-  DogmaCore.createWorld("str");
-  DogmaCore.setActiveWorld = "str";
-  console.log(DogmaCore.getActiveWorldName);
-  const worldd = Engine.createWorld("main");
-  worldd.addEntity(new Player());
-  worldd.addWorldMap(mapData, "isMap", "isInd");
-  worldd.addSystem("KeyInputs");
-  worldd.addSystem("IndiePhysics");
-  worldd.addSystem("MouseInputs");
-  worldd.addSystem("LoadChunks");
-  worldd.addSystem("Animator");
-  worldd.addSystem("Cameras");
-  worldd.addSystem("Renderer");
+  DogmaCore.createWorld("main");
+  DogmaCore.addWorldMap(mapData, "isMap", "isInd");
+  EntityManager.addEntityOnStart(new Player());
+  DogmaCore.addSystem("KeyInputs");
+  DogmaCore.addSystem("IndiePhysics");
+  DogmaCore.addSystem("MouseInputs");
+  DogmaCore.addSystem("LoadChunks");
+  DogmaCore.addSystem("Animator");
+  DogmaCore.addSystem("Cameras");
+  DogmaCore.addSystem("Renderer");
 }
 Engine.Initialize({ preload, setup });

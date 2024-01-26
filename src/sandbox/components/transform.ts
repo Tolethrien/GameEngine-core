@@ -1,4 +1,4 @@
-import Component from "../../core/ecs/component";
+import Component from "../../core/dogma/component";
 import Vec2D from "../../core/math/vec2D";
 
 export interface TransformProps {

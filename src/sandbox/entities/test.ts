@@ -1,5 +1,5 @@
 import tete from "../../assets/webGpuMap.json";
-import Entity from "../../core/ecs/entity";
+import Entity from "../../core/dogma/entity";
 export default class Tester extends Entity {
   constructor(x, y, z, p, f) {
     super();

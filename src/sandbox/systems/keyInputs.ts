@@ -1,4 +1,4 @@
-import System from "../../core/ecs/system";
+import System from "../../core/dogma/system";
 import Vec2D from "../../core/math/vec2D";
 import InputManager from "../../core/modules/inputManager";
 import { AnimationType } from "../components/animation";
@@ -8,60 +8,48 @@ import { TransformType } from "../components/transform";
 export default class KeyInputs extends System {
   playerRigid!: GetExplicitComponent<IndieRigidBodyType>;
   playerAnim!: GetExplicitComponent<AnimationType>;
-  keyPressed: Set<string>;
   othCam!: GetExplicitComponent<OrthographicCameraType>;
   pos!: GetExplicitComponent<TransformType>;
 
-  constructor(list: SystemProps) {
-    super(list);
-    this.keyPressed = new Set();
-    // this.handleKeyInputs();
+  constructor() {
+    super();
   }
-  onStart() {
+  onSubscribeList(): void {
     this.playerRigid = this.getEntityComponentByTag("IndieRigidBody", "player");
     this.playerAnim = this.getEntityComponentByTag("Animation", "player");
     this.othCam = this.getEntityComponentByTag("OrthographicCamera", "player");
     this.pos = this.getEntityComponentByTag("Transform", "player");
   }
   onUpdate() {
-    if (InputManager.isMouseHold("right")) console.log("klik");
     let dirX = 0;
     let dirY = 0;
-    if (this.keyPressed.has("w")) {
+    if (InputManager.isKeyHold("w")) {
       this.playerAnim.layerData[0].state = "top";
       dirY--;
-    } else if (this.keyPressed.has("s")) {
+    } else if (InputManager.isKeyHold("s")) {
       this.playerAnim.layerData[0].state = "down";
       dirY++;
     }
-    if (this.keyPressed.has("a")) {
+    if (InputManager.isKeyHold("a")) {
       this.playerAnim.layerData[0].state = "left";
       dirX--;
-    } else if (this.keyPressed.has("d")) {
+    } else if (InputManager.isKeyHold("d")) {
       this.playerAnim.layerData[0].state = "right";
       dirX++;
     }
 
-    if (this.keyPressed.has("j")) {
-      window.API.getChunk(20);
-      this.keyPressed.delete("j");
-    }
-    // if (this.keyPressed.has("k")) {
-    //   window.API.endSync();
-    //   this.keyPressed.delete("k");
-    // }
     if (InputManager.isKeyHold("ArrowRight"))
       this.othCam.x += this.othCam.speed / Math.log(this.othCam.zoom + 1);
-    else if (InputManager.isKeyPressed("ArrowLeft"))
+    else if (InputManager.isKeyHold("ArrowLeft"))
       this.othCam.x -= this.othCam.speed / Math.log(this.othCam.zoom + 1);
-    if (InputManager.isKeyPressed("ArrowUp"))
+    if (InputManager.isKeyHold("ArrowUp"))
       this.othCam.y -= this.othCam.speed / Math.log(this.othCam.zoom + 1);
-    else if (InputManager.isKeyPressed("ArrowDown"))
+    else if (InputManager.isKeyHold("ArrowDown"))
       this.othCam.y += this.othCam.speed / Math.log(this.othCam.zoom + 1);
-    if (this.keyPressed.has("n"))
+    if (InputManager.isKeyHold("n"))
       this.othCam.zoom > this.othCam.minZoom &&
         (this.othCam.zoom -= 0.01 * Math.log(this.othCam.zoom + 1));
-    else if (this.keyPressed.has("m"))
+    else if (InputManager.isKeyHold("m"))
       this.othCam.zoom < this.othCam.maxZoom &&
         (this.othCam.zoom += 0.01 * Math.log(this.othCam.zoom + 1));
 
@@ -70,32 +58,4 @@ export default class KeyInputs extends System {
     const forceVector = forcedirection.multiply(this.playerRigid.newtons);
     this.playerRigid.force = forceVector;
   }
-
-  // onKeyPressed(key: string, callback: () => void) {
-  //   if (this.keyPressed.size !== 0 && this.keyPressed.has(key)) {
-  //     console.log(key);
-  //     this.keyPressed.delete(key);
-  //   }
-  // }
-  // onKeyHold(keys: string, callback: () => void, errorKeys?: keyTypes[]) {
-  //   if (keyPressed.size !== 0 && keys.every((e) => (keyPressed.has(e) ? true : false))) {
-  //     if (errorKeys && errorKeys.length !== 0) {
-  //       if (errorKeys.every((e) => (keyPressed.has(e) ? false : true))) {
-  //         callback();
-  //       }
-  //     } else {
-  //       callback();
-  //     }
-  //   }
-  // }
-  // handleKeyInputs() {
-  //   window.onkeydown = (event: KeyboardEvent) => {
-  //     const pressedKey = event.key === " " ? "space" : event.key;
-  //     !event.repeat && this.keyPressed.add(pressedKey);
-  //   };
-  //   window.onkeyup = (event: KeyboardEvent) => {
-  //     const pressedKey = event.key === " " ? "space" : event.key;
-  //     this.keyPressed.has(pressedKey) && this.keyPressed.delete(pressedKey);
-  //   };
-  // }
 }

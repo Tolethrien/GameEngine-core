@@ -1,4 +1,4 @@
-import Component from "../../core/ecs/component";
+import Component from "../../core/dogma/component";
 import { canvas } from "../../core/engine";
 import Mat4 from "../../core/math/mat4";
 import Vec2D from "../../core/math/vec2D";

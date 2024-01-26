@@ -1,4 +1,4 @@
-import Component from "../../core/ecs/component";
+import Component from "../../core/dogma/component";
 import { clamp } from "../../core/math/math";
 import Vec2D from "../../core/math/vec2D";
 

@@ -1,6 +1,6 @@
 import { ChunkSchema } from "../../backend/worldMap/getChunk";
-import Dispatcher from "../../core/ecs/dispatcher";
-import System from "../../core/ecs/system";
+import EntityManager from "../../core/dogma/entityManager";
+import System from "../../core/dogma/system";
 import { TransformType } from "../components/transform";
 import Tile, { GroundData, TileData } from "../entities/tile";
 
@@ -17,17 +17,19 @@ export default class LoadChunks extends System {
   entityTransform!: GetExplicitComponent<TransformType>;
   entityOnChunk: number;
   trackList: Map<number, string[]>;
-  constructor(list: SystemProps) {
-    super(list);
+  constructor() {
+    super();
     this.entityOnChunk = -1;
     this.loadedChunks = [];
     this.lastKnownLoadedChunks = [];
     this.loadingRange = 1;
     this.trackList = new Map();
   }
-  async onStart() {
+  onSubscribeList(): void {
     this.entityTransform = this.getEntityComponentByTag("Transform", "player");
-    const { indexFile, mapFile, mapSchema } = this.getMapData();
+  }
+  async onStart() {
+    const { indexFile, mapFile, mapSchema } = this.getMapData!;
     this.mapSchema = mapSchema.MAP_INFO.sizes;
     this.tilesLUT = mapSchema.TILESET_LUT;
     window.API.startSync(mapFile, indexFile, {
@@ -74,7 +76,6 @@ export default class LoadChunks extends System {
             chunkMapData[tileIndex]
           );
           new Tile({
-            world: this.worldName,
             pos: { x: tileX, y: tileY },
             size: {
               height: this.mapSchema.tile.height * 0.5,
@@ -95,7 +96,7 @@ export default class LoadChunks extends System {
     removedChunks.forEach((chunkIndex) => {
       const tiles = this.trackList.get(chunkIndex);
       if (tiles) {
-        tiles.forEach((tile) => Dispatcher.removeEntity(tile));
+        tiles.forEach((tile) => EntityManager.removeEntity(tile));
         this.trackList.delete(chunkIndex);
       }
     });

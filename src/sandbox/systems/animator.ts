@@ -1,13 +1,13 @@
-import System from "../../core/ecs/system";
+import System from "../../core/dogma/system";
 import { AnimationType } from "../components/animation";
 import { SpriteRendererType } from "../components/spriteRenderer";
 export default class Animator extends System {
   animations!: GetComponentsList<AnimationType>;
   spriteRenderers!: GetComponentsList<SpriteRendererType>;
-  constructor(list: SystemProps) {
-    super(list);
+  constructor() {
+    super();
   }
-  onStart() {
+  onSubscribeList(): void {
     this.animations = this.getComponents("Animation")!;
     this.spriteRenderers = this.getComponents("SpriteRenderer")!;
   }

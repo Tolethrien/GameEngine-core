@@ -1,5 +1,6 @@
+import Entity from "../../core/dogma/entity";
+import EntityManager from "../../core/dogma/entityManager";
 import { IndieRigidBodyProps } from "../components/indieRigidBody";
-import Entity from "../../core/ecs/entity";
 export interface TileData {
   crop: number[];
   offset: number[];
@@ -9,7 +10,6 @@ export type GroundData = [number, number, number, number];
 export interface TileProps {
   pos: { x: number; y: number };
   size: { width: number; height: number };
-  world: string;
   tileList: string[];
   tileData: TileData[] | undefined;
   groundData: GroundData[] | undefined;
@@ -17,16 +17,8 @@ export interface TileProps {
 }
 export interface TileType extends Tile {}
 export default class Tile extends Entity {
-  constructor({
-    pos,
-    size,
-    world,
-    tileList,
-    tileData,
-    groundData,
-    rigid,
-  }: TileProps) {
-    super(world);
+  constructor({ pos, size, tileList, tileData, groundData, rigid }: TileProps) {
+    super();
     tileList.push(this.id);
     this.addComponent("Transform", {
       position: pos,
@@ -91,6 +83,6 @@ export default class Tile extends Entity {
         }),
       });
     }
-    this.dispatchComponents();
+    EntityManager.addEntityOnLoop(this);
   }
 }

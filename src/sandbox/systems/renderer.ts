@@ -3,12 +3,10 @@ import { OrthographicCameraType } from "../components/OrthographicCamera";
 import { TransformType } from "../components/transform";
 import { SpriteRendererType } from "../components/spriteRenderer";
 import { GroundRendererType } from "../components/groundRenderer";
-import System from "../../core/ecs/system";
 import AuroraBatcher from "../../core/aurora/auroraBatcher";
-import Aurora from "../../core/aurora/auroraCore";
-import AuroraBuffer from "../../core/aurora/auroraBuffer";
 import RenderFrame from "../../core/debugger/renderStats/renderFrame";
 import { PointLightType } from "../components/pointLight";
+import System from "../../core/dogma/system";
 export default class Renderer extends System {
   transforms!: GetComponentsList<TransformType>;
   spriteRenderers!: GetComponentsList<SpriteRendererType>;
@@ -19,10 +17,10 @@ export default class Renderer extends System {
   textureBind!: GPUBindGroup;
   cameraBind!: GPUBindGroup;
   projectionUniform!: GPUBuffer;
-  constructor(props: SystemProps) {
-    super(props);
+  constructor() {
+    super();
   }
-  onStart() {
+  onSubscribeList() {
     this.transforms = this.getComponents("Transform");
     this.spriteRenderers = this.getComponents("SpriteRenderer");
     this.groundRenderers = this.getComponents("GroundRenderer");

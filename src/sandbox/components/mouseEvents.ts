@@ -1,4 +1,4 @@
-import Component from "../../core/ecs/component";
+import Component from "../../core/dogma/component";
 
 export interface MouseEventsProps {
   objectType: "fixed" | "translated";

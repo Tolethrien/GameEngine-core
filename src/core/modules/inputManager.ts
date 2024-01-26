@@ -12,7 +12,7 @@ export default class InputManager {
     right: false,
     middle: false,
   };
-  private static mousePositionOnCavas = [0, 0];
+  private static mousePositionOnCavas = { x: 0, y: 0 };
   private static keyPressed = new Set();
 
   public static initialize() {
@@ -23,7 +23,7 @@ export default class InputManager {
       this.mousePressed[MOUSE_ENUM[event.button]] = false;
     };
     canvas.onmousemove = (event) => {
-      this.mousePositionOnCavas = [event.offsetX, event.offsetY];
+      this.mousePositionOnCavas = { x: event.offsetX, y: event.offsetY };
     };
     window.onkeydown = (event: KeyboardEvent) => {
       const pressedKey = event.key === " " ? "space" : event.key;
@@ -37,12 +37,22 @@ export default class InputManager {
     //   canvas.width = window.innerWidth;
     //   canvas.height = window.innerHeight;
     // };
+    // canvas.addEventListener("wheel", (event) => {
+    //   this.globalContext("set", "mouseDelta", event.deltaY);
+    //   if (this.clearScroll) {
+    //     clearTimeout(this.clearScroll);
+    //   }
+    //   this.clearScroll = setTimeout(() => {
+    //     this.globalContext("delete", "mouseDelta");
+    //     this.clearScroll = null;
+    //   }, 50);
+    // });
   }
-  public static set setOnResize(func: () => void) {
+  public static set setOnResize(callback: () => void) {
     window.onresize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      func();
+      callback();
     };
   }
 
@@ -51,9 +61,9 @@ export default class InputManager {
   }
   public static getTranslatedMousePosition(projectionViewMatrix: Mat4) {
     const mouseXNormalized =
-      (this.mousePositionOnCavas[0] / canvas.width) * 2 - 1;
+      (this.mousePositionOnCavas.x / canvas.width) * 2 - 1;
     const mouseYNormalized =
-      -(this.mousePositionOnCavas[1] / canvas.height) * 2 + 1;
+      -(this.mousePositionOnCavas.y / canvas.height) * 2 + 1;
     const inverseMatrix = projectionViewMatrix.invert();
     const mouseWorldSpace = inverseMatrix.transform([
       mouseXNormalized,
@@ -61,7 +71,7 @@ export default class InputManager {
       -1,
       1,
     ]);
-    return mouseWorldSpace;
+    return { x: mouseWorldSpace[0], y: mouseWorldSpace[1] };
   }
 
   public static isKeyHold(key: string) {

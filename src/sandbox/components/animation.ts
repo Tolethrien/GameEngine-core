@@ -1,5 +1,5 @@
 import AuroraTexture from "../../core/aurora/auroraTexture";
-import Component from "../../core/ecs/component";
+import Component from "../../core/dogma/component";
 
 interface AnimationData {
   [key: string]: {

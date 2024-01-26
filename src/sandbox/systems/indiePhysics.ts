@@ -1,4 +1,5 @@
-import System from "../../core/ecs/system";
+import EntityManager from "../../core/dogma/entityManager";
+import System from "../../core/dogma/system";
 import Engine from "../../core/engine";
 import Vec2D from "../../core/math/vec2D";
 import DepthQuadTree, {
@@ -21,17 +22,20 @@ export default class indiePhysics extends System {
   dynamicEntities: IndieRigidBodyType["entityID"][];
   precision: number;
   debugQuad: boolean;
-  constructor(props: SystemProps) {
-    super(props);
+  constructor() {
+    super();
     this.dynamicEntities = [];
     this.manifolds = [];
     this.precision = 2;
     this.debugQuad = false;
   }
-  //TODO: dodac opcje poza dynamic i static clip ktora pozwoli ci miec mozliwosc ruchu i wszystko zwiazane z fizyka ale nie bedzie na niego dzialac kolizja
-  onStart() {
+
+  onSubscribeList(): void {
     this.rigidBodies = this.getComponents("IndieRigidBody");
     this.transforms = this.getComponents("Transform");
+  }
+  //TODO: dodac opcje poza dynamic i static clip ktora pozwoli ci miec mozliwosc ruchu i wszystko zwiazane z fizyka ale nie bedzie na niego dzialac kolizja
+  onStart() {
     this.createQuad();
   }
 
@@ -71,7 +75,8 @@ export default class indiePhysics extends System {
   }
   private manageEntities() {
     //TODO: nowa wersja - porownywc liste quadu z lista rigidow i patrzec ktore sa a ktorych  byc nie powinno?
-    const { added, removed } = this.getFromDispacher();
+    // const { added, removed } = this.getFromDispacher();
+    const { added, removed } = EntityManager.getManipulatedLastFrame;
     added?.forEach((entity) => {
       const rigid = this.rigidBodies.get(entity);
       if (rigid) {
@@ -174,7 +179,7 @@ export default class indiePhysics extends System {
   }
   //QuadTree
   private createQuad() {
-    const map = this.getMapData().mapSchema.MAP_INFO.sizes.map;
+    const map = this.getMapData!.mapSchema.MAP_INFO.sizes.map;
     this.quadTree = new DepthQuadTree({
       boundry: {
         x: map.inPixels.width / 2,

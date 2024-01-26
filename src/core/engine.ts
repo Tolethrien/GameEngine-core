@@ -1,11 +1,10 @@
-import World from "./ecs/world";
 import { ActionsControllerType } from "./ecs/actions";
 import Time from "./utils/timers/time";
 import Aurora from "./aurora/auroraCore";
 import "../css/index.css";
 import DebugFrame from "./debugger/renderStats/renderFrame";
-import Dispatcher from "./ecs/dispatcher";
 import InputManager from "./modules/inputManager";
+import DogmaCore from "./dogma/core";
 export const canvas = document.getElementById(
   "gameWindow"
 ) as HTMLCanvasElement;
@@ -36,19 +35,16 @@ export default class Engine {
     Engine.setFirstAuroraFrame();
     DebugFrame.Initialize();
     InputManager.initialize();
-
-    Dispatcher.Initialize();
     setup();
-    Engine.worlds.forEach((world) => world.onStart());
+    DogmaCore.systemsOnListCreation();
+    DogmaCore.systemsOnStart();
     Engine.isInitialized = true;
     Engine.loop();
   }
   private static loop() {
     Engine.time.calculateTimeStamp();
     DebugFrame.start();
-    Dispatcher.dispatchComponents();
-    Dispatcher.removeComponents();
-    Engine.worlds.get(Engine.activeWorld)?.onUpdate();
+    DogmaCore.systemsOnUpdate();
     DebugFrame.stop();
     requestAnimationFrame(Engine.loop);
   }
@@ -68,17 +64,7 @@ export default class Engine {
     commandPass.end();
     Aurora.device.queue.submit([encoder.finish()]);
   }
-  public static createWorld = (wordlName: string) => {
-    Engine.worlds.set(wordlName, new World(wordlName));
-    return Engine.worlds.get(wordlName)!;
-  };
-  public static addDynamicEntity = <T extends EntityType>(
-    world: string,
-    entity: T
-  ) => {
-    entity.world = world;
-    return entity;
-  };
+
   public static addActionsController = (controller: ActionsControllerType) => {
     Engine.actions = controller;
     Engine.actions?.onStart();

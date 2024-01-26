@@ -1,4 +1,4 @@
-import System from "../../core/ecs/system";
+import System from "../../core/dogma/system";
 import { canvas } from "../../core/engine";
 import Mat4 from "../../core/math/mat4";
 import { OrthographicCameraType } from "../components/OrthographicCamera";
@@ -6,10 +6,10 @@ import { TransformType } from "../components/transform";
 export default class Cameras extends System {
   playerTransform!: GetExplicitComponent<TransformType>;
   othCam!: GetExplicitComponent<OrthographicCameraType>;
-  constructor(props: SystemProps) {
-    super(props);
+  constructor() {
+    super();
   }
-  onStart() {
+  onSubscribeList(): void {
     this.playerTransform = this.getEntityComponentByTag("Transform", "player");
     this.othCam = this.getEntityComponentByTag("OrthographicCamera", "player");
   }

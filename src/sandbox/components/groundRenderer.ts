@@ -1,5 +1,5 @@
 import AuroraTexture from "../../core/aurora/auroraTexture";
-import Component from "../../core/ecs/component";
+import Component from "../../core/dogma/component";
 import { clamp } from "../../core/math/math";
 
 interface GeneralProps {

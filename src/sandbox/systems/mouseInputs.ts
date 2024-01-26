@@ -1,6 +1,6 @@
-import { useAction } from "../../core/ecs/actions";
-import System from "../../core/ecs/system";
+import System from "../../core/dogma/system";
 import { canvas } from "../../core/engine";
+import InputManager from "../../core/modules/inputManager";
 import { MouseEventsType } from "../components/mouseEvents";
 import OrthographicCamera from "../components/OrthographicCamera";
 import { TransformType } from "../components/transform";
@@ -13,17 +13,15 @@ export default class MouseInputs extends System {
   proximityFilterList: Map<string, TransformType>;
   clearScroll: NodeJS.Timeout | null;
 
-  constructor(props: SystemProps) {
-    super(props);
+  constructor() {
+    super();
     this.proximityFilterList = new Map();
     this.clearScroll = null;
   }
-  onStart(): void {
+  onSubscribeList(): void {
     this.mouseEvents = this.getComponents("MouseEvents");
     this.transforms = this.getComponents("Transform");
     this.camera = this.getEntityComponentByTag("OrthographicCamera", "player");
-    this.globalContext("set", "mousePosition", { x: 0, y: 0 });
-    this.handleCanvasListeners();
   }
   MouseClickWithButton(button: Button) {
     this.mouseEvents.forEach((event) => {
@@ -45,7 +43,7 @@ export default class MouseInputs extends System {
       )
       .at(-1);
     this.proximityFilterList.clear();
-    target && useAction(this.mouseEvents.get(target.entityID)!.action[button]!);
+    // target && useAction(this.mouseEvents.get(target.entityID)!.action[button]!);
   }
 
   screenToWorld(mousePos: mousePosition) {
@@ -62,12 +60,10 @@ export default class MouseInputs extends System {
   }
 
   mouseCollideWithTranslated(id: EntityType["id"]) {
-    const mousePosition = this.globalContext(
-      "get",
-      "mousePosition"
-    ) as mousePosition;
+    const mouseConvertedPosition = InputManager.getTranslatedMousePosition(
+      this.camera.projectionViewMatrix
+    );
     const transform = this.transforms.get(id)!;
-    const mouseConvertedPosition = this.screenToWorld(mousePosition);
 
     return (
       Math.floor(mouseConvertedPosition.x) >=
@@ -80,22 +76,5 @@ export default class MouseInputs extends System {
         transform.position.get.y + transform.size.get.y &&
       true
     );
-  }
-  handleCanvasListeners() {
-    canvas.onclick = () => this.MouseClickWithButton("left");
-    canvas.oncontextmenu = () => this.MouseClickWithButton("right");
-    canvas.onauxclick = (event: MouseEvent) =>
-      event.button === 1 && this.MouseClickWithButton("middle");
-
-    canvas.addEventListener("wheel", (event) => {
-      this.globalContext("set", "mouseDelta", event.deltaY);
-      if (this.clearScroll) {
-        clearTimeout(this.clearScroll);
-      }
-      this.clearScroll = setTimeout(() => {
-        this.globalContext("delete", "mouseDelta");
-        this.clearScroll = null;
-      }, 50);
-    });
   }
 }

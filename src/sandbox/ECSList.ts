@@ -1,6 +1,5 @@
-import CoreComponent from "../core/ecs/abstracts/coreComponent";
-import CoreSystem from "../core/ecs/abstracts/coreSystem";
-import CoreGroupSystem from "../core/ecs/abstracts/coreGroupSystem";
+import CoreComponent from "../core/dogma/abstracts/coreComponent";
+import CoreSystem from "../core/dogma/abstracts/coreSystem";
 import OrthographicCamera from "./components/OrthographicCamera";
 import SpriteRenderer from "./components/spriteRenderer";
 import Animation from "./components/animation";
@@ -10,12 +9,13 @@ import MouseEvents from "./components/mouseEvents";
 import PointLight from "./components/pointLight";
 import Transform from "./components/transform";
 import KeyInputs from "./systems/keyInputs";
-import Renderer from "./systems/renderer";
 import Cameras from "./systems/camera";
 import Animator from "./systems/animator";
 import LoadChunks from "./systems/loadChunks";
 import MouseInputs from "./systems/mouseInputs";
 import IndiePhysics from "./systems/indiePhysics";
+import TempSystem from "../core/dogma/tempSystem";
+import Renderer from "./systems/renderer";
 export const avalibleComponents = {
   CoreComponent, // required
   Transform,
@@ -36,7 +36,5 @@ export const avalibleSystems = {
   LoadChunks,
   MouseInputs,
   IndiePhysics,
-} as const;
-export const avalibleSystemsGroups = {
-  CoreGroupSystem, // required
+  TempSystem,
 } as const;
