@@ -9,7 +9,9 @@ export default class Player extends Entity {
       atlasIndex: 1,
       GPUAtlas: "userTextureAtlas",
       isStatic: false,
-      layers: [{ crop: { x: 0, y: 0 }, cropSize: { width: 32, height: 32 } }],
+      layers: [
+        { crop: { x: 0, y: 0 }, cropSize: { width: 32, height: 32 }, bloom: 1 },
+      ],
     });
     this.addComponent("Animation", {
       cropSize: { width: 32, height: 32 },
@@ -61,11 +63,11 @@ export default class Player extends Entity {
       action: { left: "sdsd", right: "sss" },
       objectType: "translated",
     });
-    // this.addComponent("PointLight", {
-    //   color: [255, 250, 250],
-    //   intencity: 255,
-    //   type: "radial",
-    //   size: { width: 300, height: 300 },
-    // });
+    this.addComponent("PointLight", {
+      color: [255, 250, 250],
+      intencity: 255,
+      type: "radial",
+      size: { width: 300, height: 300 },
+    });
   }
 }

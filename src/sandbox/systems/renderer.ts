@@ -3,10 +3,12 @@ import { OrthographicCameraType } from "../components/OrthographicCamera";
 import { TransformType } from "../components/transform";
 import { SpriteRendererType } from "../components/spriteRenderer";
 import { GroundRendererType } from "../components/groundRenderer";
-import AuroraBatcher from "../../core/aurora/auroraBatcher";
+import AuroraBatcher from "../../core/aurora/urp/batcher";
 import RenderFrame from "../../core/debugger/renderStats/renderFrame";
 import { PointLightType } from "../components/pointLight";
 import System from "../../core/dogma/system";
+import Draw from "../../core/aurora/urp/draw";
+import NaviDiv from "../../core/navigpu/elements/div";
 export default class Renderer extends System {
   transforms!: GetComponentsList<TransformType>;
   spriteRenderers!: GetComponentsList<SpriteRendererType>;
@@ -17,6 +19,7 @@ export default class Renderer extends System {
   textureBind!: GPUBindGroup;
   cameraBind!: GPUBindGroup;
   projectionUniform!: GPUBuffer;
+  el!: NaviDiv;
   constructor() {
     super();
   }
@@ -27,14 +30,29 @@ export default class Renderer extends System {
     this.lights = this.getComponents("PointLight");
     this.rigids = this.getComponents("IndieRigidBody");
     this.othCam = this.getEntityComponentByTag("OrthographicCamera", "player");
+    this.el = new NaviDiv();
+    this.el.onClick(() => console.log("GUI"));
   }
+
   onUpdate() {
     AuroraBatcher.setCameraBuffer(this.othCam.projectionViewMatrix.getMatrix);
-    // AuroraBatcher.setGlobalColorCorrection([0.2, 0.05, 0.0]);
-    // AuroraBatcher.setScreenShader("chromaticAbber", 1);
+    AuroraBatcher.setGlobalColorCorrection([0.2, 0.05, 0.0]);
+    AuroraBatcher.setScreenShader("grayscale", 0.7);
     AuroraBatcher.startBatch();
+    // Draw.GUI({
+    //   alpha: 255,
+    //   isTexture: 1,
+    //   position: { x: 0, y: 0 },
+    //   size: { height: 50, width: 50 },
+    //   textureToUse: 0,
+    //   tint: new Uint8ClampedArray([255, 0, 0]),
+    //   crop: new Float32Array([0, 0, 1, 1]),
+    // });
+    this.el.draw();
 
     this.groundRenderers?.forEach((ground) => {
+      //TODO: potencjalny performance boost, nie musisz co frame aktualizowac listy ziemi bo buffer zmienia sie tylko
+      // w momencie kiedy dodajesz/usuwasz nowe chunki, caly czas potem stoi bez zmian - osobny buffer na ziemie?
       const transform = this.transforms.get(ground.entityID)!;
       ground.layers.forEach((layer) => {
         //TODO: blad gdzie na poczatku gry masz skos 5ms na kilka sekund by potem zniknac
@@ -42,7 +60,7 @@ export default class Renderer extends System {
         // pomimo iz ten draw sie wykonuje non stop pred ruchem postaci i nie ma problemu wczesniej!
         // im szybciej sie rusze tym mniejszy czas czekania na poprawe, jak sie rusze odrazu to sie nie dzieje
 
-        AuroraBatcher.drawQuad({
+        Draw.Quad({
           position: {
             x: transform.position.x,
             y: transform.position.y,
@@ -65,7 +83,7 @@ export default class Renderer extends System {
       .forEach((renderer) => {
         renderer.layers.forEach((layer, index) => {
           const { h, w, x, y } = this.getDataFromCash(renderer, index);
-          AuroraBatcher.drawQuad({
+          Draw.Quad({
             position: {
               x: x,
               y: y,
@@ -86,7 +104,7 @@ export default class Renderer extends System {
     this.lights.forEach((light) => {
       const transform = this.transforms.get(light.entityID)!;
 
-      AuroraBatcher.drawLight({
+      Draw.Light({
         intensity: light.intencity,
         position: { x: transform.position.get.x, y: transform.position.get.y },
         size: light.size,
@@ -103,23 +121,23 @@ export default class Renderer extends System {
     //   textureToUse: 0,
     //   weight: 1.5,
     // });
-    const rend = AuroraBatcher.getRendererData;
-    const opt = AuroraBatcher.getOptionsData;
-    RenderFrame.setGameData({
-      lightCurrent: rend.lights,
-      quadsCurrent: rend.quads,
-      lightsLimit: opt.maxLightsPerSceen,
-      quadsLimit: opt.maxQuadPerSceen,
-      blooming: opt.bloom,
-      bloomStr: opt.bloomStrength,
-      camera: opt.customCamera ? "custome" : "built-in",
-      colorCorr: rend.colorCorr,
-      globalEffect: rend.globalEffect.type,
-      globalEffectStr: rend.globalEffect.str,
-      lighting: opt.lights,
-      computeCalls: AuroraBatcher.getGPUCalls.compute,
-      drawCalls: AuroraBatcher.getGPUCalls.render,
-    });
+    // const rend = AuroraBatcher.getRendererData;
+    // const opt = AuroraBatcher.getOptionsData;
+    // RenderFrame.setGameData({
+    //   lightCurrent: rend.lights,
+    //   quadsCurrent: rend.quads,
+    //   lightsLimit: opt.maxLightsPerSceen,
+    //   quadsLimit: opt.maxQuadPerSceen,
+    //   blooming: opt.bloom,
+    //   bloomStr: opt.bloomStrength,
+    //   camera: opt.customCamera ? "custome" : "built-in",
+    //   colorCorr: rend.colorCorr,
+    //   globalEffect: rend.globalEffect.type,
+    //   globalEffectStr: rend.globalEffect.str,
+    //   lighting: opt.lights,
+    //   computeCalls: AuroraBatcher.getGPUCalls.compute,
+    //   drawCalls: AuroraBatcher.getGPUCalls.render,
+    // });
     RenderFrame.swapToGPU();
     AuroraBatcher.endBatch();
   }

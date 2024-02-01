@@ -4,14 +4,12 @@ import Engine from "../core/engine";
 import Player from "./entities/player";
 import mapData from "./mapLUT.json";
 import AuroraTexture from "../core/aurora/auroraTexture";
-import AuroraBatcher from "../core/aurora/auroraBatcher";
+import AuroraBatcher from "../core/aurora/urp/batcher";
 import fontLato from "../assets/lato_regular_32.png";
 import latoData from "../core/aurora/fonts/lato_regular_32.json";
 import DogmaCore from "../core/dogma/core";
 import EntityManager from "../core/dogma/entityManager";
 /**
- * 2) rozkminic trzon ECS'a
- * 3) napisac trzon ECS'a
  * 4) rozkminic dobry system inputu
  * 5) UI!
  */
@@ -20,12 +18,20 @@ async function preload() {
     label: "userTextureAtlas",
     urls: [tilemap, char],
   });
+  await AuroraTexture.createTextureArray({
+    label: "GUITextureAtlas",
+    urls: [tilemap, char],
+  });
+  // AuroraTexture.createEmptyTextureArray({
+  //   label: "GUITextureAtlas",
+  //   size: { height: 100, width: 100, arraySize: 2 },
+  // });
   await AuroraBatcher.loadFont(fontLato, latoData);
   await AuroraBatcher.createBatcher({
     backgroundColor: [255, 250, 0, 255],
-    bloomStrength: 16,
     maxQuadPerSceen: 15000,
     customCamera: true,
+    bloom: { active: true, str: 16 },
   });
 }
 function setup() {

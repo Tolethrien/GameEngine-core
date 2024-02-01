@@ -61,7 +61,6 @@ export default class LoadChunks extends System {
     this.removeChunks(removed);
   }
   private async generateChunks(addedChunks: number[]) {
-    //TODO: out of focus na oknie na wiekszy czas psuje cos z usuwaniem chunkow bo niektore pozostają
     for (const chunkIndex of addedChunks) {
       const chunkMapData = await window.API.getChunk(chunkIndex);
       const tileList: string[] = [];

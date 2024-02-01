@@ -1,4 +1,3 @@
-import { ActionsControllerType } from "./ecs/actions";
 import Time from "./utils/timers/time";
 import Aurora from "./aurora/auroraCore";
 import "../css/index.css";
@@ -12,18 +11,12 @@ export const canvas = document.getElementById(
 // canvas.height = window.innerHeight;
 
 interface EngineConfig {
-  // core: "2d" | "3d"
-  //   renderer: "Aurora";
   preload: () => Promise<unknown>;
   setup: () => void;
 }
 
 export default class Engine {
   private static isInitialized = false;
-  public static worlds: Map<string, WorldType> = new Map();
-  public static activeWorld = "main";
-  public static actions: ActionsControllerType | undefined = undefined;
-  public static globalContext: Map<string, unknown> = new Map();
   public static time: Time = new Time();
   public static async Initialize({ preload, setup }: EngineConfig) {
     if (Engine.isInitialized)
@@ -64,9 +57,4 @@ export default class Engine {
     commandPass.end();
     Aurora.device.queue.submit([encoder.finish()]);
   }
-
-  public static addActionsController = (controller: ActionsControllerType) => {
-    Engine.actions = controller;
-    Engine.actions?.onStart();
-  };
 }

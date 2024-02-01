@@ -1,5 +1,4 @@
 import { avalibleComponents } from "../../sandbox/ECSList";
-import Entity from "../ecs/entity";
 import DogmaCore, { Worlds } from "./core";
 import World from "./world";
 type CompDispatch = Map<keyof AvalibleComponents, ComponentType[]>;
@@ -27,10 +26,10 @@ export default class EntityManager {
       this.componentsToDispatch.get(name)?.push(component)
     );
   }
-  public static removeEntity(entityID: Entity["id"]) {
+  public static removeEntity(entityID: EntityType["id"]) {
     this.componentsToRemoval.add(entityID);
   }
-  public static transferEntitiesToAnatherWorld(list: Entity["id"][]) {
+  public static transferEntitiesToAnatherWorld(list: EntityType["id"][]) {
     //TODO: entities transfer between worlds
   }
   public static connectToNewWorld() {

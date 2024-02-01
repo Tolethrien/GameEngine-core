@@ -2,6 +2,7 @@ import EntityManager from "../../core/dogma/entityManager";
 import System from "../../core/dogma/system";
 import Engine from "../../core/engine";
 import Vec2D from "../../core/math/vec2D";
+import GlobalStore from "../../core/modules/globalStore";
 import DepthQuadTree, {
   DepthQuadTreeType,
 } from "../../core/utils/quadTree/depthQuadTree";
@@ -75,7 +76,6 @@ export default class indiePhysics extends System {
   }
   private manageEntities() {
     //TODO: nowa wersja - porownywc liste quadu z lista rigidow i patrzec ktore sa a ktorych  byc nie powinno?
-    // const { added, removed } = this.getFromDispacher();
     const { added, removed } = EntityManager.getManipulatedLastFrame;
     added?.forEach((entity) => {
       const rigid = this.rigidBodies.get(entity);

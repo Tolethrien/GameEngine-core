@@ -14,7 +14,6 @@ import Animator from "./systems/animator";
 import LoadChunks from "./systems/loadChunks";
 import MouseInputs from "./systems/mouseInputs";
 import IndiePhysics from "./systems/indiePhysics";
-import TempSystem from "../core/dogma/tempSystem";
 import Renderer from "./systems/renderer";
 export const avalibleComponents = {
   CoreComponent, // required
@@ -36,5 +35,4 @@ export const avalibleSystems = {
   LoadChunks,
   MouseInputs,
   IndiePhysics,
-  TempSystem,
 } as const;

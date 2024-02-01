@@ -23,6 +23,9 @@ export default class MouseInputs extends System {
     this.transforms = this.getComponents("Transform");
     this.camera = this.getEntityComponentByTag("OrthographicCamera", "player");
   }
+  onUpdate(): void {
+    //   if(!InputManager)
+  }
   MouseClickWithButton(button: Button) {
     this.mouseEvents.forEach((event) => {
       event.action[button] &&

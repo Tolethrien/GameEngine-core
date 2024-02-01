@@ -65,10 +65,11 @@ export default class AuroraPipeline {
     });
     this.vertexBuffersLeyoutGroups.set(groupName, vblList);
   }
+
   public static getVertexBufferLayoutGroup(groupName: string) {
     const group = this.vertexBuffersLeyoutGroups.get(groupName);
     if (!group)
-      throw new Error(`no vertext buffer laout group with name ${groupName}`);
+      throw new Error(`no vertext buffer layout group with name ${groupName}`);
     return group.map((name) => this.vertexBuffersLeyouts.get(name)!);
   }
   public static createPipelineLayout(layoutName: string, bindGrous: string[]) {

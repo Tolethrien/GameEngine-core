@@ -10,14 +10,8 @@ export default class DogmaCore {
   private static systems: Map<string, SystemType> = new Map();
   private static startOnlySystems: Set<keyof AvalibleSystems> = new Set();
 
-  public static createWorld = (
-    wordlName: string,
-    fullSystemsReloadOnEnter?: boolean
-  ) => {
-    this.worlds.set(
-      wordlName,
-      new World(wordlName, fullSystemsReloadOnEnter ?? true)
-    );
+  public static createWorld = (wordlName: string) => {
+    this.worlds.set(wordlName, new World(wordlName));
     this.activeWorld = this.worlds.get(wordlName)!;
     this.activeWorldName = wordlName;
     if (!EntityManager.isManagerInitialize) EntityManager.initialize();
@@ -29,9 +23,10 @@ export default class DogmaCore {
     this.activeWorld = this.worlds.get(wordlName)!;
     this.activeWorldName = wordlName;
     EntityManager.connectToNewWorld();
-    this.systems.forEach((system) => system.onSubscribeList());
-    this.activeWorld.getfullSystemReloadOnEnter &&
-      this.systems.forEach((system) => system.onStart());
+    this.systems.forEach((system) => {
+      system.onSubscribeList();
+      system.isSystemFullReload && system.onStart();
+    });
   }
   public static get getAllWorlds() {
     return this.worlds;
@@ -59,7 +54,7 @@ export default class DogmaCore {
     mapFileName: string,
     mapIndexName: string
   ) {
-    //TODO: dodac nowy system dodawania mapy
+    //TODO: dodac nowy system dodawania mapy uzywajacy jednego pliku
     this.activeWorld.setMapData = {
       mapSchema: mapData,
       indexFile: mapIndexName,
