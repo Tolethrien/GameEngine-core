@@ -5,6 +5,11 @@ export const createRandomShortString = () =>
 export const nameToUpper = (name: string) =>
   [name[0].toUpperCase(), name.slice(1)].toString().replace(",", "");
 //=====================================
-//=====================================
 export const normalizeColor = (color: number[]) =>
   color.map((value) => value / 255);
+//=====================================
+export const randomColor = (): RGB => [
+  Math.floor(Math.random() * 256),
+  Math.floor(Math.random() * 256),
+  Math.floor(Math.random() * 256),
+];

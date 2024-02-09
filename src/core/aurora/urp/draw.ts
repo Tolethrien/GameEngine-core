@@ -162,7 +162,7 @@ export default class Draw {
     const vertices = GUIPipeline.getVertices;
     const addData = GUIPipeline.getAddData;
     const quadsData = Batcher.getRenderData;
-    const quadsTotal = quadsData.numberOfQuads.game;
+    const quadsTotal = quadsData.numberOfQuads.gui;
     const stride = Batcher.getStride;
     vertices[quadsTotal * stride.vertices] = position.x;
     vertices[quadsTotal * stride.vertices + 1] = position.y;

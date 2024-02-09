@@ -8,7 +8,8 @@ import RenderFrame from "../../core/debugger/renderStats/renderFrame";
 import { PointLightType } from "../components/pointLight";
 import System from "../../core/dogma/system";
 import Draw from "../../core/aurora/urp/draw";
-import NaviDiv from "../../core/navigpu/elements/div";
+import NaviBody from "../../core/navigpu/elements/body";
+import NaviCore from "../../core/navigpu/core";
 export default class Renderer extends System {
   transforms!: GetComponentsList<TransformType>;
   spriteRenderers!: GetComponentsList<SpriteRendererType>;
@@ -19,7 +20,7 @@ export default class Renderer extends System {
   textureBind!: GPUBindGroup;
   cameraBind!: GPUBindGroup;
   projectionUniform!: GPUBuffer;
-  el!: NaviDiv;
+  el!: NaviBody;
   constructor() {
     super();
   }
@@ -30,14 +31,13 @@ export default class Renderer extends System {
     this.lights = this.getComponents("PointLight");
     this.rigids = this.getComponents("IndieRigidBody");
     this.othCam = this.getEntityComponentByTag("OrthographicCamera", "player");
-    this.el = new NaviDiv();
-    this.el.onClick(() => console.log("GUI"));
   }
 
   onUpdate() {
+    NaviCore.updateGUI();
     AuroraBatcher.setCameraBuffer(this.othCam.projectionViewMatrix.getMatrix);
-    AuroraBatcher.setGlobalColorCorrection([0.2, 0.05, 0.0]);
-    AuroraBatcher.setScreenShader("grayscale", 0.7);
+    // AuroraBatcher.setGlobalColorCorrection([0.2, 0.5, 0.0]);
+    // AuroraBatcher.setScreenShader("noice", 0.7);
     AuroraBatcher.startBatch();
     // Draw.GUI({
     //   alpha: 255,
@@ -48,8 +48,8 @@ export default class Renderer extends System {
     //   tint: new Uint8ClampedArray([255, 0, 0]),
     //   crop: new Float32Array([0, 0, 1, 1]),
     // });
-    this.el.draw();
 
+    NaviCore.renderGUI();
     this.groundRenderers?.forEach((ground) => {
       //TODO: potencjalny performance boost, nie musisz co frame aktualizowac listy ziemi bo buffer zmienia sie tylko
       // w momencie kiedy dodajesz/usuwasz nowe chunki, caly czas potem stoi bez zmian - osobny buffer na ziemie?

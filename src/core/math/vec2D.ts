@@ -59,6 +59,9 @@ export default class Vec2D {
   get y() {
     return this.vecY;
   }
+  get isZero() {
+    return this.vecX === 0 && this.vecY === 0;
+  }
   normalize() {
     const length = this.length();
     return length === 0
@@ -81,9 +84,7 @@ export default class Vec2D {
   isEqualPrecise(targetVec: Vec2DType) {
     return this.distanceSquaredToOtherVec2D(targetVec) < 0.0005 ** 2;
   }
-  isZero() {
-    return this.vecX === 0 && this.vecY === 0;
-  }
+
   getPerpendicular() {
     return new Vec2D([-this.vecY, this.vecX]);
   }

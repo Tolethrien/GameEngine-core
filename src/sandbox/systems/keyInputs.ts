@@ -1,16 +1,17 @@
 import System from "../../core/dogma/system";
 import Vec2D from "../../core/math/vec2D";
 import InputManager from "../../core/modules/inputManager";
+import NaviCore from "../../core/navigpu/core";
 import { AnimationType } from "../components/animation";
 import { IndieRigidBodyType } from "../components/indieRigidBody";
 import { OrthographicCameraType } from "../components/OrthographicCamera";
 import { TransformType } from "../components/transform";
+import Inventory from "../ui/inventory";
 export default class KeyInputs extends System {
   playerRigid!: GetExplicitComponent<IndieRigidBodyType>;
   playerAnim!: GetExplicitComponent<AnimationType>;
   othCam!: GetExplicitComponent<OrthographicCameraType>;
   pos!: GetExplicitComponent<TransformType>;
-
   constructor() {
     super();
   }
@@ -52,7 +53,12 @@ export default class KeyInputs extends System {
     else if (InputManager.isKeyHold("m"))
       this.othCam.zoom < this.othCam.maxZoom &&
         (this.othCam.zoom += 0.01 * Math.log(this.othCam.zoom + 1));
-
+    if (InputManager.isKeyPressed("i")) {
+      const visible =
+        NaviCore.getCoreElement<Inventory>("inventory")!.style.isVisible;
+      NaviCore.getCoreElement<Inventory>("inventory")!.style.setVisible =
+        !visible;
+    }
     this.playerRigid.velocity = new Vec2D([dirX, dirY]);
     const forcedirection = new Vec2D([dirX, dirY]).normalize();
     const forceVector = forcedirection.multiply(this.playerRigid.newtons);

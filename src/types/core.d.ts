@@ -15,6 +15,10 @@ declare global {
   interface SystemType extends System {}
   interface WorldType extends World {}
   interface EntityType extends Entity {}
+  type Position2D = { x: number; y: number };
+  type Size2D = { width: number; height: number };
+  type RGB = [number, number, number];
+  type RGBA = [number, number, number, number];
   interface ComponentProps {
     entityID: string;
     entityTags: string[];

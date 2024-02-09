@@ -1,5 +1,6 @@
 @group(0) @binding(0) var<uniform> effectType: vec2f;
 @group(0) @binding(1) var textureSampOne: sampler;
+@group(0) @binding(2) var<uniform> showGui: u32;
 @group(1) @binding(0) var compositionTexture: texture_2d<f32>;
 @group(2) @binding(0) var guiTexture: texture_2d<f32>;
 
@@ -32,7 +33,7 @@ return out;
 fn fragmentMain(props:VertexOutput) -> @location(0) vec4f{
 var output:vec4f;
 let gui = textureSampleLevel(guiTexture,textureSampOne,props.coords,0);
-  if(gui.a == 1){
+  if(showGui == 1 && gui.a == 1){
     output = gui;
   }
   else{
@@ -41,8 +42,9 @@ let gui = textureSampleLevel(guiTexture,textureSampOne,props.coords,0);
     else if(u32(effectType.x) == 3){output = invert(props.coords,effectType.y);}
     else if(u32(effectType.x) == 4){output = chroma(props.coords,effectType.y);}
     else if(u32(effectType.x) == 5){output = vignette(props.coords,effectType.y);}
+    else if(u32(effectType.x) == 6){output = noice(props.coords,effectType.y);}
     else {output = textureSampleLevel(compositionTexture,textureSampOne,props.coords,0);}
-    if(gui.a != 0){
+    if(showGui == 1 && gui.a != 0){
        output = mix(output, gui, gui.a);
     }
   }
@@ -86,7 +88,13 @@ fn vignette(coords:vec2f,intensity:f32) -> vec4f {
   var color: vec4<f32> = textureSampleLevel(compositionTexture, textureSampOne, coords,0);
   return vec4f(mix(color.rgb * vignette, vignette_color, 1.0 - vignette) * intensity,color.a);
 }
-
+fn noice(coords:vec2f,intensity:f32) -> vec4f {
+  var color: vec4f = textureSampleLevel(compositionTexture, textureSampOne, coords,0);
+  let noise: f32 = fract(sin(dot(coords, vec2f(12.9898, 78.233))) * 43758.5453);
+  let noiseColor = vec3f(0.25);
+  let out = vec4f(color.rgb + noise * noiseColor,color.a);
+  return out;
+}
 
 
 

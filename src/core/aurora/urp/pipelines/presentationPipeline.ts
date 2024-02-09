@@ -10,6 +10,8 @@ export type ScreenEffects = keyof typeof PresentationPipeline.getEffectList;
 export default class PresentationPipeline {
   public static globalEffectBuffer: GPUBuffer;
   public static globalEffect: Float32Array;
+  public static isGuiBuffer: GPUBuffer;
+
   private static avalibleScreenEffects = {
     none: 0,
     grayscale: 1,
@@ -17,6 +19,7 @@ export default class PresentationPipeline {
     invert: 3,
     chromaticAbber: 4,
     vignette: 5,
+    noice: 6,
   };
   public static createPipeline() {
     this.globalEffect = new Float32Array([0, 0]);
@@ -24,6 +27,11 @@ export default class PresentationPipeline {
       bufferType: "uniform",
       label: "globalEffectBuffer",
       typedArr: this.globalEffect,
+    });
+    this.isGuiBuffer = AuroraBuffer.createDynamicBuffer({
+      bufferType: "uniform",
+      label: "globalGUIBuffer",
+      typedArr: new Uint32Array([1]),
     });
     AuroraShader.addShader("postProcessShader", postProcessShader);
     AuroraPipeline.addBindGroup({
@@ -86,6 +94,11 @@ export default class PresentationPipeline {
             visibility: GPUShaderStage.FRAGMENT,
             sampler: {},
           },
+          {
+            binding: 2,
+            buffer: { type: "uniform" },
+            visibility: GPUShaderStage.FRAGMENT,
+          },
         ],
         label: "globalEffectBindLayout",
       },
@@ -96,6 +109,7 @@ export default class PresentationPipeline {
             binding: 1,
             resource: AuroraTexture.getSampler("universal"),
           },
+          { binding: 2, resource: { buffer: this.isGuiBuffer } },
         ],
         label: "globalEffectBindData",
       },
@@ -130,6 +144,14 @@ export default class PresentationPipeline {
       this.globalEffectBuffer,
       0,
       this.globalEffect
+    );
+
+    Aurora.device.queue.writeBuffer(
+      this.isGuiBuffer,
+      0,
+      Batcher.getRenderData.numberOfQuads.gui > 0
+        ? new Uint32Array([1])
+        : new Uint32Array([0])
     );
     AuroraPipeline.getBindsFromLayout("presentPipelineLayout").forEach(
       (bind, index) => {

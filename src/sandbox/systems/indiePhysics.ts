@@ -2,7 +2,6 @@ import EntityManager from "../../core/dogma/entityManager";
 import System from "../../core/dogma/system";
 import Engine from "../../core/engine";
 import Vec2D from "../../core/math/vec2D";
-import GlobalStore from "../../core/modules/globalStore";
 import DepthQuadTree, {
   DepthQuadTreeType,
 } from "../../core/utils/quadTree/depthQuadTree";
@@ -59,7 +58,7 @@ export default class indiePhysics extends System {
   private step(time: number) {
     this.rigidBodies.forEach((rigid) => {
       if (rigid.bodyType === "static") return;
-      if (!rigid.velocity.isZero()) {
+      if (!rigid.velocity.isZero) {
         const transform = this.transforms.get(rigid.entityID)!;
         rigid.velocity = rigid.velocity.add(rigid.force);
         transform.position = transform.position.add(
@@ -77,13 +76,13 @@ export default class indiePhysics extends System {
   private manageEntities() {
     //TODO: nowa wersja - porownywc liste quadu z lista rigidow i patrzec ktore sa a ktorych  byc nie powinno?
     const { added, removed } = EntityManager.getManipulatedLastFrame;
-    added?.forEach((entity) => {
+    added.forEach((entity) => {
       const rigid = this.rigidBodies.get(entity);
       if (rigid) {
         this.addEntitiesToQuad(rigid);
       }
     });
-    removed?.forEach((entity) => {
+    removed.forEach((entity) => {
       this.removeEntitiesFromQuad(entity);
     });
   }

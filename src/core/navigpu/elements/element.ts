@@ -1,37 +1,27 @@
-import Draw from "../../aurora/urp/draw";
+//TODO: nowy pomysł -> component driven element, dodawania componentow jak w ecs
+// rekursyjnie lec przez wszystkie dzieci i wykonuj update
+// render jako komponent list by nie musial leciec przez cale drzewo a po prostu cala lista sie wykonuje jeden po drugim
+// to samo mouseEvents by tylko komponenty klikalne tam byly
 
-interface NaviStyle {
-  backgroundColor: number[];
-}
-interface NaviCallbacks {
-  onClick: (() => void) | undefined;
-  onHover: (() => void) | undefined;
-  onEnter: (() => void) | undefined;
-  onLeave: (() => void) | undefined;
-}
+import NaviChildren from "../components/children";
+import { NaviComponents, naviComponents } from "../components/componentsList";
+import NaviStyle from "../components/style";
 export default abstract class NaviElement {
   private content: string;
   private id: string;
-  private children: Map<string, NaviElement>;
-  private style: Partial<NaviStyle>;
-  private isFocused: boolean;
-  private callbacks: NaviCallbacks;
+  private uuid: string;
+  private styler: NaviStyle;
+  private visible: boolean;
+  public children: NaviChildren | undefined;
   constructor() {
     this.content = "";
     this.id = "";
-    this.children = new Map();
-    this.style = {};
-    this.isFocused = false;
-    this.callbacks = {
-      onClick: undefined,
-      onEnter: undefined,
-      onHover: undefined,
-      onLeave: undefined,
-    };
+    this.visible = true;
+    this.uuid = crypto.randomUUID();
+    this.styler = new NaviStyle();
   }
-  public onClick(callback: () => void) {
-    //dodaj ten element do nasłuchiwanych by nie loopowac przez wszystkie elementy ui
-    this.callbacks.onClick = callback;
+  addComponent<T>(component: NaviComponents) {
+    return new naviComponents[component]() as T;
   }
   public get getContent() {
     return this.content;
@@ -45,19 +35,22 @@ export default abstract class NaviElement {
   public set setID(id: string) {
     this.id = id;
   }
-  //   children() {}
-  //   callbck() {}
-  //   style() {}
-  //   rewrite() {}
-  draw() {
-    Draw.GUI({
-      alpha: 255,
-      isTexture: 1,
-      position: { x: 0, y: 0 },
-      size: { height: 50, width: 50 },
-      textureToUse: 0,
-      tint: new Uint8ClampedArray([255, 0, 0]),
-      crop: new Float32Array([0, 0, 1, 1]),
-    });
+  public get getUUID() {
+    return this.uuid;
+  }
+  public get style() {
+    return this.styler;
+  }
+
+  render() {
+    if (this.style.isVisible) {
+      this.style.draw();
+      if (this.children && this.children.getChildren.size !== 0)
+        this.children.getChildren.forEach((child) => child.render());
+    }
+  }
+  update() {
+    if (this.children && this.children.getChildren.size !== 0)
+      this.children.getChildren.forEach((child) => child.update());
   }
 }

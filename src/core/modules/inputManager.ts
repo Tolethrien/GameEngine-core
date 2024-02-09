@@ -1,16 +1,33 @@
 import { canvas } from "../engine";
 import Mat4 from "../math/mat4";
-type mouseKeys = "left" | "right" | "middle";
-const MOUSE_ENUM: Record<number, mouseKeys> = {
+export type MouseKey = "left" | "right" | "middle";
+const MOUSE_ENUM: Record<number, MouseKey> = {
   0: "left",
   1: "middle",
   2: "right",
 };
+interface MouseCallbacks {
+  leftClick: (() => void) | undefined;
+  rightClick: (() => void) | undefined;
+  auxClick: (() => void) | undefined;
+  dbClick: (() => void) | undefined;
+  wheelUp: (() => void) | undefined;
+  wheelDown: (() => void) | undefined;
+}
 export default class InputManager {
-  private static mousePressed: Record<mouseKeys, boolean> = {
+  private static mousePressed: Record<MouseKey, boolean> = {
     left: false,
     right: false,
     middle: false,
+  };
+
+  private static mouseCallbacks: MouseCallbacks = {
+    leftClick: undefined,
+    rightClick: undefined,
+    auxClick: undefined,
+    dbClick: undefined,
+    wheelUp: undefined,
+    wheelDown: undefined,
   };
   private static mousePositionOnCavas = { x: 0, y: 0 };
   private static keyPressed = new Set();
@@ -33,6 +50,9 @@ export default class InputManager {
       const pressedKey = event.key === " " ? "space" : event.key;
       this.keyPressed.has(pressedKey) && this.keyPressed.delete(pressedKey);
     };
+    //TODO: dodac pauzowanie wszystkiego kiedy lost focus
+    // window.onblur = () => console.log("lost");
+
     // window.onresize = () => {
     //   canvas.width = window.innerWidth;
     //   canvas.height = window.innerHeight;
@@ -53,6 +73,19 @@ export default class InputManager {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       callback();
+    };
+  }
+  public static setMouseCallbacks(callbacks: Partial<MouseCallbacks>) {
+    this.mouseCallbacks = { ...this.mouseCallbacks, ...callbacks };
+    canvas.onclick = () => this.mouseCallbacks.leftClick?.();
+    canvas.onauxclick = (event) => {
+      if (event.button === 2) this.mouseCallbacks.rightClick?.();
+      else if (event.button === 1) this.mouseCallbacks.auxClick?.();
+    };
+    canvas.ondblclick = () => this.mouseCallbacks.dbClick?.();
+    canvas.onwheel = (event) => {
+      if (event.deltaY < 0) this.mouseCallbacks.wheelUp?.();
+      if (event.deltaY > 0) this.mouseCallbacks.wheelDown?.();
     };
   }
 
@@ -82,13 +115,7 @@ export default class InputManager {
     this.keyPressed.delete(key);
     return true;
   }
-  public static isMouseClicked(key: mouseKeys) {
-    if (!this.mousePressed[key]) return false;
-    this.mousePressed[key] = false;
-    return true;
-  }
-  public static isMouseHold(key: mouseKeys) {
-    if (!this.mousePressed[key]) return false;
-    return true;
+  public static isMousePressed(key: MouseKey) {
+    return this.mousePressed[key] ? true : false;
   }
 }
