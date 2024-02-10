@@ -2,7 +2,7 @@ import Time from "./utils/timers/time";
 import Aurora from "./aurora/auroraCore";
 import "../css/index.css";
 import DebugFrame from "./debugger/renderStats/renderFrame";
-import InputManager from "./modules/inputManager";
+import InputManager from "./modules/inputManager/inputManager";
 import DogmaCore from "./dogma/core";
 export const canvas = document.getElementById(
   "gameWindow"

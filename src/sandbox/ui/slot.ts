@@ -1,4 +1,4 @@
-import InputManager from "../../core/modules/inputManager";
+import InputManager from "../../core/modules/inputManager/inputManager";
 import NaviMouseEvent from "../../core/navigpu/components/mouseEvents";
 import NaviElement from "../../core/navigpu/elements/element";
 interface NaviButtonProps {

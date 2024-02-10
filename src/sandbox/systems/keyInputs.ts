@@ -1,12 +1,13 @@
 import System from "../../core/dogma/system";
 import Vec2D from "../../core/math/vec2D";
-import InputManager from "../../core/modules/inputManager";
+import InputManager from "../../core/modules/inputManager/inputManager";
 import NaviCore from "../../core/navigpu/core";
 import { AnimationType } from "../components/animation";
 import { IndieRigidBodyType } from "../components/indieRigidBody";
 import { OrthographicCameraType } from "../components/OrthographicCamera";
 import { TransformType } from "../components/transform";
 import Inventory from "../ui/inventory";
+type barType = number;
 export default class KeyInputs extends System {
   playerRigid!: GetExplicitComponent<IndieRigidBodyType>;
   playerAnim!: GetExplicitComponent<AnimationType>;
@@ -47,12 +48,15 @@ export default class KeyInputs extends System {
       this.othCam.y -= this.othCam.speed / Math.log(this.othCam.zoom + 1);
     else if (InputManager.isKeyHold("ArrowDown"))
       this.othCam.y += this.othCam.speed / Math.log(this.othCam.zoom + 1);
-    if (InputManager.isKeyHold("n"))
-      this.othCam.zoom > this.othCam.minZoom &&
-        (this.othCam.zoom -= 0.01 * Math.log(this.othCam.zoom + 1));
-    else if (InputManager.isKeyHold("m"))
-      this.othCam.zoom < this.othCam.maxZoom &&
-        (this.othCam.zoom += 0.01 * Math.log(this.othCam.zoom + 1));
+    if (InputManager.isKeyHold("n")) {
+      if (this.othCam.zoom > this.othCam.minZoom) {
+        this.othCam.zoom -= 0.01 * Math.log(this.othCam.zoom + 1);
+      }
+    } else if (InputManager.isKeyHold("m")) {
+      if (this.othCam.zoom < this.othCam.maxZoom) {
+        this.othCam.zoom += 0.01 * Math.log(this.othCam.zoom + 1);
+      }
+    }
     if (InputManager.isKeyPressed("i")) {
       const visible =
         NaviCore.getCoreElement<Inventory>("inventory")!.style.isVisible;

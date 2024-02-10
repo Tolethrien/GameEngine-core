@@ -1,5 +1,5 @@
-import { canvas } from "../engine";
-import Mat4 from "../math/mat4";
+import { canvas } from "../../engine";
+import Mat4 from "../../math/mat4";
 export type MouseKey = "left" | "right" | "middle";
 const MOUSE_ENUM: Record<number, MouseKey> = {
   0: "left",

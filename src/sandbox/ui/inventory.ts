@@ -1,4 +1,3 @@
-import NaviMouseEvent from "../../core/navigpu/components/mouseEvents";
 import NaviElement from "../../core/navigpu/elements/element";
 import Slot from "./slot";
 interface NaviButtonProps {

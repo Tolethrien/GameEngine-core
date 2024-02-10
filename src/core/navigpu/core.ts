@@ -1,5 +1,5 @@
 import { canvas } from "../engine";
-import InputManager from "../modules/inputManager";
+import InputManager from "../modules/inputManager/inputManager";
 import NaviButton from "./elements/button";
 import NaviElement from "./elements/element";
 

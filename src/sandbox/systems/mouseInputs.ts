@@ -1,14 +1,15 @@
 import System from "../../core/dogma/system";
 import { canvas } from "../../core/engine";
-import InputManager, { MouseKey } from "../../core/modules/inputManager";
+import InputManager, {
+  MouseKey,
+} from "../../core/modules/inputManager/inputManager";
 import NaviCore from "../../core/navigpu/core";
 import { randomColor } from "../../core/utils/utils";
 import { MouseEventsType } from "../components/mouseEvents";
 import OrthographicCamera from "../components/OrthographicCamera";
 import { SpriteRendererType } from "../components/spriteRenderer";
 import { TransformType } from "../components/transform";
-import Inventory from "../ui/inventory";
-import Slot from "../ui/slot";
+
 export default class MouseInputs extends System {
   mouseEvents!: GetComponentsList<MouseEventsType>;
   transforms!: GetComponentsList<TransformType>;
@@ -17,7 +18,6 @@ export default class MouseInputs extends System {
   proximityFilterList: Map<string, TransformType>;
   clearScroll: NodeJS.Timeout | null;
   isMouseClicked: boolean;
-  inventory: Inventory;
 
   //TODO: system acition zamienic na system invokow, jego plusem jest to ze bedzie dynamiczny wiec komponent bedzie pobierny bezposrednio w moemencie wywolania invoku a nie przypisywany wczesniej do list
   constructor() {
@@ -25,14 +25,13 @@ export default class MouseInputs extends System {
     this.proximityFilterList = new Map();
     this.clearScroll = null;
     this.isMouseClicked = false;
-    NaviCore.appendCoreElement(
-      "inventory",
-      new Inventory({
-        position: { x: 70, y: 10 },
-        size: { height: 50, width: 28 },
-      })
-    );
-    this.inventory = NaviCore.getCoreElement("inventory")!;
+
+    // NaviCore.getCoreElement<Bar>("bar")!.signal.subscribe((data: number) => {
+    //   this.inventory.style.setSize = {
+    //     width: this.inventory.style.getSize.width,
+    //     height: 50 * data,
+    //   };
+    // });
   }
   onSubscribeList(): void {
     this.mouseEvents = this.getComponents("MouseEvents");
@@ -75,12 +74,9 @@ export default class MouseInputs extends System {
       )
       .at(-1);
     this.proximityFilterList.clear();
-    if (target) {
-      const color = randomColor();
-      this.inventory.addSlot(color, () => {
-        this.sprite.layers[0].tint = new Uint8ClampedArray(color);
-      });
-    }
+    // if (target) {
+    //   //
+    // }
     // target && useAction(this.mouseEvents.get(target.entityID)!.action[button]!);
   }
 
