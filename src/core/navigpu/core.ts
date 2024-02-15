@@ -1,33 +1,36 @@
 import { canvas } from "../engine";
 import InputManager from "../modules/inputManager/inputManager";
-import NaviButton from "./elements/button";
-import NaviElement from "./elements/element";
+import NaviNode from "./node";
 
 export default abstract class NaviCore {
-  private static mouseCallbacks: Set<NaviElement> = new Set();
-  private static guiElements: Map<string, NaviElement> = new Map();
+  private static mouseCallbacks: Set<NaviNode> = new Set();
+  private static keyCallbacks: Set<NaviNode> = new Set();
+  private static updates: Set<NaviNode> = new Set();
+  private static guiElements: Map<string, NaviNode> = new Map();
 
   public static renderGUI() {
     this.guiElements.forEach((element) => element.render());
   }
   public static updateGUI() {
-    this.guiElements.forEach((element) => element.update());
+    this.updates.forEach((element) => element.onUpdate?.());
   }
 
-  public static AddMouseListener(element: NaviElement) {
+  public static AddMouseListener(element: NaviNode) {
     this.mouseCallbacks.add(element);
+  }
+  public static AddUpdater(element: NaviNode) {
+    this.updates.add(element);
   }
   public static getCoreElement<T>(label: string) {
     return this.guiElements.get(label) as T | undefined;
   }
   public static getClickedElement() {
     const mousePos = InputManager.getMousePosition;
-
     return Array.from(this.mouseCallbacks).findLast((element) =>
       this.findClickedElement(element, mousePos)
     );
   }
-  public static appendCoreElement(label: string, element: NaviElement) {
+  public static appendCoreElement(label: string, element: NaviNode) {
     this.guiElements.set(label, element);
   }
   public static removeChild(label: string) {
@@ -42,16 +45,13 @@ export default abstract class NaviCore {
       this.findClickedElement(element, mousePos)
     );
     if (element) {
-      (element as NaviButton).mouseEvent.getMouseEvent?.();
+      element.mouseEvent?.();
       return true;
     }
     return false;
   }
-  private static findClickedElement(
-    element: NaviElement,
-    mousePos: Position2D
-  ) {
-    const { position, size } = this.getPixelValues(element.style.getPosAndSize);
+  private static findClickedElement(element: NaviNode, mousePos: Position2D) {
+    const { position, size } = this.getPixelValues(element.getPosAndSize);
     if (
       mousePos.x > position.x &&
       mousePos.x < position.x + size.width &&

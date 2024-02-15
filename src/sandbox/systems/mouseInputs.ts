@@ -4,11 +4,11 @@ import InputManager, {
   MouseKey,
 } from "../../core/modules/inputManager/inputManager";
 import NaviCore from "../../core/navigpu/core";
-import { randomColor } from "../../core/utils/utils";
 import { MouseEventsType } from "../components/mouseEvents";
 import OrthographicCamera from "../components/OrthographicCamera";
 import { SpriteRendererType } from "../components/spriteRenderer";
 import { TransformType } from "../components/transform";
+import InventoryUI from "../ui/inventory";
 
 export default class MouseInputs extends System {
   mouseEvents!: GetComponentsList<MouseEventsType>;
@@ -25,13 +25,7 @@ export default class MouseInputs extends System {
     this.proximityFilterList = new Map();
     this.clearScroll = null;
     this.isMouseClicked = false;
-
-    // NaviCore.getCoreElement<Bar>("bar")!.signal.subscribe((data: number) => {
-    //   this.inventory.style.setSize = {
-    //     width: this.inventory.style.getSize.width,
-    //     height: 50 * data,
-    //   };
-    // });
+    NaviCore.appendCoreElement("inventory", new InventoryUI());
   }
   onSubscribeList(): void {
     this.mouseEvents = this.getComponents("MouseEvents");

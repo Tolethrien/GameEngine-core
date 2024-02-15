@@ -1,29 +1,17 @@
-import InputManager from "../../core/modules/inputManager/inputManager";
-import NaviMouseEvent from "../../core/navigpu/components/mouseEvents";
-import NaviElement from "../../core/navigpu/elements/element";
+import NaviNode from "../../core/navigpu/node";
 interface NaviButtonProps {
   position: Position2D;
   size: Size2D;
   callback: () => void;
   color: RGB;
 }
-export default class Slot extends NaviElement {
-  mouseEvent: NaviMouseEvent;
+export default class Slot extends NaviNode {
   constructor({ callback, position, size, color }: NaviButtonProps) {
     super();
-    this.mouseEvent = this.addComponent("NaviMouseEvent");
-    this.style.setPosition = position;
-    this.style.setSize = size;
-    this.style.setStyle = { backgroundColor: color, alpha: 255 };
-    this.mouseEvent.setEvent(callback, this);
-    // this.style.setVisible = false;
+    // this.registerUpdate(callback);
+    this.registerMouseEvent(callback);
+    this.setPosition = position;
+    this.setSize = size;
+    this.setStyle = { backgroundColor: color, alpha: 255 };
   }
-  // update(): void {
-  //   if (InputManager.isMousePressed("left")) {
-  //     console.log("pressed");
-  //     this.style.setStyle = { alpha: 100 };
-  //   } else {
-  //     this.style.setStyle = { alpha: 255 };
-  //   }
-  // }
 }

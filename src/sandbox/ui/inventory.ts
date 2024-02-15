@@ -1,72 +1,44 @@
-import NaviElement from "../../core/navigpu/elements/element";
+import NaviNode from "../../core/navigpu/node";
 import Slot from "./slot";
-interface NaviButtonProps {
-  position: Position2D;
-  size: Size2D;
-}
-export default class Inventory extends NaviElement {
-  constructor({ position, size }: NaviButtonProps) {
+/**
+ * Test:
+ * 1) dodaj komponent inventory
+ * 2) zrob enity potionu
+ * 3) zrob na niego event ze dodaje go do inventory
+ * 4) wyswietl slot w inv.
+ * 5) klikajac na item
+ *   a) zmienia kolor postaci na kolor potiona
+ *   b) usuwa item z inventory
+ * 6) ciesz sie!
+ * 7) dodaj komponent hp
+ * 8) zrob healt bar
+ * 9) dodaj do kliku itema ze dodatkowo podnosi Hp o +5
+ * 10) dodaj by inventory sie pojawialo/znikalo
+ *      a) albo append na nowo
+ *      b) albo visible i update off
+ * 11) ciesz sie znowu xD
+ *
+ *
+ */
+export default class InventoryUI extends NaviNode {
+  constructor() {
     super();
-    this.children = this.addComponent("NaviChildren");
-    this.style.setPosition = position;
-    this.style.setSize = size;
-    this.style.setStyle = { backgroundColor: [150, 80, 150] };
-  }
-  public addSlot(color: RGB, callback: () => void) {
-    if (this.children?.getChildren.size === 0) {
-      this.children.addChild(
-        new Slot({
-          callback: callback,
-          position: {
-            x: this.style.getPosition.x,
-            y: this.style.getPosition.y,
-          },
-          size: { height: 5, width: 5 },
-          color: color,
-        })
-      );
-    } else {
-      const lastSlot = Array.from(this.children!.getChildren.entries()).at(
-        -1
-      )![1];
-      const pos = {
-        x: lastSlot.style.getPosition.x + lastSlot.style.getSize.width,
-        y: lastSlot.style.getPosition.y + lastSlot.style.getSize.height,
-      };
-      if (
-        pos.x + lastSlot.style.getSize.width <
-        this.style.getPosition.x + this.style.getSize.width
-      ) {
-        console.log("1", pos);
-        this.children!.addChild(
-          new Slot({
-            callback: callback,
-
-            position: {
-              x: lastSlot.style.getPosition.x + 5,
-              y: lastSlot.style.getPosition.y,
-            },
-            size: { height: 5, width: 5 },
-            color: color,
-          })
-        );
-      } else {
-        console.log("2", pos);
-        this.children!.addChild(
-          new Slot({
-            callback: callback,
-            position: {
-              x: this.style.getPosition.x,
-              y: lastSlot.style.getPosition.y + 5,
-            },
-            size: { height: 5, width: 5 },
-            color: color,
-          })
-        );
-      }
-    }
-  }
-  update() {
-    super.update();
+    this.setSize = { width: 19, height: 60 };
+    this.setPosition = { x: 80, y: 10 };
+    // this.registerMouseEvent(() => console.log(this));
+    this.addChild(
+      new Slot({
+        size: { height: 10, width: 10 },
+        position: { x: 85, y: 15 },
+        callback: () => console.log(this.getChildren),
+        color: [100, 100, 100],
+      })
+    );
   }
 }
+//   {
+//   position: { x: 10, y: 0 },
+//   size: { height: 10, width: 10 },
+//   callback: () => console.log("s"),
+//   color: [100, 100, 100],
+// }
