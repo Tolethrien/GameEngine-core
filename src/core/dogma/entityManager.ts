@@ -5,6 +5,11 @@ type CompDispatch = Map<keyof AvalibleComponents, ComponentType[]>;
 type CompRemoval = Set<string>;
 type Manipulated = { added: Set<string>; removed: Set<string> };
 export default class EntityManager {
+  //TODO: po uja mi tutaj worlds i activeworld skoro po prostu moge zrobic get z Coru?
+  //mozesz po prostu miec geter kierujacy cie do coru
+
+  //TODO: zrobic rekonstruowanie entity z komponentow ewentualnie jakis system trzymania kompnentow w obiekcie
+  //incapsulated entity, wszystkie jego komponenty, mozliwosc zmanipulowania nich a potem dodania na nowo do swiata
   private static worlds: Worlds;
   private static activeWorld: World;
   private static isInitialize = false;

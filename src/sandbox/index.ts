@@ -9,6 +9,7 @@ import fontLato from "../assets/lato_regular_32.png";
 import latoData from "../core/aurora/fonts/lato_regular_32.json";
 import DogmaCore from "../core/dogma/core";
 import EntityManager from "../core/dogma/entityManager";
+import Flask from "./entities/flask";
 /**
  * 4) rozkminic dobry system inputu
  * 5) UI!
@@ -38,9 +39,12 @@ function setup() {
   DogmaCore.createWorld("main");
   DogmaCore.addWorldMap(mapData, "isMap", "isInd");
   EntityManager.addEntityOnStart(new Player());
+  EntityManager.addEntityOnStart(new Flask([150, 0, 0], 740, 840));
+  EntityManager.addEntityOnStart(new Flask([150, 0, 0], 900, 900));
   DogmaCore.addSystem("KeyInputs");
   DogmaCore.addSystem("IndiePhysics");
   DogmaCore.addSystem("MouseInputs");
+  DogmaCore.addSystem("Items", true);
   DogmaCore.addSystem("LoadChunks");
   DogmaCore.addSystem("Animator");
   DogmaCore.addSystem("Cameras");

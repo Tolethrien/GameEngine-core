@@ -15,6 +15,9 @@ import LoadChunks from "./systems/loadChunks";
 import MouseInputs from "./systems/mouseInputs";
 import IndiePhysics from "./systems/indiePhysics";
 import Renderer from "./systems/renderer";
+import PlayerInventory from "./components/playerInventory";
+import Items from "./systems/items";
+import PicableItem from "./components/picableItem";
 export const avalibleComponents = {
   CoreComponent, // required
   Transform,
@@ -25,6 +28,8 @@ export const avalibleComponents = {
   GroundRenderer,
   MouseEvents,
   PointLight,
+  PlayerInventory,
+  PicableItem,
 } as const;
 export const avalibleSystems = {
   CoreSystem, // required
@@ -35,4 +40,5 @@ export const avalibleSystems = {
   LoadChunks,
   MouseInputs,
   IndiePhysics,
+  Items,
 } as const;

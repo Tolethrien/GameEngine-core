@@ -69,5 +69,6 @@ export default class Player extends Entity {
     //   type: "radial",
     //   size: { width: 100, height: 100 },
     // });
+    this.addComponent("PlayerInventory");
   }
 }

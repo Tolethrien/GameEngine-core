@@ -1,11 +1,14 @@
+import EntityManager from "../../core/dogma/entityManager";
 import System from "../../core/dogma/system";
 import { canvas } from "../../core/engine";
 import InputManager, {
   MouseKey,
 } from "../../core/modules/inputManager/inputManager";
+import SignalStore from "../../core/modules/signals/signalStore";
 import NaviCore from "../../core/navigpu/core";
 import { MouseEventsType } from "../components/mouseEvents";
 import OrthographicCamera from "../components/OrthographicCamera";
+import { PlayerInventoryType } from "../components/playerInventory";
 import { SpriteRendererType } from "../components/spriteRenderer";
 import { TransformType } from "../components/transform";
 import InventoryUI from "../ui/inventory";
@@ -15,6 +18,7 @@ export default class MouseInputs extends System {
   transforms!: GetComponentsList<TransformType>;
   camera!: GetExplicitComponent<OrthographicCamera>;
   sprite!: GetExplicitComponent<SpriteRendererType>;
+  inventory!: GetExplicitComponent<PlayerInventoryType>;
   proximityFilterList: Map<string, TransformType>;
   clearScroll: NodeJS.Timeout | null;
   isMouseClicked: boolean;
@@ -32,6 +36,7 @@ export default class MouseInputs extends System {
     this.transforms = this.getComponents("Transform");
     this.camera = this.getEntityComponentByTag("OrthographicCamera", "player");
     this.sprite = this.getEntityComponentByTag("SpriteRenderer", "player");
+    this.inventory = this.getEntityComponentByTag("PlayerInventory", "player");
   }
   onStart(): void {
     InputManager.setMouseCallbacks({
@@ -41,6 +46,13 @@ export default class MouseInputs extends System {
       auxClick: () => console.log("MClick"),
       wheelUp: () => console.log("wheel up"),
       wheelDown: () => console.log("wheel down"),
+    });
+    SignalStore.createSignal("useItem");
+    SignalStore.getSignal("useItem")?.subscribe((data) => {
+      this.inventory.inventory.push(data);
+      console.log(this.inventory);
+      EntityManager.removeEntity(data.id);
+      console.log(this.inventory);
     });
   }
   MouseClickWithButton(button: MouseKey) {
@@ -68,9 +80,9 @@ export default class MouseInputs extends System {
       )
       .at(-1);
     this.proximityFilterList.clear();
-    // if (target) {
-    //   //
-    // }
+    if (target) {
+      this.mouseEvents.get(target.entityID)?.action.left?.();
+    }
     // target && useAction(this.mouseEvents.get(target.entityID)!.action[button]!);
   }
 
