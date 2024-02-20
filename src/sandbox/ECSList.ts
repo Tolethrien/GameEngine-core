@@ -18,6 +18,7 @@ import Renderer from "./systems/renderer";
 import PlayerInventory from "./components/playerInventory";
 import Items from "./systems/items";
 import PicableItem from "./components/picableItem";
+import PlayerHealth from "./components/health";
 export const avalibleComponents = {
   CoreComponent, // required
   Transform,
@@ -30,6 +31,7 @@ export const avalibleComponents = {
   PointLight,
   PlayerInventory,
   PicableItem,
+  PlayerHealth,
 } as const;
 export const avalibleSystems = {
   CoreSystem, // required

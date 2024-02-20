@@ -1,4 +1,3 @@
-import tete from "../../assets/webGpuMap.json";
 import Entity from "../../core/dogma/entity";
 import SignalStore from "../../core/modules/signals/signalStore";
 export default class Flask extends Entity {
@@ -24,7 +23,7 @@ export default class Flask extends Entity {
     });
     this.addComponent("MouseEvents", {
       objectType: "translated",
-      action: { left: () => SignalStore.emit("pickItem", this) },
+      action: { left: () => SignalStore.emit("pickItem", this.id) },
     });
     this.addComponent("IndieRigidBody", { bodyType: "static" });
     this.addComponent("PicableItem");

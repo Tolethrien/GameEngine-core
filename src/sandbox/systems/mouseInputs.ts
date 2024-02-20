@@ -11,6 +11,7 @@ import OrthographicCamera from "../components/OrthographicCamera";
 import { PlayerInventoryType } from "../components/playerInventory";
 import { SpriteRendererType } from "../components/spriteRenderer";
 import { TransformType } from "../components/transform";
+import HPBar from "../ui/hpBar";
 import InventoryUI from "../ui/inventory";
 
 export default class MouseInputs extends System {
@@ -30,6 +31,7 @@ export default class MouseInputs extends System {
     this.clearScroll = null;
     this.isMouseClicked = false;
     NaviCore.appendCoreElement("inventory", new InventoryUI());
+    NaviCore.appendCoreElement("HP", new HPBar());
   }
   onSubscribeList(): void {
     this.mouseEvents = this.getComponents("MouseEvents");
@@ -46,13 +48,6 @@ export default class MouseInputs extends System {
       auxClick: () => console.log("MClick"),
       wheelUp: () => console.log("wheel up"),
       wheelDown: () => console.log("wheel down"),
-    });
-    SignalStore.createSignal("useItem");
-    SignalStore.getSignal("useItem")?.subscribe((data) => {
-      this.inventory.inventory.push(data);
-      console.log(this.inventory);
-      EntityManager.removeEntity(data.id);
-      console.log(this.inventory);
     });
   }
   MouseClickWithButton(button: MouseKey) {

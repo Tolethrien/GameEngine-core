@@ -2,43 +2,67 @@ import EntityManager from "../../core/dogma/entityManager";
 import System from "../../core/dogma/system";
 import SignalStore from "../../core/modules/signals/signalStore";
 import NaviCore from "../../core/navigpu/core";
+import { PlayerHealthType } from "../components/health";
 import { PicableItemType } from "../components/picableItem";
 import { PlayerInventoryType } from "../components/playerInventory";
+import { SpriteRendererType } from "../components/spriteRenderer";
+import HPBar from "../ui/hpBar";
 import InventoryUI from "../ui/inventory";
+export interface UseItem {
+  index: number;
+  hp: number;
+}
 export default class Items extends System {
   picable!: GetComponentsList<PicableItemType>;
   inventory!: GetExplicitComponent<PlayerInventoryType>;
+  playerSprite!: GetExplicitComponent<SpriteRendererType>;
+  playerHP!: GetExplicitComponent<PlayerHealthType>;
+
   constructor() {
     super();
   }
 
   onSubscribeList(): void {
-    this.picable = this.getComponents("PicableItem")!;
-    this.inventory = this.getEntityComponentByTag("PlayerInventory", "player")!;
+    this.picable = this.getComponents("PicableItem");
+    this.inventory = this.getEntityComponentByTag("PlayerInventory", "player");
+    this.playerHP = this.getEntityComponentByTag("PlayerHealth", "player");
+    this.playerSprite = this.getEntityComponentByTag(
+      "SpriteRenderer",
+      "player"
+    );
   }
   onStart(): void {
     SignalStore.createSignal("pickItem");
-    SignalStore.getSignal<EntityType>("pickItem")?.subscribe((data) => {
-      if (this.picable.has(data.id)) {
-        console.log("na ziemi");
+    SignalStore.getSignal<EntityType["id"]>("pickItem")?.subscribe((id) => {
+      if (this.picable.has(id)) {
         for (let i = 0; i < this.inventory.inventory.length; i++) {
           if (this.inventory.inventory[i] === undefined) {
-            this.inventory.inventory[i] = data;
-            NaviCore.getCoreElement<InventoryUI>("inventory")?.pickedItem(i);
+            this.inventory.inventory[i] = EntityManager.cloneEntity(id);
+            NaviCore.getCoreElement<InventoryUI>("inventory")?.pickedItem(
+              i,
+              this.inventory.inventory[i]!
+            );
             break;
           }
-          console.log(i);
         }
-        EntityManager.removeEntity(data.id);
+        EntityManager.removeEntity(id);
       }
     });
     SignalStore.createSignal("useItem");
-    SignalStore.getSignal<number>("useItem")?.subscribe((data) => {
-      if (this.inventory.inventory[data] !== undefined) {
-        console.log("plecak");
-        NaviCore.getCoreElement<InventoryUI>("inventory")?.removeItem(data);
-        EntityManager.addEntityOnLoop(this.inventory.inventory[data]);
-        this.inventory.inventory[data] = undefined;
+    SignalStore.getSignal<UseItem>("useItem")?.subscribe((data) => {
+      if (this.inventory.inventory[data.index] !== undefined) {
+        const ent = this.inventory.inventory[data.index]!;
+        const color = (
+          ent.components.get("SpriteRenderer")! as SpriteRendererType
+        ).layers[0].tint;
+        this.playerSprite.layers[0].tint = color;
+        this.playerHP.hp += data.hp;
+        NaviCore.getCoreElement<HPBar>("HP")?.updateHP(data.hp);
+        NaviCore.getCoreElement<InventoryUI>("inventory")?.removeItem(
+          data.index
+        );
+        EntityManager.addEntityOnLoop(ent);
+        this.inventory.inventory[data.index] = undefined;
       }
     });
   }

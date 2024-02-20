@@ -1,14 +1,15 @@
 import { avalibleComponents } from "../../sandbox/ECSList";
-
+export type EntityComponents = Map<keyof AvalibleComponents, ComponentType>;
 export default abstract class Entity {
   id: string;
   tags: string[];
-  components: Map<keyof AvalibleComponents, ComponentType>;
+  components: EntityComponents;
   constructor() {
     this.id = crypto.randomUUID();
     this.tags = [];
     this.components = new Map();
   }
+
   addComponent<K extends keyof AvalibleComponents>(
     component: K,
     props?: ConstructorParameters<(typeof avalibleComponents)[K]>[1]

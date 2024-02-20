@@ -40,6 +40,7 @@ interface GUIProps {
   alpha: number;
   isTexture: number;
 }
+//TODO: zmien index textury moze na jakis string czy cos by bylo latwiej niz myslec jaki index to co
 export default class Draw {
   public static Quad({
     position,

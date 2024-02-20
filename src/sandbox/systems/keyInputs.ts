@@ -6,6 +6,7 @@ import { AnimationType } from "../components/animation";
 import { IndieRigidBodyType } from "../components/indieRigidBody";
 import { OrthographicCameraType } from "../components/OrthographicCamera";
 import { TransformType } from "../components/transform";
+import InventoryUI from "../ui/inventory";
 export default class KeyInputs extends System {
   playerRigid!: GetExplicitComponent<IndieRigidBodyType>;
   playerAnim!: GetExplicitComponent<AnimationType>;
@@ -53,6 +54,15 @@ export default class KeyInputs extends System {
     } else if (InputManager.isKeyHold("m")) {
       if (this.othCam.zoom < this.othCam.maxZoom) {
         this.othCam.zoom += 0.01 * Math.log(this.othCam.zoom + 1);
+      }
+    }
+    if (InputManager.isKeyPressed("l")) {
+      const { getVisible, getUpdated } =
+        NaviCore.getCoreElement<InventoryUI>("inventory")!;
+      if (!getVisible && !getUpdated) {
+        NaviCore.getCoreElement<InventoryUI>("inventory")!.setDisable(true);
+      } else {
+        NaviCore.getCoreElement<InventoryUI>("inventory")!.setDisable(false);
       }
     }
 

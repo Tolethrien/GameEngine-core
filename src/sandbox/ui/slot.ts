@@ -14,6 +14,10 @@ export default class Slot extends NaviNode {
     this.registerMouseEvent(callback);
     this.setPosition = position;
     this.setSize = size;
-    this.setStyle = { backgroundColor: color, alpha: 255 };
+    this.setStyle = {
+      backgroundColor: color,
+      alpha: 255,
+      // backgroundTexture: 0,
+    };
   }
 }

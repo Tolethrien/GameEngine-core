@@ -70,5 +70,6 @@ export default class Player extends Entity {
     //   size: { width: 100, height: 100 },
     // });
     this.addComponent("PlayerInventory");
+    this.addComponent("PlayerHealth");
   }
 }

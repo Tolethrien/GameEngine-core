@@ -1,5 +1,6 @@
 import { avalibleComponents } from "../../sandbox/ECSList";
 import DogmaCore, { Worlds } from "./core";
+import EntityClone from "./entityClone";
 import World from "./world";
 type CompDispatch = Map<keyof AvalibleComponents, ComponentType[]>;
 type CompRemoval = Set<string>;
@@ -19,14 +20,14 @@ export default class EntityManager {
     added: new Set(),
     removed: new Set(),
   };
-  public static addEntityOnStart(entity: EntityType) {
+  public static addEntityOnStart(entity: EntityType | EntityClone) {
     entity.components.forEach((component, componentName) => {
       this.activeWorld.getComponents
         .get(componentName)
         ?.set(entity.id, component);
     });
   }
-  public static addEntityOnLoop(entity: EntityType) {
+  public static addEntityOnLoop(entity: EntityType | EntityClone) {
     entity.components.forEach((component, name) =>
       this.componentsToDispatch.get(name)?.push(component)
     );
@@ -63,6 +64,16 @@ export default class EntityManager {
       })
     );
   }
+  public static cloneEntity(ID: EntityType["id"]) {
+    const ent = new EntityClone(ID);
+    this.activeWorld.getComponents.forEach((component) => {
+      component.has(ID) && ent.addComponent(component.get(ID)!);
+    });
+    if (ent.components.size === 0)
+      console.warn("trying to clone empty Entity or Entity doesn't Exists");
+    return ent;
+  }
+
   private static createComponentsStorage() {
     const storage = new Map() as Map<keyof AvalibleComponents, ComponentType[]>;
     Object.keys(avalibleComponents).forEach((component) =>

@@ -9,10 +9,14 @@ export default abstract class NaviCore {
   private static guiElements: Map<string, NaviNode> = new Map();
 
   public static renderGUI() {
-    this.guiElements.forEach((element) => element.render());
+    this.guiElements.forEach(
+      (element) => element.getVisible && element.render()
+    );
   }
   public static updateGUI() {
-    this.updates.forEach((element) => element.onUpdate?.());
+    this.updates.forEach(
+      (element) => element.getUpdated && element.onUpdate?.()
+    );
   }
 
   public static AddMouseListener(element: NaviNode) {
@@ -44,7 +48,7 @@ export default abstract class NaviCore {
     const element = Array.from(this.mouseCallbacks).findLast((element) =>
       this.findClickedElement(element, mousePos)
     );
-    if (element) {
+    if (element && element.getVisible) {
       element.mouseEvent?.();
       return true;
     }

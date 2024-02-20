@@ -1,10 +1,10 @@
 import Draw from "../aurora/urp/draw";
-import { canvas } from "../engine";
 import NaviCore from "./core";
 interface Styles {
   backgroundColor: number[];
   textureCrop: number[];
   alpha: number;
+  backgroundTexture: number | undefined;
 }
 export default abstract class NaviNode {
   private content: string;
@@ -16,7 +16,7 @@ export default abstract class NaviNode {
   private children: Map<string, NaviNode>;
   private position: { x: number; y: number };
   private size: { width: number; height: number };
-  private style: Partial<Styles>;
+  private style: Styles;
 
   onUpdate?: () => void;
   mouseEvent?: () => void;
@@ -32,8 +32,9 @@ export default abstract class NaviNode {
     this.size = { width: 10, height: 10 };
     this.style = {
       alpha: 255,
-      backgroundColor: [255, 0, 0],
+      backgroundColor: [0, 0, 0],
       textureCrop: [0, 0, 1, 1],
+      backgroundTexture: undefined,
     };
   }
   public set setVisible(visible: boolean) {
@@ -87,6 +88,7 @@ export default abstract class NaviNode {
   public get getChildren() {
     return this.children;
   }
+
   protected get getParent() {
     return this.parent;
   }
@@ -105,6 +107,7 @@ export default abstract class NaviNode {
   protected addChild(child: NaviNode) {
     child.setParent = this;
     this.children.set(child.getUUID, child);
+    return this.children.get(child.getUUID)!;
   }
   protected removeChild(child: NaviNode) {
     this.children.delete(child.getUUID);
@@ -119,18 +122,22 @@ export default abstract class NaviNode {
     if (child) return this.children.get(child[1].getUUID);
   }
   public render() {
-    if (!this.visible) return;
     Draw.GUI({
       alpha: this.style.alpha!,
-      isTexture: 0,
+      isTexture: this.style.backgroundTexture === undefined ? 0 : 1,
       position: { x: this.position.x, y: this.position.y },
       size: { height: this.size.height, width: this.size.width },
-      textureToUse: 0,
+      textureToUse: this.style.backgroundTexture ?? 0,
       tint: new Uint8ClampedArray(this.style.backgroundColor!),
       crop: new Float32Array(this.style.textureCrop!),
     });
     if (this.children.size !== 0)
       this.children.forEach((child) => child.render());
+  }
+  public setDisable(disable: boolean) {
+    this.setVisible = disable;
+    this.setUpdated = disable;
+    this.children.forEach((child) => child.setDisable(disable));
   }
   //TODO: zrobic to
   public get centerX() {
