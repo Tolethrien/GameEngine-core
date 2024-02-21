@@ -18,8 +18,8 @@ const createWindow = () => {
       preload: path.join(__dirname, "preload.js"),
     },
   });
-  // mainWindow.setBackgroundColor("rgba(0,0,0,1)");
-  // mainWindow.setMenu(null);
+  mainWindow.setBackgroundColor("rgba(0,0,0,1)");
+  mainWindow.setMenu(null);
   // and load the index.html of the app.
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);

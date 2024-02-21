@@ -1,69 +1,84 @@
 import { canvas } from "../engine";
 import InputManager from "../modules/inputManager/inputManager";
+import NaviBody from "./elements/body";
 import NaviNode from "./node";
 
 export default abstract class NaviCore {
-  private static mouseCallbacks: Set<NaviNode> = new Set();
-  private static keyCallbacks: Set<NaviNode> = new Set();
-  private static updates: Set<NaviNode> = new Set();
-  private static guiElements: Map<string, NaviNode> = new Map();
+  private static mouseCallbacks: Set<string> = new Set();
+  private static keyCallbacks: Set<string> = new Set();
+  private static updates: Set<string> = new Set();
+  private static naviBody = new NaviBody(undefined);
+  private static nodes: Map<string, NaviNode> = new Map([
+    ["naviBody", this.naviBody],
+  ]);
+  public static showHUD = true;
 
   public static renderGUI() {
-    this.guiElements.forEach(
-      (element) => element.getVisible && element.render()
-    );
-  }
-  public static updateGUI() {
-    this.updates.forEach(
-      (element) => element.getUpdated && element.onUpdate?.()
-    );
+    if (!this.showHUD) return;
+    this.Body.render();
   }
 
-  public static AddMouseListener(element: NaviNode) {
-    this.mouseCallbacks.add(element);
+  public static updateGUI() {
+    if (!this.showHUD) return;
+    this.updates.forEach((element) => {
+      const node = this.nodes.get(element);
+      node?.getDisabled && node.onUpdate?.();
+    });
   }
-  public static AddUpdater(element: NaviNode) {
-    this.updates.add(element);
+
+  public static AddMouseListener(id: string) {
+    this.mouseCallbacks.add(id);
   }
-  public static getCoreElement<T>(label: string) {
-    return this.guiElements.get(label) as T | undefined;
+  public static removeMouseListener(id: string) {
+    this.mouseCallbacks.delete(id);
+  }
+  public static AddUpdater(id: string) {
+    this.updates.add(id);
+  }
+  public static removeUpdater(id: string) {
+    this.updates.delete(id);
+  }
+
+  public static get Body() {
+    return this.naviBody;
+  }
+
+  public static getNodeByID<T = NaviNode>(id: string) {
+    return this.nodes.get(id) as T | undefined;
+  }
+  public static AddNode(id: string, node: NaviNode) {
+    this.nodes.set(id, node);
+  }
+  public static removeNode(id: string) {
+    this.nodes.delete(id);
   }
   public static getClickedElement() {
-    const mousePos = InputManager.getMousePosition;
-    return Array.from(this.mouseCallbacks).findLast((element) =>
-      this.findClickedElement(element, mousePos)
-    );
+    return this.findClickedElement();
   }
-  public static appendCoreElement(label: string, element: NaviNode) {
-    this.guiElements.set(label, element);
-  }
-  public static removeChild(label: string) {
-    const element = this.guiElements.get(label);
-    if (!element) return;
-    this.mouseCallbacks.delete(element);
-    this.guiElements.delete(label);
-  }
+
   public static useClickedElement() {
-    const mousePos = InputManager.getMousePosition;
-    const element = Array.from(this.mouseCallbacks).findLast((element) =>
-      this.findClickedElement(element, mousePos)
-    );
+    const element = this.findClickedElement();
     if (element && element.getVisible) {
       element.mouseEvent?.();
       return true;
     }
     return false;
   }
-  private static findClickedElement(element: NaviNode, mousePos: Position2D) {
-    const { position, size } = this.getPixelValues(element.getPosAndSize);
-    if (
-      mousePos.x > position.x &&
-      mousePos.x < position.x + size.width &&
-      mousePos.y > position.y &&
-      mousePos.y < position.y + size.height
-    ) {
-      return element;
-    }
+
+  private static findClickedElement() {
+    const mousePos = InputManager.getMousePosition;
+    const id = Array.from(this.mouseCallbacks).findLast((id) => {
+      const element = this.getNodeByID(id)!;
+      const { position, size } = this.getPixelValues(element.getPosAndSize);
+      return (
+        mousePos.x > position.x &&
+        mousePos.x < position.x + size.width &&
+        mousePos.y > position.y &&
+        mousePos.y < position.y + size.height &&
+        true
+      );
+    });
+    if (id) return this.getNodeByID(id);
   }
   private static getPixelValues({
     size,

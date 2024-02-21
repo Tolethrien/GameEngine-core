@@ -1,3 +1,4 @@
+import { NaviUINodes } from "../../sandbox/ECSList";
 import Draw from "../aurora/urp/draw";
 import NaviCore from "./core";
 interface Styles {
@@ -9,25 +10,20 @@ interface Styles {
 export default abstract class NaviNode {
   private content: string;
   private id: string;
-  private uuid: string;
-  private visible: boolean;
-  private updated: boolean;
-  private parent: NaviNode | undefined;
-  private children: Map<string, NaviNode>;
+  private disabled: boolean;
+  private parent: NaviNode;
+  private children: string[];
   private position: { x: number; y: number };
   private size: { width: number; height: number };
   private style: Styles;
-
   onUpdate?: () => void;
   mouseEvent?: () => void;
-  constructor(parent?: NaviNode) {
+  constructor(parent: NaviNodeProps) {
     this.content = "";
     this.id = "";
-    this.visible = true;
-    this.updated = true;
-    this.parent = parent ?? undefined;
-    this.uuid = crypto.randomUUID();
-    this.children = new Map();
+    this.disabled = false;
+    this.parent = parent;
+    this.children = [];
     this.position = { x: 10, y: 10 };
     this.size = { width: 10, height: 10 };
     this.style = {
@@ -37,22 +33,11 @@ export default abstract class NaviNode {
       backgroundTexture: undefined,
     };
   }
-  public set setVisible(visible: boolean) {
-    this.visible = visible;
-  }
-  public get getVisible() {
-    return this.visible;
-  }
-  public set setUpdated(updated: boolean) {
-    this.updated = updated;
-  }
-  public get getUpdated() {
-    return this.updated;
-  }
+
   public set setStyle(style: Partial<Styles>) {
     this.style = { ...this.style, ...style };
   }
-  public get getStyleInfo() {
+  public get getStyle() {
     return this.style;
   }
   public set setPosition({ x, y }: Position2D) {
@@ -61,6 +46,7 @@ export default abstract class NaviNode {
   public set setSize({ height, width }: Size2D) {
     this.size = { width, height };
   }
+
   public get getPosition() {
     return this.position;
   }
@@ -70,58 +56,78 @@ export default abstract class NaviNode {
   public get getPosAndSize() {
     return { position: this.position, size: this.size };
   }
-  public get getUUID() {
-    return this.uuid;
-  }
+
   public get getID() {
     return this.id;
   }
   public set setID(id: string) {
     this.id = id;
   }
+
   public get getContent() {
     return this.content;
   }
   public set setContent(content: string) {
     this.content = content;
   }
-  public get getChildren() {
-    return this.children;
+  public get getDisabled() {
+    return this.disabled;
   }
-
-  protected get getParent() {
-    return this.parent;
-  }
-  private set setParent(parent: NaviNode) {
-    this.parent = parent;
-  }
-
   protected registerUpdate(callback: () => void) {
-    NaviCore.AddUpdater(this);
+    NaviCore.AddUpdater(this.id);
     this.onUpdate = callback;
   }
   protected registerMouseEvent(callback: () => void) {
-    NaviCore.AddMouseListener(this);
+    NaviCore.AddMouseListener(this.id);
     this.mouseEvent = callback;
   }
-  protected addChild(child: NaviNode) {
-    child.setParent = this;
-    this.children.set(child.getUUID, child);
-    return this.children.get(child.getUUID)!;
+  public addChild<K extends keyof AvalibleUINodes>(
+    child: K,
+    props?: ConstructorParameters<(typeof NaviUINodes)[K]>[1]
+  ): NaviNode {
+    // @ts-ignore
+    const node = new NaviUINodes[child](this, props ?? {});
+    const id = node.id === "" ? crypto.randomUUID() : node.id;
+    NaviCore.AddNode(id, node);
+    this.children.push(id);
+    return NaviCore.getNodeByID<NaviNode>(id)!;
   }
-  protected removeChild(child: NaviNode) {
-    this.children.delete(child.getUUID);
+
+  protected removeChildByIndex(index: number) {
+    const removed = this.children.splice(index, 1);
+    NaviCore.getNodeByID(removed[0])?.removeAllChildren();
+    this.removeTrace(removed[0]);
   }
-  protected getChild(child: NaviNode) {
-    return this.children.get(child.getUUID);
+  protected removeChildByID(ID: string) {
+    this.children.splice(this.children.indexOf(ID), 1);
+    NaviCore.getNodeByID(ID)?.removeAllChildren();
+    this.removeTrace(ID);
+  }
+  protected removeAllChildren() {
+    this.children.forEach((child) => {
+      NaviCore.getNodeByID(child)?.removeAllChildren();
+      this.removeTrace(child);
+    });
+  }
+  protected removeSelf() {
+    if (this.id === "NaviBody") return;
+    this.removeAllChildren();
+    this.removeTrace(this.id);
+  }
+  protected getChildByIndex(index: number) {
+    return NaviCore.getNodeByID(this.children[index]);
   }
   protected getChildByID(ID: string) {
-    const child = Array.from(this.children).find(
-      (child) => child[1].getID === ID
-    );
-    if (child) return this.children.get(child[1].getUUID);
+    const child = this.children.find((child) => child === ID);
+    if (child !== undefined) return NaviCore.getNodeByID(child);
+  }
+  private removeTrace(id: string) {
+    NaviCore.removeMouseListener(id);
+    NaviCore.removeUpdater(id);
+    NaviCore.removeNode(id);
   }
   public render() {
+    if (this.disabled) return;
     Draw.GUI({
       alpha: this.style.alpha!,
       isTexture: this.style.backgroundTexture === undefined ? 0 : 1,
@@ -131,31 +137,24 @@ export default abstract class NaviNode {
       tint: new Uint8ClampedArray(this.style.backgroundColor!),
       crop: new Float32Array(this.style.textureCrop!),
     });
-    if (this.children.size !== 0)
-      this.children.forEach((child) => child.render());
+    if (this.children.length !== 0)
+      this.children.forEach((child) => NaviCore.getNodeByID(child)?.render());
   }
+
   public setDisable(disable: boolean) {
-    this.setVisible = disable;
-    this.setUpdated = disable;
-    this.children.forEach((child) => child.setDisable(disable));
+    this.disabled = disable;
+    this.children.forEach((child) =>
+      NaviCore.getNodeByID(child)?.setDisable(disable)
+    );
   }
-  //TODO: zrobic to
+  //TODO: zrobic to - obecnie oblicza przed stworzeniem obiektu i to problem, musi dostawac do srodka i tam liczyc
   public get centerX() {
-    if (this.parent) {
-      const { position, size } = this.parent.getPosAndSize;
-      return position.x + size.width;
-    } else {
-      return 50 - this.getSize.width / 2;
-    }
+    const { position, size } = this.parent.getPosAndSize;
+    return position.x + size.width / 2 - this.getSize.width / 2;
   }
   public get centerY() {
-    if (this.parent) {
-      const { position, size } = this.parent.getPosAndSize;
-      console.log(position, size);
-      return position.x + size.width;
-    } else {
-      console.log("ni mo");
-      return 50 - this.getSize.height / 2;
-    }
+    const { position, size } = this.parent.getPosAndSize;
+    // console.log(position, size);
+    return position.y + size.height / 2 - this.getSize.height / 2;
   }
 }

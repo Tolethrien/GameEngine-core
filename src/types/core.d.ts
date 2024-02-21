@@ -1,12 +1,18 @@
 import Vec2D from "../core/math/vec2D";
-import { avalibleComponents, avalibleSystems } from "../sandbox/ECSList";
+import {
+  NaviUINodes,
+  avalibleComponents,
+  avalibleSystems,
+} from "../sandbox/ECSList";
 import Component from "../core/dogma/component";
 import Entity from "../core/dogma/entity";
 import System from "../core/dogma/system";
 import World from "../core/dogma/world";
+import NaviNode from "../core/navigpu/node";
 declare global {
   type AvalibleComponents = Omit<typeof avalibleComponents, "CoreComponent">;
   type AvalibleSystems = Omit<typeof avalibleSystems, "CoreSystem">;
+  type AvalibleUINodes = typeof NaviUINodes;
 
   type GetComponentsList<T> = Map<string, T>;
   type GetExplicitComponent<T> = Required<T>;
@@ -23,6 +29,8 @@ declare global {
     entityID: string;
     entityTags: string[];
   }
+  type NaviNodeProps = NaviNode;
+
   interface MapSchema {
     MAP_INFO: {
       mapName: string;

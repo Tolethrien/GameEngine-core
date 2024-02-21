@@ -1,12 +1,9 @@
 import EntityClone from "../../core/dogma/entityClone";
-import EntityManager from "../../core/dogma/entityManager";
-import Engine from "../../core/engine";
 import SignalStore from "../../core/modules/signals/signalStore";
 import NaviNode from "../../core/navigpu/node";
 import { SpriteRendererType } from "../components/spriteRenderer";
 import { UseItem } from "../systems/items";
-import ExSlot from "./exSlot";
-import Slot from "./slot";
+import ItemSlot from "./exSlot";
 /**
  * Test:
  * 1) dodaj komponent inventory v
@@ -28,41 +25,36 @@ import Slot from "./slot";
  *
  */
 export default class InventoryUI extends NaviNode {
-  constructor() {
-    super();
+  constructor(node: NaviNodeProps) {
+    super(node);
     this.setSize = { width: 19, height: 60 };
-    this.setPosition = { x: 80, y: 10 };
-    // this.registerMouseEvent(() => console.log(this));
-    this.addChild(
-      new ExSlot({
-        size: { height: 10, width: 10 },
-        position: { x: 85, y: 15 },
-        callback: () =>
-          SignalStore.getSignal<UseItem>("useItem")?.emit({ hp: 5, index: 0 }),
-        id: "inv_0",
-      })
-    );
-    this.addChild(
-      new ExSlot({
-        size: { height: 10, width: 10 },
-        position: { x: 85, y: 35 },
-        callback: () =>
-          SignalStore.getSignal<UseItem>("useItem")?.emit({ hp: 25, index: 1 }),
-        id: "inv_1",
-      })
-    );
-    this.addChild(
-      new ExSlot({
-        size: { height: 10, width: 10 },
-        position: { x: 85, y: 55 },
-        callback: () => SignalStore.getSignal("useItem")?.emit(2),
-        id: "inv_2",
-      })
-    );
-    this.registerUpdate(() => this.upd());
+    //this.CenterX odnosi sie do THIS! czyli pobiera szerokosc inventory zamiast slotu jak powinien
+    this.setPosition = { x: this.centerX, y: this.centerY };
+    this.setID = "inventory";
+    this.addChild("ItemSlot", {
+      size: { height: 10, width: 10 },
+      position: { x: this.centerX, y: this.centerY },
+      callback: () =>
+        SignalStore.getSignal<UseItem>("useItem")?.emit({ hp: 5, index: 0 }),
+      id: "inv_0",
+    });
+    // this.addChild("ItemSlot", {
+    //   size: { height: 10, width: 10 },
+    //   position: { x: 85, y: 35 },
+    //   callback: () =>
+    //     SignalStore.getSignal<UseItem>("useItem")?.emit({ hp: 25, index: 1 }),
+    //   id: "inv_1",
+    // });
+    // this.addChild("ItemSlot", {
+    //   size: { height: 10, width: 10 },
+    //   position: { x: 85, y: 55 },
+    //   callback: () => SignalStore.getSignal("useItem")?.emit(2),
+    //   id: "inv_2",
+    // });
+    // this.registerUpdate(() => this.upd());
   }
   pickedItem(index: number, ent: EntityClone) {
-    const child = this.getChildByID(`inv_${index}`) as ExSlot | undefined;
+    const child = this.getChildByID(`inv_${index}`) as ItemSlot | undefined;
     if (child) {
       const sprite = (
         ent.components.get("SpriteRenderer") as SpriteRendererType
@@ -78,16 +70,16 @@ export default class InventoryUI extends NaviNode {
     }
   }
   removeItem(index: number) {
-    const child = this.getChildByID(`inv_${index}`) as ExSlot | undefined;
+    const child = this.getChildByID(`inv_${index}`) as ItemSlot | undefined;
     if (child) {
       child.removeFromSlot();
     }
   }
-  getColor(index: number) {
-    const child = this.getChildByID(`inv_${index}`);
-    if (!child) return;
-    return child.getStyleInfo.backgroundColor;
-  }
+  // getColor(index: number) {
+  //   const child = this.getChildByID(`inv_${index}`);
+  //   if (!child) return;
+  //   return child.getStyleInfo.backgroundColor;
+  // }
   upd() {
     console.log("ss");
   }

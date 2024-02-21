@@ -19,6 +19,11 @@ import PlayerInventory from "./components/playerInventory";
 import Items from "./systems/items";
 import PicableItem from "./components/picableItem";
 import PlayerHealth from "./components/health";
+import NaviImg from "../core/navigpu/elements/naviImg";
+import NaviText from "../core/navigpu/elements/naviText";
+import ItemSlot from "./ui/exSlot";
+import InventoryUI from "./ui/inventory";
+import HPBar from "./ui/hpBar";
 export const avalibleComponents = {
   CoreComponent, // required
   Transform,
@@ -43,4 +48,11 @@ export const avalibleSystems = {
   MouseInputs,
   IndiePhysics,
   Items,
+} as const;
+export const NaviUINodes = {
+  NaviImg,
+  NaviText,
+  ItemSlot,
+  InventoryUI,
+  HPBar,
 } as const;

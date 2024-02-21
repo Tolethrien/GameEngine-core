@@ -3,13 +3,14 @@ interface NaviImgProps {
   position: Position2D;
   size: Size2D;
   color: RGB;
-  id: string;
   textureIndex: number;
 }
 export default class NaviImg extends NaviNode {
-  constructor({ color, id, position, size, textureIndex }: NaviImgProps) {
-    super();
-    this.setID = id;
+  constructor(
+    node: NaviNodeProps,
+    { color, position, size, textureIndex }: NaviImgProps
+  ) {
+    super(node);
     this.setPosition = position;
     this.setSize = size;
     this.setStyle = {

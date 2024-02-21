@@ -7,13 +7,16 @@ interface NaviButtonProps {
   id: string;
 }
 export default class Slot extends NaviNode {
-  constructor({ callback, position, size, color, id }: NaviButtonProps) {
-    super();
+  constructor(
+    node: NaviNode,
+    { callback, position, size, color, id }: NaviButtonProps
+  ) {
+    super(node);
     // this.registerUpdate(callback);
     this.setID = id;
     this.registerMouseEvent(callback);
-    this.setPosition = position;
     this.setSize = size;
+    this.setPosition = { x: this.centerX, y: this.centerY };
     this.setStyle = {
       backgroundColor: color,
       alpha: 255,

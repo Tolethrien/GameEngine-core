@@ -38,7 +38,7 @@ export default class Items extends System {
         for (let i = 0; i < this.inventory.inventory.length; i++) {
           if (this.inventory.inventory[i] === undefined) {
             this.inventory.inventory[i] = EntityManager.cloneEntity(id);
-            NaviCore.getCoreElement<InventoryUI>("inventory")?.pickedItem(
+            NaviCore.getNodeByID<InventoryUI>("inventory")?.pickedItem(
               i,
               this.inventory.inventory[i]!
             );
@@ -57,10 +57,8 @@ export default class Items extends System {
         ).layers[0].tint;
         this.playerSprite.layers[0].tint = color;
         this.playerHP.hp += data.hp;
-        NaviCore.getCoreElement<HPBar>("HP")?.updateHP(data.hp);
-        NaviCore.getCoreElement<InventoryUI>("inventory")?.removeItem(
-          data.index
-        );
+        NaviCore.getNodeByID<HPBar>("hpBar")?.updateHP(data.hp);
+        NaviCore.getNodeByID<InventoryUI>("inventory")?.removeItem(data.index);
         EntityManager.addEntityOnLoop(ent);
         this.inventory.inventory[data.index] = undefined;
       }

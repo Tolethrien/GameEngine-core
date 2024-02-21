@@ -4,6 +4,7 @@ import { canvas } from "../../core/engine";
 import InputManager, {
   MouseKey,
 } from "../../core/modules/inputManager/inputManager";
+import EasyList from "../../core/modules/easyList/easyList";
 import SignalStore from "../../core/modules/signals/signalStore";
 import NaviCore from "../../core/navigpu/core";
 import { MouseEventsType } from "../components/mouseEvents";
@@ -30,8 +31,10 @@ export default class MouseInputs extends System {
     this.proximityFilterList = new Map();
     this.clearScroll = null;
     this.isMouseClicked = false;
-    NaviCore.appendCoreElement("inventory", new InventoryUI());
-    NaviCore.appendCoreElement("HP", new HPBar());
+    // NaviCore.appendCoreElement("inventory", new InventoryUI(undefined));
+
+    NaviCore.Body.addChild("InventoryUI", undefined);
+    NaviCore.Body.addChild("HPBar", undefined);
   }
   onSubscribeList(): void {
     this.mouseEvents = this.getComponents("MouseEvents");
