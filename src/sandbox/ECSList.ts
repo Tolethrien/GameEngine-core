@@ -21,9 +21,12 @@ import PicableItem from "./components/picableItem";
 import PlayerHealth from "./components/health";
 import NaviImg from "../core/navigpu/elements/naviImg";
 import NaviText from "../core/navigpu/elements/naviText";
-import ItemSlot from "./ui/exSlot";
+import ItemSlot from "./ui/slot";
 import InventoryUI from "./ui/inventory";
 import HPBar from "./ui/hpBar";
+import ContextBox from "./ui/contextBox";
+import DetailBox from "./ui/detailBox";
+import NaviDiv from "../core/navigpu/elements/div";
 export const avalibleComponents = {
   CoreComponent, // required
   Transform,
@@ -55,4 +58,7 @@ export const NaviUINodes = {
   ItemSlot,
   InventoryUI,
   HPBar,
+  ContextBox,
+  DetailBox,
+  NaviDiv,
 } as const;

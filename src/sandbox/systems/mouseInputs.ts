@@ -1,19 +1,14 @@
-import EntityManager from "../../core/dogma/entityManager";
 import System from "../../core/dogma/system";
 import { canvas } from "../../core/engine";
 import InputManager, {
-  MouseKey,
+  MouseOnEvent,
 } from "../../core/modules/inputManager/inputManager";
-import EasyList from "../../core/modules/easyList/easyList";
-import SignalStore from "../../core/modules/signals/signalStore";
 import NaviCore from "../../core/navigpu/core";
 import { MouseEventsType } from "../components/mouseEvents";
 import OrthographicCamera from "../components/OrthographicCamera";
 import { PlayerInventoryType } from "../components/playerInventory";
 import { SpriteRendererType } from "../components/spriteRenderer";
 import { TransformType } from "../components/transform";
-import HPBar from "../ui/hpBar";
-import InventoryUI from "../ui/inventory";
 
 export default class MouseInputs extends System {
   mouseEvents!: GetComponentsList<MouseEventsType>;
@@ -31,7 +26,6 @@ export default class MouseInputs extends System {
     this.proximityFilterList = new Map();
     this.clearScroll = null;
     this.isMouseClicked = false;
-    // NaviCore.appendCoreElement("inventory", new InventoryUI(undefined));
 
     NaviCore.Body.addChild("InventoryUI", undefined);
     NaviCore.Body.addChild("HPBar", undefined);
@@ -46,14 +40,14 @@ export default class MouseInputs extends System {
   onStart(): void {
     InputManager.setMouseCallbacks({
       leftClick: () => this.mouseClickLeft(),
-      rightClick: () => console.log("Rclick"),
+      rightClick: () => this.mouseClickRight(),
       dbClick: () => console.log("DBClick"),
       auxClick: () => console.log("MClick"),
       wheelUp: () => console.log("wheel up"),
       wheelDown: () => console.log("wheel down"),
     });
   }
-  MouseClickWithButton(button: MouseKey) {
+  MouseWithClick(button: MouseOnEvent) {
     this.mouseEvents.forEach((event) => {
       event.action[button] &&
         this.mouseCollideWithTranslated(event.entityID) &&
@@ -66,11 +60,16 @@ export default class MouseInputs extends System {
     this.proximityFilter(button);
   }
   mouseClickLeft() {
-    if (!NaviCore.useClickedElement()) {
-      this.MouseClickWithButton("left");
+    if (!NaviCore.useClickedElement("leftClick")) {
+      this.MouseWithClick("leftClick");
     }
   }
-  proximityFilter(button: MouseKey) {
+  mouseClickRight() {
+    if (!NaviCore.useClickedElement("rightClick")) {
+      // this.MouseWithClick("leftClick");
+    }
+  }
+  proximityFilter(button: MouseOnEvent) {
     const target = Array.from(this.proximityFilterList.values())
       .sort(
         (a, b) =>
@@ -79,7 +78,7 @@ export default class MouseInputs extends System {
       .at(-1);
     this.proximityFilterList.clear();
     if (target) {
-      this.mouseEvents.get(target.entityID)?.action.left?.();
+      this.mouseEvents.get(target.entityID)?.action[button]?.();
     }
     // target && useAction(this.mouseEvents.get(target.entityID)!.action[button]!);
   }

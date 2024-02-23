@@ -1,19 +1,20 @@
 import { canvas } from "../../engine";
 import Mat4 from "../../math/mat4";
 export type MouseKey = "left" | "right" | "middle";
+export type MouseOnEvent =
+  | "leftClick"
+  | "rightClick"
+  | "dbClick"
+  | "auxClick"
+  | "wheelUp"
+  | "wheelDown";
+export type MouseCallbacks = Record<MouseOnEvent, (() => void) | undefined>;
 const MOUSE_ENUM: Record<number, MouseKey> = {
   0: "left",
   1: "middle",
   2: "right",
 };
-interface MouseCallbacks {
-  leftClick: (() => void) | undefined;
-  rightClick: (() => void) | undefined;
-  auxClick: (() => void) | undefined;
-  dbClick: (() => void) | undefined;
-  wheelUp: (() => void) | undefined;
-  wheelDown: (() => void) | undefined;
-}
+
 export default class InputManager {
   private static mousePressed: Record<MouseKey, boolean> = {
     left: false,
@@ -106,7 +107,24 @@ export default class InputManager {
     ]);
     return { x: mouseWorldSpace[0], y: mouseWorldSpace[1] };
   }
-
+  public static convertPercentToPixels({
+    size,
+    position,
+  }: {
+    position: Position2D;
+    size: Size2D;
+  }) {
+    return {
+      position: {
+        x: (position.x / 100) * canvas.width,
+        y: (position.y / 100) * canvas.height,
+      },
+      size: {
+        width: (size.width / 100) * canvas.width,
+        height: (size.height / 100) * canvas.height,
+      },
+    };
+  }
   public static isKeyHold(key: string) {
     return this.keyPressed.has(key) ? true : false;
   }
@@ -117,5 +135,9 @@ export default class InputManager {
   }
   public static isMousePressed(key: MouseKey) {
     return this.mousePressed[key] ? true : false;
+  }
+  public static isMousePressedAny() {
+    if (Object.values(this.mousePressed).some((key) => key === true))
+      return true;
   }
 }

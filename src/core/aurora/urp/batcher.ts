@@ -98,9 +98,8 @@ export default class Batcher {
   private static indexBuffer: GPUBuffer;
   public static async createBatcher(options?: Partial<BatcherOptions>) {
     //TODO: zmienic by user sam wybieral nazwe tego
-    !AuroraTexture.getStore.has("userTextureAtlas") ||
-      (!AuroraTexture.getStore.has("GUITextureAtlas") &&
-        console.error(WARNINGS.TEXTURE_WARNING));
+    !AuroraTexture.getStore.has("userTextureAtlas") &&
+      console.error(WARNINGS.TEXTURE_WARNING);
     this.indexBuffer = AuroraBuffer.createBufferMaped({
       data: [0, 1, 2, 1, 2, 3],
       bufferType: "index",

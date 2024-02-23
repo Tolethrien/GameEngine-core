@@ -1,23 +1,29 @@
 import { NaviUINodes } from "../../sandbox/ECSList";
 import Draw from "../aurora/urp/draw";
+import InputManager, {
+  MouseCallbacks,
+  MouseOnEvent,
+} from "../modules/inputManager/inputManager";
 import NaviCore from "./core";
-interface Styles {
-  backgroundColor: number[];
-  textureCrop: number[];
-  alpha: number;
-  backgroundTexture: number | undefined;
-}
+import { NodeStyle, nodeStyle } from "./styleTemplate";
+/**
+ * layerowanie bo prawy myszy wchodzi pod inne
+ * zamykanie ui za pomoca chowania powinno restartowac contexty
+ * przemyslec jak przekazywac dane DO ui bo emit() moze tylko wysylac w dol
+ */
 export default abstract class NaviNode {
   private content: string;
   private id: string;
   private disabled: boolean;
-  private parent: NaviNode;
+  private parent: NaviNodeProps;
   private children: string[];
   private position: { x: number; y: number };
   private size: { width: number; height: number };
-  private style: Styles;
-  onUpdate?: () => void;
-  mouseEvent?: () => void;
+  private style: NodeStyle;
+  private hasMouseListener: boolean;
+  private hasUpdater: boolean;
+  private onUpdate: (() => void) | undefined;
+  private mouseEvent: MouseCallbacks;
   constructor(parent: NaviNodeProps) {
     this.content = "";
     this.id = "";
@@ -26,19 +32,31 @@ export default abstract class NaviNode {
     this.children = [];
     this.position = { x: 10, y: 10 };
     this.size = { width: 10, height: 10 };
-    this.style = {
-      alpha: 255,
-      backgroundColor: [0, 0, 0],
-      textureCrop: [0, 0, 1, 1],
-      backgroundTexture: undefined,
+    this.mouseEvent = {
+      leftClick: undefined,
+      rightClick: undefined,
+      dbClick: undefined,
+      auxClick: undefined,
+      wheelUp: undefined,
+      wheelDown: undefined,
     };
+    this.onUpdate = undefined;
+    this.hasMouseListener = false;
+    this.hasUpdater = false;
+    this.style = nodeStyle;
   }
 
-  public set setStyle(style: Partial<Styles>) {
+  public set setStyle(style: Partial<NodeStyle>) {
     this.style = { ...this.style, ...style };
   }
   public get getStyle() {
     return this.style;
+  }
+  public get getUpdate() {
+    return this.onUpdate;
+  }
+  public get getMouseEvents() {
+    return this.mouseEvent;
   }
   public set setPosition({ x, y }: Position2D) {
     this.position = { x, y };
@@ -74,12 +92,14 @@ export default abstract class NaviNode {
     return this.disabled;
   }
   protected registerUpdate(callback: () => void) {
-    NaviCore.AddUpdater(this.id);
+    this.hasUpdater = true;
     this.onUpdate = callback;
   }
-  protected registerMouseEvent(callback: () => void) {
-    NaviCore.AddMouseListener(this.id);
-    this.mouseEvent = callback;
+  protected registerMouseEvent(events: Partial<MouseCallbacks>) {
+    this.hasMouseListener = true;
+    Object.entries(events).forEach(
+      (event) => (this.mouseEvent[event[0] as MouseOnEvent] = event[1])
+    );
   }
   public addChild<K extends keyof AvalibleUINodes>(
     child: K,
@@ -87,30 +107,39 @@ export default abstract class NaviNode {
   ): NaviNode {
     // @ts-ignore
     const node = new NaviUINodes[child](this, props ?? {});
-    const id = node.id === "" ? crypto.randomUUID() : node.id;
-    NaviCore.AddNode(id, node);
-    this.children.push(id);
-    return NaviCore.getNodeByID<NaviNode>(id)!;
+    if (node.id === "") {
+      node.setID = crypto.randomUUID();
+    }
+    NaviCore.AddNode(node.getID, node);
+    if (node.hasMouseListener) {
+      NaviCore.AddMouseListener(node.getID);
+    }
+    if (node.hasUpdater) {
+      NaviCore.AddUpdater(node.getID);
+    }
+    this.children.push(node.getID);
+    return NaviCore.getNodeByID<NaviNode>(node.getID)!;
   }
 
-  protected removeChildByIndex(index: number) {
+  removeChildByIndex(index: number) {
     const removed = this.children.splice(index, 1);
     NaviCore.getNodeByID(removed[0])?.removeAllChildren();
     this.removeTrace(removed[0]);
   }
-  protected removeChildByID(ID: string) {
+  removeChildByID(ID: string) {
     this.children.splice(this.children.indexOf(ID), 1);
     NaviCore.getNodeByID(ID)?.removeAllChildren();
     this.removeTrace(ID);
   }
-  protected removeAllChildren() {
+  removeAllChildren() {
     this.children.forEach((child) => {
       NaviCore.getNodeByID(child)?.removeAllChildren();
       this.removeTrace(child);
     });
   }
-  protected removeSelf() {
+  removeSelf() {
     if (this.id === "NaviBody") return;
+    this.parent?.removeChildByID(this.id);
     this.removeAllChildren();
     this.removeTrace(this.id);
   }
@@ -143,18 +172,77 @@ export default abstract class NaviNode {
 
   public setDisable(disable: boolean) {
     this.disabled = disable;
+    if (disable === true) {
+      if (this.hasUpdater) NaviCore.removeUpdater(this.id);
+      if (this.hasMouseListener) NaviCore.removeMouseListener(this.id);
+    } else {
+      if (this.hasUpdater) NaviCore.AddUpdater(this.id);
+      if (this.hasMouseListener) NaviCore.AddMouseListener(this.id);
+    }
     this.children.forEach((child) =>
       NaviCore.getNodeByID(child)?.setDisable(disable)
     );
   }
   //TODO: zrobic to - obecnie oblicza przed stworzeniem obiektu i to problem, musi dostawac do srodka i tam liczyc
-  public get centerX() {
-    const { position, size } = this.parent.getPosAndSize;
-    return position.x + size.width / 2 - this.getSize.width / 2;
+  // public get centerX() {
+  //   const { position, size } = this.parent.getPosAndSize;
+  //   return position.x + size.width / 2 - this.getSize.width / 2;
+  // }
+  // public get centerY() {
+  //   const { position, size } = this.parent.getPosAndSize;
+  //   // console.log(position, size);
+  //   return position.y + size.height / 2 - this.getSize.height / 2;
+  // }
+  //TODO: zrobic layoutowanie w stylu flexboxa
+  private calculateStyle() {
+    //===============================
+    this.children.forEach((child) =>
+      NaviCore.getNodeByID(child)?.calculateStyle()
+    );
   }
-  public get centerY() {
-    const { position, size } = this.parent.getPosAndSize;
-    // console.log(position, size);
-    return position.y + size.height / 2 - this.getSize.height / 2;
+  public static clickOutsideNode({
+    position,
+    size,
+  }: {
+    position: Position2D;
+    size: Size2D;
+  }) {
+    const mousePos = InputManager.getMousePosition;
+    const { position: nodePos, size: nodeSize } =
+      InputManager.convertPercentToPixels({
+        position: position,
+        size: size,
+      });
+    if (
+      InputManager.isMousePressedAny() &&
+      !(
+        mousePos.x > nodePos.x &&
+        mousePos.x < nodePos.x + nodeSize.width &&
+        mousePos.y > nodePos.y &&
+        mousePos.y < nodePos.y + nodeSize.height
+      )
+    )
+      return true;
+  }
+  public static hoverOverNode({
+    position,
+    size,
+  }: {
+    position: Position2D;
+    size: Size2D;
+  }) {
+    const mousePos = InputManager.getMousePosition;
+    const { position: nodePos, size: nodeSize } =
+      InputManager.convertPercentToPixels({
+        position: position,
+        size: size,
+      });
+    if (
+      mousePos.x > nodePos.x &&
+      mousePos.x < nodePos.x + nodeSize.width &&
+      mousePos.y > nodePos.y &&
+      mousePos.y < nodePos.y + nodeSize.height
+    )
+      return true;
   }
 }

@@ -1,5 +1,7 @@
 import { canvas } from "../engine";
-import InputManager from "../modules/inputManager/inputManager";
+import InputManager, {
+  MouseOnEvent,
+} from "../modules/inputManager/inputManager";
 import NaviBody from "./elements/body";
 import NaviNode from "./node";
 
@@ -21,8 +23,7 @@ export default abstract class NaviCore {
   public static updateGUI() {
     if (!this.showHUD) return;
     this.updates.forEach((element) => {
-      const node = this.nodes.get(element);
-      node?.getDisabled && node.onUpdate?.();
+      this.nodes.get(element)?.getUpdate?.();
     });
   }
 
@@ -56,10 +57,14 @@ export default abstract class NaviCore {
     return this.findClickedElement();
   }
 
-  public static useClickedElement() {
+  public static useClickedElement(key: MouseOnEvent) {
     const element = this.findClickedElement();
-    if (element && element.getVisible) {
-      element.mouseEvent?.();
+    if (
+      element &&
+      !element.getDisabled &&
+      element.getMouseEvents[key] !== undefined
+    ) {
+      element.getMouseEvents[key]?.();
       return true;
     }
     return false;
@@ -69,7 +74,9 @@ export default abstract class NaviCore {
     const mousePos = InputManager.getMousePosition;
     const id = Array.from(this.mouseCallbacks).findLast((id) => {
       const element = this.getNodeByID(id)!;
-      const { position, size } = this.getPixelValues(element.getPosAndSize);
+      const { position, size } = InputManager.convertPercentToPixels(
+        element.getPosAndSize
+      );
       return (
         mousePos.x > position.x &&
         mousePos.x < position.x + size.width &&
@@ -79,23 +86,5 @@ export default abstract class NaviCore {
       );
     });
     if (id) return this.getNodeByID(id);
-  }
-  private static getPixelValues({
-    size,
-    position,
-  }: {
-    position: Position2D;
-    size: Size2D;
-  }) {
-    return {
-      position: {
-        x: (position.x / 100) * canvas.width,
-        y: (position.y / 100) * canvas.height,
-      },
-      size: {
-        width: (size.width / 100) * canvas.width,
-        height: (size.height / 100) * canvas.height,
-      },
-    };
   }
 }

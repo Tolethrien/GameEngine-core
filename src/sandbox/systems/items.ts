@@ -63,5 +63,12 @@ export default class Items extends System {
         this.inventory.inventory[data.index] = undefined;
       }
     });
+    SignalStore.createSignal("deleteItem");
+    SignalStore.getSignal<UseItem>("deleteItem")?.subscribe((data) => {
+      if (this.inventory.inventory[data.index] !== undefined) {
+        NaviCore.getNodeByID<InventoryUI>("inventory")?.removeItem(data.index);
+        this.inventory.inventory[data.index] = undefined;
+      }
+    });
   }
 }

@@ -104,7 +104,7 @@ export default class GUIPipeline {
           {
             binding: 1,
             resource:
-              AuroraTexture.getTexture("GUITextureAtlas").texture.createView(),
+              AuroraTexture.getTexture("userTextureAtlas").texture.createView(),
           },
         ],
       },

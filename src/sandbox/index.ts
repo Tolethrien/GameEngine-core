@@ -11,6 +11,7 @@ import DogmaCore from "../core/dogma/core";
 import EntityManager from "../core/dogma/entityManager";
 import Flask from "./entities/flask";
 import { randomColor } from "../core/utils/utils";
+import uiEl from "../assets/uiElements.png";
 /**
  * 4) rozkminic dobry system inputu
  * 5) UI!
@@ -18,16 +19,9 @@ import { randomColor } from "../core/utils/utils";
 async function preload() {
   await AuroraTexture.createTextureArray({
     label: "userTextureAtlas",
-    urls: [tilemap, char],
+    urls: [tilemap, char, uiEl],
   });
-  await AuroraTexture.createTextureArray({
-    label: "GUITextureAtlas",
-    urls: [tilemap, char],
-  });
-  // AuroraTexture.createEmptyTextureArray({
-  //   label: "GUITextureAtlas",
-  //   size: { height: 100, width: 100, arraySize: 2 },
-  // });
+
   await AuroraBatcher.loadFont(fontLato, latoData);
   await AuroraBatcher.createBatcher({
     backgroundColor: [255, 250, 0, 255],

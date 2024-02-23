@@ -1,19 +1,21 @@
 import Component from "../../core/dogma/component";
-//TODO: w nocym stylu nie mam typu fied i translated
+import { MouseCallbacks } from "../../core/modules/inputManager/inputManager";
 export interface MouseEventsProps {
-  objectType: "fixed" | "translated";
-  action: { left?: () => void; right?: string; middle?: string };
+  action: Partial<MouseCallbacks>;
 }
 export interface MouseEventsType extends MouseEvents {}
 export default class MouseEvents extends Component {
-  objectType: "fixed" | "translated";
-  action: { left?: () => void; right?: string; middle?: string };
-  constructor(
-    componentProps: ComponentProps,
-    { action, objectType = "translated" }: MouseEventsProps
-  ) {
+  action: MouseCallbacks;
+  constructor(componentProps: ComponentProps, { action }: MouseEventsProps) {
     super(componentProps);
-    this.objectType = objectType;
-    this.action = action;
+    this.action = {
+      leftClick: undefined,
+      rightClick: undefined,
+      auxClick: undefined,
+      dbClick: undefined,
+      wheelUp: undefined,
+      wheelDown: undefined,
+    };
+    this.action = { ...this.action, ...action };
   }
 }

@@ -17,6 +17,7 @@ export default class NaviImg extends NaviNode {
       backgroundColor: color,
       alpha: 255,
       backgroundTexture: textureIndex,
+      textureCrop: [0, 0, 0, 0],
     };
   }
 }
