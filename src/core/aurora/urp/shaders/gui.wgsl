@@ -41,7 +41,7 @@ fn fragmentMain(props:VertexOutput) -> @location(0) vec4f{
     if(props.isGlyph != 0){
       return textureSampleLevel(textTextures,textSampler,props.textureCoords,props.textureIndex,0) * convertedColor;
     }
-    if(props.isTexture != 0){
+    if(props.isTexture != 0){      
      return textureSampleLevel(guiTextures,universalSampler,props.textureCoords,props.textureIndex,0) * convertedColor;
     }
     return convertedColor;

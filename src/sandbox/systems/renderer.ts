@@ -34,11 +34,11 @@ export default class Renderer extends System {
   }
 
   onUpdate() {
-    NaviCore.updateGUI();
     AuroraBatcher.setCameraBuffer(this.othCam.projectionViewMatrix.getMatrix);
     // AuroraBatcher.setGlobalColorCorrection([0.2, 0.5, 0.0]);
     // AuroraBatcher.setScreenShader("noice", 0.7);
     AuroraBatcher.startBatch();
+    NaviCore.renderGUI();
     // Draw.GUI({
     //   alpha: 255,
     //   isTexture: 1,
@@ -49,7 +49,6 @@ export default class Renderer extends System {
     //   crop: new Float32Array([0, 0, 1, 1]),
     // });
 
-    NaviCore.renderGUI();
     this.groundRenderers?.forEach((ground) => {
       //TODO: potencjalny performance boost, nie musisz co frame aktualizowac listy ziemi bo buffer zmienia sie tylko
       // w momencie kiedy dodajesz/usuwasz nowe chunki, caly czas potem stoi bez zmian - osobny buffer na ziemie?

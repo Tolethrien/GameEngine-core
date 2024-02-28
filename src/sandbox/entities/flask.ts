@@ -24,7 +24,12 @@ export default class Flask extends Entity {
     this.addComponent("MouseEvents", {
       action: { leftClick: () => SignalStore.emit("pickItem", this.id) },
     });
-    this.addComponent("IndieRigidBody", { bodyType: "static" });
+    this.addComponent("IndieRigidBody", {
+      bodyType: "dynamic",
+      friction: 1,
+      mass: 10,
+      restitution: 1,
+    });
     this.addComponent("PicableItem");
   }
 }

@@ -27,7 +27,7 @@ async function preload() {
     backgroundColor: [255, 250, 0, 255],
     maxQuadPerSceen: 15000,
     customCamera: true,
-    bloom: { active: true, str: 16 },
+    bloom: { active: false, str: 16 },
   });
 }
 function setup() {

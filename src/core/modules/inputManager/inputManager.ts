@@ -133,11 +133,15 @@ export default class InputManager {
     this.keyPressed.delete(key);
     return true;
   }
+  public static isKeyPressedAny() {
+    return this.keyPressed.size === 0 ? false : true;
+  }
   public static isMousePressed(key: MouseKey) {
     return this.mousePressed[key] ? true : false;
   }
   public static isMousePressedAny() {
-    if (Object.values(this.mousePressed).some((key) => key === true))
-      return true;
+    return Object.values(this.mousePressed).some((key) => key === true)
+      ? true
+      : false;
   }
 }

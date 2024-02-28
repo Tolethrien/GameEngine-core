@@ -40,6 +40,17 @@ interface GUIProps {
   alpha: number;
   isTexture: number;
 }
+interface GUITextProps {
+  position: { x: number; y: number };
+  size: { width: number; height: number };
+  textureToUse: number;
+  crop: Float32Array;
+  tint: Uint8ClampedArray;
+  alpha: number;
+  isTexture: number;
+  text: string;
+  weight: number;
+}
 //TODO: zmien index textury moze na jakis string czy cos by bylo latwiej niz myslec jaki index to co
 export default class Draw {
   public static Quad({
@@ -182,5 +193,55 @@ export default class Draw {
     addData[quadsTotal * stride.guiAddData + 6] = 0;
     quadsData.numberOfQuads.total++;
     quadsData.numberOfQuads.gui++;
+  }
+  public static GUIText({
+    alpha,
+    crop,
+    isTexture,
+    position,
+    size,
+    textureToUse,
+    tint,
+    text,
+    weight,
+  }: GUITextProps) {
+    let xPos = position.x;
+    const { height: imgHeight, width: imgWidth } =
+      AuroraTexture.getTexture("fonts").meta;
+    const vertices = GUIPipeline.getVertices;
+    const addData = GUIPipeline.getAddData;
+    const quadsData = Batcher.getRenderData;
+    const stride = Batcher.getStride;
+    Array.from(text).forEach((char) => {
+      // console.log(char);
+      const quadsTotal = quadsData.numberOfQuads.gui;
+
+      const glyph = Batcher.getFontData[char.charCodeAt(0)];
+      let width, height, advence, offsetY;
+      width = (glyph.width * weight) / Aurora.canvas.width;
+      height = (glyph.height * weight) / Aurora.canvas.height;
+      advence = (glyph.xadvance * weight) / Aurora.canvas.width;
+      offsetY = (glyph.yoffset * weight) / Aurora.canvas.height;
+      vertices[quadsTotal * stride.vertices] = xPos;
+      vertices[quadsTotal * stride.vertices + 1] = position.y;
+      vertices[quadsTotal * stride.vertices + 2] = 1;
+      vertices[quadsTotal * stride.vertices + 3] = 1.5;
+      vertices[quadsTotal * stride.vertices + 4] = glyph.x / imgWidth;
+      vertices[quadsTotal * stride.vertices + 5] = glyph.y / imgHeight;
+      vertices[quadsTotal * stride.vertices + 6] =
+        glyph.x / imgWidth + glyph.width / imgWidth;
+      vertices[quadsTotal * stride.vertices + 7] =
+        glyph.y / imgHeight + glyph.height / imgHeight;
+      addData[quadsTotal * stride.guiAddData] = tint[0];
+      addData[quadsTotal * stride.guiAddData + 1] = tint[1];
+      addData[quadsTotal * stride.guiAddData + 2] = tint[2];
+      addData[quadsTotal * stride.guiAddData + 3] = alpha;
+      addData[quadsTotal * stride.guiAddData + 4] = textureToUse;
+      addData[quadsTotal * stride.guiAddData + 5] = 1;
+      addData[quadsTotal * stride.guiAddData + 6] = 1;
+      quadsData.numberOfQuads.total++;
+      quadsData.numberOfQuads.gui++;
+      xPos += advence;
+    });
   }
 }

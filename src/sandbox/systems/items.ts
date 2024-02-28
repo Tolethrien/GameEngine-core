@@ -1,11 +1,13 @@
 import EntityManager from "../../core/dogma/entityManager";
 import System from "../../core/dogma/system";
+import Vec2D from "../../core/math/vec2D";
 import SignalStore from "../../core/modules/signals/signalStore";
 import NaviCore from "../../core/navigpu/core";
 import { PlayerHealthType } from "../components/health";
 import { PicableItemType } from "../components/picableItem";
 import { PlayerInventoryType } from "../components/playerInventory";
 import { SpriteRendererType } from "../components/spriteRenderer";
+import { TransformType } from "../components/transform";
 import HPBar from "../ui/hpBar";
 import InventoryUI from "../ui/inventory";
 export interface UseItem {
@@ -17,6 +19,7 @@ export default class Items extends System {
   inventory!: GetExplicitComponent<PlayerInventoryType>;
   playerSprite!: GetExplicitComponent<SpriteRendererType>;
   playerHP!: GetExplicitComponent<PlayerHealthType>;
+  trans!: GetExplicitComponent<TransformType>;
 
   constructor() {
     super();
@@ -26,6 +29,7 @@ export default class Items extends System {
     this.picable = this.getComponents("PicableItem");
     this.inventory = this.getEntityComponentByTag("PlayerInventory", "player");
     this.playerHP = this.getEntityComponentByTag("PlayerHealth", "player");
+    this.trans = this.getEntityComponentByTag("Transform", "player");
     this.playerSprite = this.getEntityComponentByTag(
       "SpriteRenderer",
       "player"
@@ -52,6 +56,13 @@ export default class Items extends System {
     SignalStore.getSignal<UseItem>("useItem")?.subscribe((data) => {
       if (this.inventory.inventory[data.index] !== undefined) {
         const ent = this.inventory.inventory[data.index]!;
+        const trans = ent.getComponent<TransformType>("Transform");
+        trans.position = Vec2D.Create([
+          this.trans.position.get.x + 70,
+          this.trans.position.get.y,
+        ]);
+        // this.trans.position = this.trans.position.set([100, 100]);
+        console.log(this.trans);
         const color = (
           ent.components.get("SpriteRenderer")! as SpriteRendererType
         ).layers[0].tint;

@@ -1,7 +1,5 @@
-import { EntityComponents } from "./entity";
-//TODO: dodac manipulowanie komponentami
 export default class EntityClone {
-  private clonedComponents: EntityComponents;
+  private clonedComponents: Map<keyof AvalibleComponents, ComponentType>;
   id: EntityType["id"];
   constructor(ID: EntityType["id"]) {
     this.clonedComponents = new Map();
@@ -15,5 +13,12 @@ export default class EntityClone {
       component.constructor.name as keyof AvalibleComponents,
       component
     );
+  }
+  public removeComponent(component: keyof AvalibleComponents) {
+    this.clonedComponents.delete(component);
+  }
+
+  public getComponent<T = ComponentType>(component: keyof AvalibleComponents) {
+    return this.clonedComponents.get(component) as T;
   }
 }

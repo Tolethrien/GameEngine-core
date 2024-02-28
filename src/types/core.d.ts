@@ -29,7 +29,10 @@ declare global {
     entityID: string;
     entityTags: string[];
   }
-  type NaviNodeProps = NaviNode | undefined;
+  interface NaviNodeProps {
+    parent: NaviNode | undefined;
+    layer: number;
+  }
 
   interface MapSchema {
     MAP_INFO: {

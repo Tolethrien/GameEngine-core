@@ -1,4 +1,6 @@
+import InputManager from "../../core/modules/inputManager/inputManager";
 import SignalStore from "../../core/modules/signals/signalStore";
+import NaviCore from "../../core/navigpu/core";
 import NaviNode from "../../core/navigpu/node";
 import { UseItem } from "../systems/items";
 interface NaviContextProps {
@@ -9,10 +11,12 @@ export default class ContextBox extends NaviNode {
   index: number;
   constructor(node: NaviNodeProps, { position, index }: NaviContextProps) {
     super(node);
+    this.setRemoveOnDisable = true;
     this.registerUpdate(() => this.removeOnClickOutside());
     this.setSize = { height: 10, width: 4 };
     this.setPosition = position;
     this.index = index;
+    this.setPropagation = false;
     this.setStyle = {
       backgroundColor: [255, 255, 255],
       alpha: 255,
@@ -56,6 +60,7 @@ export default class ContextBox extends NaviNode {
     });
   }
   removeOnClickOutside() {
-    NaviNode.clickOutsideNode(this.getPosAndSize) && this.removeSelf();
+    InputManager.isKeyPressedAny() && this.removeSelf();
+    NaviCore.clickOutsideNode(this.getPosAndSize) && this.removeSelf();
   }
 }

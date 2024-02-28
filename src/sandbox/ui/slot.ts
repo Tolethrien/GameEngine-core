@@ -1,4 +1,5 @@
 import { MouseCallbacks } from "../../core/modules/inputManager/inputManager";
+import NaviCore from "../../core/navigpu/core";
 import NaviImg from "../../core/navigpu/elements/naviImg";
 import NaviText from "../../core/navigpu/elements/naviText";
 import NaviNode from "../../core/navigpu/node";
@@ -15,6 +16,7 @@ export default class ItemSlot extends NaviNode {
   img: NaviImg;
   detail: DetailBox | undefined;
   index: number;
+  isEmpty: boolean;
   constructor(
     node: NaviNodeProps,
     { callbacks, position, size, id, index }: NaviButtonProps
@@ -27,6 +29,7 @@ export default class ItemSlot extends NaviNode {
     this.setPosition = position;
     this.detail = undefined;
     this.index = index;
+    this.isEmpty = true;
     this.setStyle = {
       backgroundColor: [255, 255, 255],
       alpha: 255,
@@ -48,23 +51,34 @@ export default class ItemSlot extends NaviNode {
       color: [255, 222, 222],
       position: {
         x: position.x + 0.5,
-        y: position.y + size.height - 1.5,
+        y: position.y + size.height - 2.5,
       },
       size: { width: 1, height: 1 },
       text: "1",
     });
+    this.text.setPropagation = false;
     this.getMouseEvents.rightClick = () =>
-      this.addChild("ContextBox", {
-        position: { x: this.getPosition.x + 5, y: this.getPosition.y + 5 },
-        index: index,
-      });
+      this.addChild(
+        "ContextBox",
+        {
+          position: { x: this.getPosition.x + 5, y: this.getPosition.y + 5 },
+          index: index,
+        },
+        1
+      );
   }
   onHover() {
-    if (NaviNode.hoverOverNode(this.getPosAndSize)) {
+    if (!this.isEmpty && NaviCore.hoverOverNode(this.getPosAndSize)) {
       if (this.detail === undefined) {
         this.detail = this.addChild("DetailBox", {
           position: { x: this.getPosition.x - 12, y: this.getPosition.y },
+          backgroundColor: this.img.getStyle.backgroundColor,
+          backgroundTexture: this.img.getStyle.backgroundTexture!,
+          textureCrop: this.img.getStyle.textureCrop,
         });
+        NaviCore.getNodeByID("hpBar")!.setStyle = {
+          backgroundColor: this.img.getStyle.backgroundColor,
+        };
       }
     } else {
       if (this.detail !== undefined) {
@@ -80,8 +94,10 @@ export default class ItemSlot extends NaviNode {
       backgroundTexture: 0,
     };
     this.text.setContent = count;
+    this.isEmpty = false;
   }
   removeFromSlot() {
+    this.isEmpty = true;
     this.img.setStyle = { textureCrop: [0, 0, 0, 0] };
   }
 }
