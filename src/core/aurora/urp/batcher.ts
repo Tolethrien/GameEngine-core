@@ -16,6 +16,12 @@ import AuroraBuffer from "../auroraBuffer";
 import AuroraPipeline from "../auroraPipeline";
 import { WARNINGS } from "./warnings";
 import GUIPipeline from "./pipelines/guiPipeline";
+import { parseTTF } from "./parserTTF/parse";
+import { createGlyphLUT } from "./parserTTF/glyphLUT";
+import { createGlyphAtlas } from "./parserTTF/glyphAtlas";
+import Fonter from "./parserTTF/fonter";
+import HisPipeline from "./pipelines/hisPipeline";
+import His2Pipeline from "./pipelines/testPipeline";
 interface RenderData {
   numberOfQuads: {
     total: number;
@@ -115,6 +121,8 @@ export default class Batcher {
     LightsPipeline.createPipeline();
     CompositePipeline.createPipeline();
     GUIPipeline.createPipeline();
+    // HisPipeline.createPipeline();
+    His2Pipeline.createPipeline();
     if (this.testMode) LayeredTestPipeline.createPipeline();
     else PresentationPipeline.createPipeline();
   }
@@ -154,6 +162,9 @@ export default class Batcher {
     AuroraTexture.createSampler("linear", {
       magFilter: "linear",
       minFilter: "linear",
+      addressModeU: "clamp-to-edge",
+      addressModeV: "clamp-to-edge",
+      mipmapFilter: "linear",
     });
 
     await AuroraTexture.createTextureArray({
@@ -245,25 +256,20 @@ export default class Batcher {
       },
     });
   }
-  public static async loadFont(
-    bitmap: string,
-    json: { symbols: GlyphSchema[] }
-  ) {
-    await AuroraTexture.createTextureArray({
-      label: "fonts",
-      urls: [bitmap, bitmap],
+  public static async loadFont(font: string) {
+    const name = font.split("/").at(-1)!.split(".")[0];
+    const fontFile = await fetch(font).then((result) => result.arrayBuffer());
+    const ttf = parseTTF(fontFile);
+    const lookups = createGlyphLUT(ttf);
+    const fontAtlas = await createGlyphAtlas(lookups, fontFile, {
+      useSDF: true,
     });
-    json.symbols.forEach((symbol) => {
-      this.fontData[symbol.id] = {
-        width: symbol.width,
-        height: symbol.height,
-        x: symbol.x,
-        y: symbol.y,
-        xoffset: symbol.xoffset,
-        yoffset: symbol.yoffset,
-        xadvance: symbol.xadvance,
-      };
+    //TODO: dodawac do listy textur fontow a nie tworzyc jedna texture
+    AuroraTexture.createTextureFromBitMap({
+      label: name,
+      bitmap: fontAtlas,
     });
+    Fonter.addFont(name, lookups);
   }
 
   public static startBatch() {
@@ -291,6 +297,8 @@ export default class Batcher {
     LightsPipeline.startPipeline();
     CompositePipeline.startPipeline();
     GUIPipeline.startPipeline();
+    // HisPipeline.startPipeline();
+    His2Pipeline.startPipeline();
     if (this.testMode) LayeredTestPipeline.startPipeline();
     else PresentationPipeline.startPipeline();
 

@@ -1,132 +1,98 @@
-import { invariant } from "./invariant";
+import { validateValue } from "../../../utils/utils";
+import BinaryReader from "./binaryRead";
 import {
-  BinaryReader,
-  Fixed,
-  FWord,
+  ClassDefFormat1,
+  ClassDefFormat2,
+  CmapTable,
+  CoverageTableFormat1,
+  CoverageTableFormat2,
+  ExtensionLookupType2Format1,
+  ExtensionLookupType2Format2,
+  GPOSLookup,
+  GPOSTable,
+  GlyfTable,
+  HeadTable,
+  HheaTable,
+  HmtxTable,
   Int16,
+  LocaTable,
+  LookupType,
+  MaxpTable,
+  TTF,
+  Tables,
   Uint16,
   Uint32,
-} from "./binaryReader";
+  ValueRecord,
+} from "./parserTypes.d";
 
-export function parseTTF(data: ArrayBuffer): TTF {
-  let ttf: Partial<TTF> = {};
+export function parseTTF(data: ArrayBuffer) {
+  if (data.byteLength === 0) throw new Error("File is empty.");
+  const ttf: Partial<TTF> = {};
 
   const reader = new BinaryReader(data);
-  reader.getUint32(); // scalar type
-  const numTables = reader.getUint16();
-  reader.getUint16(); // searchRange
-  reader.getUint16(); // entrySelector
-  reader.getUint16(); // rangeShift
+  const tables: Tables = {};
 
-  if (data.byteLength === 0) {
-    throw new Error("File is empty.");
-  }
+  reader.setPosition(4);
+  const numofTables = reader.getUint16();
+  if (numofTables > 20) throw new Error("This is not a TTF file.");
 
-  if (numTables > 20) {
-    throw new Error("This is not a TTF file.");
-  }
-
-  const tables: Record<string, Table> = {};
-
-  for (let i = 0; i < numTables; i++) {
+  //createTablesMap
+  reader.setPosition(12);
+  for (let i = 0; i < numofTables; i++) {
     const tag = reader.getString(4);
     tables[tag] = {
       checksum: reader.getUint32(),
       offset: reader.getUint32(),
       length: reader.getUint32(),
     };
-
-    if (tag !== "head") {
-      const calculated = calculateChecksum(
-        reader.getDataSlice(
-          tables[tag].offset,
-          4 * Math.ceil(tables[tag].length / 4)
-        )
-      );
-      invariant(
-        calculated === tables[tag].checksum,
-        `Checksum for table ${tag} is invalid.`
-      );
-    }
   }
+  console.log("my", tables);
 
-  const shared =
-    "table is missing. Please use other font variant that contains it.";
-
-  invariant(tables["head"].offset, `head ${shared}`);
+  //build TTF
+  const position = reader.getPosition();
+  //header TTF
   ttf.head = readHeadTable(reader, tables["head"].offset);
-
-  invariant(tables["cmap"].offset, `cmap ${shared}`);
+  reader.setPosition(position);
+  //cmap: zawiera mapowania krztaltow odpowiednich liter, indeksowanych za pomoca unicodu
   ttf.cmap = readCmapTable(reader, tables["cmap"].offset);
-
-  invariant(tables["maxp"].offset, `maxp ${shared}`);
+  reader.setPosition(position);
+  //maxP: zawiera rozne maxymalne wartosci w foncie, uzywana do alokacji
   ttf.maxp = readMaxpTable(reader, tables["maxp"].offset);
-
-  invariant(tables["hhea"].offset, `hhea ${shared}`);
+  reader.setPosition(position);
+  //hhead: zawiera info o poziomie(y) glyphow
   ttf.hhea = readHheaTable(reader, tables["hhea"].offset);
-
-  invariant(tables["hmtx"].offset, `hmtx ${shared}`);
+  reader.setPosition(position);
+  //hmtx: zawiera info o pionie(x) glyphow
   ttf.hmtx = readHmtxTable(
     reader,
     tables["hmtx"].offset,
     ttf.maxp?.numGlyphs,
     ttf.hhea?.numberOfHMetrics
   );
-
-  invariant(tables["loca"].offset, `loca ${shared}`);
+  reader.setPosition(position);
+  //loca: indexowanie do tablicy glyphu, gdzie sa faktycznie przechowywane jego dane
   ttf.loca = readLocaTable(
     reader,
     tables["loca"].offset,
     ttf.maxp?.numGlyphs,
     ttf.head?.indexToLocFormat
   );
-
-  invariant(tables["glyf"].offset, `glyf ${shared}`);
+  reader.setPosition(position);
+  //glyph: faktyczne dane o glyphie, jego wszystkie punkty vectorowe i zakrzywienia
   ttf.glyf = readGlyfTable(
     reader,
     tables["glyf"].offset,
     ttf.loca,
     ttf.head?.indexToLocFormat
   );
-
-  if (tables["GPOS"]) {
-    ttf.GPOS = readGPOSTable(reader, tables["GPOS"].offset);
-  }
-
+  reader.setPosition(position);
+  //GPOS: zestaw info jak w dziwnych jezykach laczyc znaczki itp
+  if (tables["GPOS"]) ttf.GPOS = readGPOSTable(reader, tables["GPOS"].offset);
+  reader.setPosition(position);
   return ttf as TTF;
 }
-
-/**
- *  See: [Microsoft docs](https://learn.microsoft.com/en-us/typography/opentype/spec/otff#calculating-checksums).
- */
-function calculateChecksum(data: Uint8Array): number {
-  const nlongs = data.length / 4;
-  invariant(
-    nlongs === Math.floor(nlongs),
-    "Data length must be divisible by 4."
-  );
-
-  let sum = 0;
-  for (let i = 0; i < nlongs; i++) {
-    const int32 =
-      (data[i * 4] << 24) +
-      (data[i * 4 + 1] << 16) +
-      (data[i * 4 + 2] << 8) +
-      data[i * 4 + 3];
-    const unsigned = int32 >>> 0;
-    sum = ((sum + unsigned) & 0xffffffff) >>> 0;
-  }
-
-  return sum;
-}
-
-/**
- *  See: [Microsoft docs](https://learn.microsoft.com/en-us/typography/opentype/spec/head).
- */
 function readHeadTable(reader: BinaryReader, offset: number): HeadTable {
-  const position = reader.getPosition();
   reader.setPosition(offset);
-
   const head: HeadTable = {
     majorVersion: reader.getUint16(),
     minorVersion: reader.getUint16(),
@@ -147,23 +113,11 @@ function readHeadTable(reader: BinaryReader, offset: number): HeadTable {
     indexToLocFormat: reader.getInt16(),
     glyphDataFormat: reader.getInt16(),
   };
-
-  invariant(head.magicNumber === 0x5f0f3cf5, "Invalid magic number.");
-
-  reader.setPosition(position);
   return head;
 }
-
-/**
- *  See: [Microsoft docs](https://docs.microsoft.com/en-us/typography/opentype/spec/cmap).
- */
 function readCmapTable(reader: BinaryReader, offset: number): CmapTable {
-  const position = reader.getPosition();
   reader.setPosition(offset);
-
   const version = reader.getUint16();
-  invariant(version === 0, "Invalid cmap table version.");
-
   const numTables = reader.getUint16();
   const encodingRecords: {
     platformID: Uint16;
@@ -171,38 +125,28 @@ function readCmapTable(reader: BinaryReader, offset: number): CmapTable {
     offset: Uint32;
   }[] = [];
 
-  let selectedOffset: number | null = null;
+  //   let selectedOffset: number | null = null;
   for (let i = 0; i < numTables; i++) {
     const platformID = reader.getUint16();
     const encodingID = reader.getUint16();
     const offset = reader.getUint32();
     encodingRecords.push({ platformID, encodingID, offset });
+    // const isWindowsPlatform =
+    //   platformID === 3 &&
+    //   (encodingID === 0 || encodingID === 1 || encodingID === 10);
+    // const isUnicodePlatform =
+    //   platformID === 0 &&
+    //   (encodingID === 0 ||
+    //     encodingID === 1 ||
+    //     encodingID === 2 ||
+    //     encodingID === 3 ||
+    //     encodingID === 4);
 
-    const isWindowsPlatform =
-      platformID === 3 &&
-      (encodingID === 0 || encodingID === 1 || encodingID === 10);
-
-    const isUnicodePlatform =
-      platformID === 0 &&
-      (encodingID === 0 ||
-        encodingID === 1 ||
-        encodingID === 2 ||
-        encodingID === 3 ||
-        encodingID === 4);
-
-    if (isWindowsPlatform || isUnicodePlatform) {
-      selectedOffset = offset;
-    }
+    // if (isWindowsPlatform || isUnicodePlatform) {
+    //   //   selectedOffset = offset;
+    // }
   }
-
-  invariant(selectedOffset !== null, "No supported cmap table found.");
   const format = reader.getUint16();
-
-  invariant(
-    format === 4,
-    `Unsupported cmap table format. Expected 4, found ${format}.`
-  );
-
   const length = reader.getUint16();
   const language = reader.getUint16();
   const segCountX2 = reader.getUint16();
@@ -215,9 +159,7 @@ function readCmapTable(reader: BinaryReader, offset: number): CmapTable {
   for (let i = 0; i < segCount; i++) {
     endCodes.push(reader.getUint16());
   }
-
   reader.getUint16(); // reservedPad
-
   const startCodes: number[] = [];
   for (let i = 0; i < segCount; i++) {
     startCodes.push(reader.getUint16());
@@ -229,14 +171,12 @@ function readCmapTable(reader: BinaryReader, offset: number): CmapTable {
   }
 
   const idRangeOffsetsStart = reader.getPosition();
-
   const idRangeOffsets: number[] = [];
   for (let i = 0; i < segCount; i++) {
     idRangeOffsets.push(reader.getUint16());
   }
 
   const glyphIndexMap = new Map<number, number>();
-
   for (let i = 0; i < segCount - 1; i++) {
     let glyphIndex = 0;
     const endCode = endCodes[i];
@@ -267,7 +207,6 @@ function readCmapTable(reader: BinaryReader, offset: number): CmapTable {
       glyphIndexMap.set(c, glyphIndex);
     }
   }
-
   const cmap: CmapTable = {
     version,
     numTables,
@@ -286,110 +225,54 @@ function readCmapTable(reader: BinaryReader, offset: number): CmapTable {
     idRangeOffsets,
     glyphIndexMap,
   };
-
-  reader.setPosition(position);
   return cmap;
 }
-
-/**
- *  See: [Microsoft docs](https://docs.microsoft.com/en-us/typography/opentype/spec/maxp).
- */
 function readMaxpTable(reader: BinaryReader, offset: number): MaxpTable {
-  const position = reader.getPosition();
   reader.setPosition(offset);
-
   const version = reader.getUint32();
   const versionString =
-    version === 0x00005000 ? "0.5" : version === 0x00010000 ? "1.0" : null;
-
-  invariant(
-    versionString,
-    `Unsupported maxp table version (expected 0x00005000 or 0x00010000 but found ${version.toString(
-      16
-    )}).`
-  );
+    version === 0x00005000 ? "0.5" : version === 0x00010000 ? "1.0" : undefined;
   const numGlyphs = reader.getUint16();
-
+  if (!versionString) throw Error("no version string in MaxpTable");
   const maxp: MaxpTable = {
     version: versionString,
     numGlyphs,
   };
-
-  reader.setPosition(position);
   return maxp;
 }
-
-/**
- *  See: [Microsoft docs](https://docs.microsoft.com/en-us/typography/opentype/spec/hhea).
- */
 function readHheaTable(reader: BinaryReader, offset: number): HheaTable {
-  const position = reader.getPosition();
   reader.setPosition(offset);
 
-  const majorVersion = reader.getUint16();
-  const minorVersion = reader.getUint16();
-  const ascender = reader.getInt16();
-  const descender = reader.getInt16();
-  const lineGap = reader.getInt16();
-  const advanceWidthMax = reader.getUint16();
-  const minLeftSideBearing = reader.getInt16();
-  const minRightSideBearing = reader.getInt16();
-  const xMaxExtent = reader.getInt16();
-  const caretSlopeRise = reader.getInt16();
-  const caretSlopeRun = reader.getInt16();
-  const caretOffset = reader.getInt16();
-  const reserved1 = reader.getInt16();
-  const reserved2 = reader.getInt16();
-  const reserved3 = reader.getInt16();
-  const reserved4 = reader.getInt16();
-  const metricDataFormat = reader.getInt16();
-  const numberOfHMetrics = reader.getUint16();
-
   const hhea: HheaTable = {
-    majorVersion,
-    minorVersion,
-    ascender,
-    descender,
-    lineGap,
-    advanceWidthMax,
-    minLeftSideBearing,
-    minRightSideBearing,
-    xMaxExtent,
-    caretSlopeRise,
-    caretSlopeRun,
-    caretOffset,
-    reserved1,
-    reserved2,
-    reserved3,
-    reserved4,
-    metricDataFormat,
-    numberOfHMetrics,
+    majorVersion: reader.getUint16(),
+    minorVersion: reader.getUint16(),
+    ascender: reader.getInt16(),
+    descender: reader.getInt16(),
+    lineGap: reader.getInt16(),
+    advanceWidthMax: reader.getUint16(),
+    minLeftSideBearing: reader.getInt16(),
+    minRightSideBearing: reader.getInt16(),
+    xMaxExtent: reader.getInt16(),
+    caretSlopeRise: reader.getInt16(),
+    caretSlopeRun: reader.getInt16(),
+    caretOffset: reader.getInt16(),
+    reserved1: reader.getInt16(),
+    reserved2: reader.getInt16(),
+    reserved3: reader.getInt16(),
+    reserved4: reader.getInt16(),
+    metricDataFormat: reader.getInt16(),
+    numberOfHMetrics: reader.getUint16(),
   };
 
-  reader.setPosition(position);
   return hhea;
 }
-
-/**
- * Records are indexed by glyph ID. As an optimization, the number of records
- * can be less than the number of glyphs, in which case the advance width value
- * of the last record applies to all remaining glyph IDs.
- *
- * If `numberOfHMetrics` is less than the total number of glyphs, then the
- * `hMetrics` array is followed by an array for the left side bearing values of
- * the remaining glyphs.
- *
- *  See: [Microsoft docs](https://learn.microsoft.com/en-us/typography/opentype/spec/hmtx).
- */
 function readHmtxTable(
   reader: BinaryReader,
   offset: number,
   numGlyphs: number,
   numOfLongHorMetrics: number
 ): HmtxTable {
-  const position = reader.getPosition();
   reader.setPosition(offset);
-
   const hMetrics: {
     advanceWidth: Uint16;
     leftSideBearing: Int16;
@@ -400,42 +283,22 @@ function readHmtxTable(
       leftSideBearing: reader.getInt16(),
     });
   }
-
   const leftSideBearings: number[] = [];
   for (let i = 0; i < numGlyphs - numOfLongHorMetrics; i++) {
     leftSideBearings.push(reader.getInt16());
   }
-
   const hmtx: HmtxTable = {
     hMetrics,
     leftSideBearings,
   };
-
-  invariant(
-    hMetrics.length + leftSideBearings.length === numGlyphs,
-    `The number of hMetrics (${hMetrics.length}) plus the number of left side bearings (${leftSideBearings.length}) must equal the number of glyphs (${numGlyphs}).`
-  );
-
-  reader.setPosition(position);
   return hmtx;
 }
-
-/**
- * Size of `offsets` is `numGlyphs + 1`.
- *
- * By definition, index zero points to the “missing character”, which is the
- * character that appears if a character is not found in the font. The missing
- * character is commonly represented by a blank box or a space.
- *
- *  See: [Microsoft docs](https://docs.microsoft.com/en-us/typography/opentype/spec/loca).
- */
 function readLocaTable(
   reader: BinaryReader,
   offset: number,
   numGlyphs: number,
   indexToLocFormat: number
 ): LocaTable {
-  const position = reader.getPosition();
   reader.setPosition(offset);
 
   const loca: number[] = [];
@@ -443,19 +306,14 @@ function readLocaTable(
     loca.push(indexToLocFormat === 0 ? reader.getUint16() : reader.getUint32());
   }
 
-  reader.setPosition(position);
   return { offsets: loca };
 }
-/**
- * See: [Microsoft docs](https://docs.microsoft.com/en-us/typography/opentype/spec/glyf).
- */
 function readGlyfTable(
   reader: BinaryReader,
   offset: number,
   loca: LocaTable,
   indexToLocFormat: number
 ): GlyfTable {
-  const position = reader.getPosition();
   reader.setPosition(offset);
 
   const glyfs = [];
@@ -474,27 +332,16 @@ function readGlyfTable(
     });
   }
 
-  reader.setPosition(position);
   return glyfs;
 }
-
 function readGPOSTable(reader: BinaryReader, offset: number): GPOSTable {
-  const position = reader.getPosition();
-  reader.setPosition(offset);
-
-  const major = reader.getUint16();
-  const minor = reader.getUint16();
-
-  invariant(major === 1 && minor === 0, "Only GPOS version 1.0 is supported.");
-
-  const scriptListOffset = reader.getUint16();
+  reader.setPosition(offset + 6);
   const featureListOffset = reader.getUint16();
   const lookupListOffset = reader.getUint16();
 
   reader.setPosition(offset + featureListOffset);
 
   const featureCount = reader.getUint16();
-
   const featureInfo = [];
   const features = [];
   for (let i = 0; i < featureCount; i++) {
@@ -528,18 +375,6 @@ function readGPOSTable(reader: BinaryReader, offset: number): GPOSTable {
 
   reader.setPosition(offset + lookupListOffset);
   const lookupCount = reader.getUint16();
-
-  enum LookupType {
-    SingleAdjustment = 1,
-    PairAdjustment = 2,
-    CursiveAttachment = 3,
-    MarkToBaseAttachment = 4,
-    MarkToLigatureAttachment = 5,
-    MarkToMarkAttachment = 6,
-    ContextPositioning = 7,
-    ChainedContextPositioning = 8,
-    ExtensionPositioning = 9,
-  }
 
   const lookupTables: Array<number> = [];
   for (let i = 0; i < lookupCount; i++) {
@@ -593,7 +428,7 @@ function readGPOSTable(reader: BinaryReader, offset: number): GPOSTable {
           () => {
             if (extensionLookupType === LookupType.PairAdjustment) {
               const posFormat = reader.getUint16();
-              invariant(
+              validateValue(
                 posFormat === 1 || posFormat === 2,
                 "Invalid posFormat."
               );
@@ -688,7 +523,7 @@ function readGPOSTable(reader: BinaryReader, offset: number): GPOSTable {
                   }
                 );
 
-                let classDef1 = reader.runAt(
+                const classDef1 = reader.runAt(
                   offset +
                     lookupListOffset +
                     lookupTables[i] +
@@ -700,7 +535,7 @@ function readGPOSTable(reader: BinaryReader, offset: number): GPOSTable {
                   }
                 );
 
-                let classDef2 = reader.runAt(
+                const classDef2 = reader.runAt(
                   offset +
                     lookupListOffset +
                     lookupTables[i] +
@@ -720,7 +555,7 @@ function readGPOSTable(reader: BinaryReader, offset: number): GPOSTable {
                 > = [];
 
                 for (let k = 0; k < class1Count; k++) {
-                  let class1Record: (typeof classRecords)[number] = [];
+                  const class1Record: (typeof classRecords)[number] = [];
                   for (let l = 0; l < class2Count; l++) {
                     const class2Record: (typeof class1Record)[number] = {};
                     const value1 = getValueRecord(reader, valueFormat1);
@@ -769,221 +604,16 @@ function readGPOSTable(reader: BinaryReader, offset: number): GPOSTable {
     lookups.push(lookup);
   }
 
-  reader.setPosition(position);
-
   return {
     features,
     lookups,
   };
 }
-
-export type TTF = {
-  head: HeadTable;
-  hhea: HheaTable;
-  hmtx: HmtxTable;
-  maxp: MaxpTable;
-  cmap: CmapTable;
-  loca: LocaTable;
-  glyf: GlyfTable;
-  GPOS?: GPOSTable;
-};
-
-export type Table = {
-  checksum: number;
-  offset: number;
-  length: number;
-};
-
-export type HeadTable = {
-  majorVersion: Uint16;
-  minorVersion: Uint16;
-  fontRevision: Fixed;
-  checksumAdjustment: Uint32;
-  magicNumber: Uint32;
-  flags: Uint16;
-  unitsPerEm: Uint16;
-  created: Date;
-  modified: Date;
-  yMin: FWord;
-  xMin: FWord;
-  xMax: FWord;
-  yMax: FWord;
-  macStyle: Uint16;
-  lowestRecPPEM: Uint16;
-  fontDirectionHint: Int16;
-  indexToLocFormat: Int16;
-  glyphDataFormat: Int16;
-};
-
-export type CmapTable = {
-  version: Uint16;
-  numTables: Uint16;
-  encodingRecords: {
-    platformID: Uint16;
-    encodingID: Uint16;
-    offset: Uint32;
-  }[];
-  format: Uint16;
-  length: Uint16;
-  language: Uint16;
-  segCountX2: Uint16;
-  segCount: Uint16;
-  searchRange: Uint16;
-  entrySelector: Uint16;
-  rangeShift: Uint16;
-  endCodes: Uint16[];
-  startCodes: Uint16[];
-  idDeltas: Int16[];
-  idRangeOffsets: Uint16[];
-  glyphIndexMap: Map<number, number>;
-};
-
-export type MaxpTable = {
-  version: "0.5" | "1.0";
-  numGlyphs: Uint16;
-};
-
-export type HheaTable = {
-  majorVersion: Uint16;
-  minorVersion: Uint16;
-  ascender: FWord;
-  descender: FWord;
-  lineGap: FWord;
-  advanceWidthMax: Uint16;
-  minLeftSideBearing: FWord;
-  minRightSideBearing: FWord;
-  xMaxExtent: FWord;
-  caretSlopeRise: Int16;
-  caretSlopeRun: Int16;
-  caretOffset: FWord;
-  reserved1: Int16;
-  reserved2: Int16;
-  reserved3: Int16;
-  reserved4: Int16;
-  metricDataFormat: Int16;
-  numberOfHMetrics: Uint16;
-};
-
-export type HmtxTable = {
-  hMetrics: {
-    advanceWidth: Uint16;
-    leftSideBearing: Int16;
-  }[];
-  leftSideBearings: FWord[];
-};
-
-export type LocaTable = {
-  offsets: number[];
-};
-
-export type GlyfTable = {
-  numberOfContours: Int16;
-  xMin: FWord;
-  yMin: FWord;
-  xMax: FWord;
-  yMax: FWord;
-}[];
-
-export type GPOSTable = {
-  features: Array<{
-    tag: string;
-    paramsOffset: number;
-    lookupListIndices: number[];
-  }>;
-  lookups: Array<GPOSLookup>;
-};
-
-export type GPOSLookup = {
-  lookupType: number;
-  lookupFlag: number;
-  subtables: Array<{
-    posFormat: number;
-    extensionLookupType: number;
-    extension: ExtensionLookupType2Format1 | ExtensionLookupType2Format2;
-  }>;
-  markFilteringSet?: number;
-};
-
-export type ValueRecord = {
-  xPlacement?: number;
-  yPlacement?: number;
-  xAdvance?: number;
-  yAdvance?: number;
-  xPlaDevice?: number;
-  yPlaDevice?: number;
-  xAdvDevice?: number;
-  yAdvDevice?: number;
-};
-
-export type ExtensionLookupType2Format1 = {
-  posFormat: 1;
-  coverage: CoverageTableFormat1 | CoverageTableFormat2;
-  valueFormat1: number;
-  valueFormat2: number;
-  pairSets: Array<
-    Array<{
-      secondGlyph: number;
-      value1?: ValueRecord;
-      value2?: ValueRecord;
-    }>
-  >;
-};
-
-export type ClassDefFormat1 = {
-  format: 1;
-  startGlyph: number;
-  classes: number[];
-};
-
-export type ClassDefFormat2 = {
-  format: 2;
-  ranges: Array<{
-    startGlyphID: number;
-    endGlyphID: number;
-    class: number;
-  }>;
-};
-
-export type ExtensionLookupType2Format2 = {
-  posFormat: 2;
-  coverage: CoverageTableFormat1 | CoverageTableFormat2;
-  valueFormat1: number;
-  valueFormat2: number;
-  classDef1: ClassDefFormat1 | ClassDefFormat2;
-  classDef2: ClassDefFormat1 | ClassDefFormat2;
-  classRecords: Array<
-    Array<{
-      value1?: ValueRecord;
-      value2?: ValueRecord;
-    }>
-  >;
-};
-
-/**
- * https://learn.microsoft.com/en-us/typography/opentype/spec/chapter2#coverage-table
- */
-export type CoverageTableFormat1 = {
-  coverageFormat: 1;
-  glyphArray: number[];
-};
-
-export type CoverageTableFormat2 = {
-  coverageFormat: 2;
-  rangeRecords: Array<{
-    startGlyphID: number;
-    endGlyphID: number;
-    startCoverageIndex: number;
-  }>;
-};
-
-/**
- * https://learn.microsoft.com/en-us/typography/opentype/spec/gpos#value-record
- */
 function getValueRecord(
   reader: BinaryReader,
   valueRecord: number
 ): ValueRecord | undefined {
-  let result: ValueRecord = {};
+  const result: ValueRecord = {};
 
   if (valueRecord & 0x0001) {
     result.xPlacement = reader.getInt16();
@@ -1023,7 +653,6 @@ function getValueRecord(
 
   return result;
 }
-
 function parseCoverage(
   reader: BinaryReader,
   coverageFormat: number

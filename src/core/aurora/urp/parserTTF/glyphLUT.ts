@@ -1,28 +1,17 @@
-import { invariant } from "./invariant";
-import { Vec2 } from "./math/Vec2";
-import { Vec4 } from "./math/Vec4";
-import { packShelves } from "./math/packShelves";
-import { Glyph, calculateGlyphQuads } from "./calculateGlyphQuads";
-import { ClassDefFormat1, ClassDefFormat2, TTF, ValueRecord } from "./parseTTF";
-import { ATLAS_FONT_SIZE, ATLAS_GAP } from "./renderFontAtlas";
+import { ATLAS_FONT_SIZE, ATLAS_GAP } from "./glyphAtlas";
+import {
+  ClassDefFormat1,
+  ClassDefFormat2,
+  Glyph,
+  Lookups,
+  TTF,
+  ValueRecord,
+} from "./parserTypes";
+import Vec2D from "../../../math/vec2D";
+import Vec4D from "../../../math/vec4D";
+import { validateValue } from "../../../utils/utils";
 
-export type Lookups = {
-  unitsPerEm: number;
-  capHeight: number;
-  ascender: number;
-  glyphs: Map<number, Glyph>;
-  uvs: Map<number, Vec4>;
-  atlas: {
-    width: number;
-    height: number;
-    positions: Vec2[];
-    sizes: Vec2[];
-  };
-  kern: (firstCharacter: number, secondCharacter: number) => number;
-  ttf: TTF;
-};
-
-export function prepareLookups(
+export function createGlyphLUT(
   ttf: TTF,
   options?: {
     alphabet?: string;
@@ -32,18 +21,15 @@ export function prepareLookups(
   const glyphs = calculateGlyphQuads(ttf, options?.alphabet);
 
   const transform = (x: number): number => Math.ceil(x * scale);
+
   const sizes = glyphs.map(
     (g) =>
-      new Vec2(
+      new Vec2D([
         transform(g.width) + ATLAS_GAP * 2,
-        transform(g.height) + ATLAS_GAP * 2
-      )
+        transform(g.height) + ATLAS_GAP * 2,
+      ])
   );
   const packing = packShelves(sizes);
-  invariant(
-    packing.positions.length === glyphs.length,
-    `Packing produced different number of positions than expected.`
-  );
 
   const atlas = {
     width: packing.width,
@@ -52,19 +38,18 @@ export function prepareLookups(
     sizes,
   };
 
-  const uvs: Vec4[] = [];
+  const uvs: Vec4D[] = [];
 
   for (let i = 0; i < glyphs.length; i++) {
     const position = atlas.positions[i];
     const size = atlas.sizes[i];
-
     uvs.push(
-      new Vec4(
+      new Vec4D([
         position.x / atlas.width,
         position.y / atlas.height,
         size.x / atlas.width,
-        size.y / atlas.height
-      )
+        size.y / atlas.height,
+      ])
     );
   }
 
@@ -73,7 +58,7 @@ export function prepareLookups(
     glyphMap.set(glyph.id, glyph);
   }
 
-  const uvMap = new Map<number, Vec4>();
+  const uvMap = new Map<number, Vec4D>();
   for (let i = 0; i < glyphs.length; i++) {
     uvMap.set(glyphs[i].id, uvs[i]);
   }
@@ -167,8 +152,8 @@ export function prepareLookups(
 
       const firstGlyphID = ttf.cmap.glyphIndexMap.get(firstCharacter);
       const secondGlyphID = ttf.cmap.glyphIndexMap.get(secondCharacter);
-      invariant(firstGlyphID, `Glyph not found for: "${firstCharacter}"`);
-      invariant(secondGlyphID, `Glyph not found for: "${secondCharacter}"`);
+      validateValue(firstGlyphID, `Glyph not found for: "${firstCharacter}"`);
+      validateValue(secondGlyphID, `Glyph not found for: "${secondCharacter}"`);
 
       const firstMap = kerningPairs.get(firstGlyphID);
       if (firstMap) {
@@ -217,4 +202,160 @@ function generateGlyphToClassMap(
   }
 
   return glyphToClass;
+}
+
+/**
+ * Internal.
+ */
+function calculateGlyphQuads(ttf: TTF, alphabet?: string): Glyph[] {
+  const charCodes = alphabet
+    ? alphabet.split("").map((c) => c.charCodeAt(0))
+    : [...ttf.cmap.glyphIndexMap.keys()];
+
+  return charCodes.map((code) => {
+    validateValue(ttf, "TTF is missing.");
+
+    const index = ttf.cmap.glyphIndexMap.get(code);
+
+    validateValue(
+      index,
+      `Couldn't find index for character '${String.fromCharCode(
+        code
+      )}' in glyphIndexMap.`
+    );
+    validateValue(
+      index < ttf.glyf.length,
+      "Index is out of bounds for glyf table."
+    );
+
+    const lastMetric = ttf.hmtx.hMetrics.at(-1);
+    validateValue(
+      lastMetric,
+      "The last advance is missing, which means that hmtx table is probably empty."
+    );
+
+    const hmtx =
+      index < ttf.hhea.numberOfHMetrics
+        ? ttf.hmtx.hMetrics[index]
+        : {
+            leftSideBearing:
+              ttf.hmtx.leftSideBearings[index - ttf.hhea.numberOfHMetrics],
+            advanceWidth: lastMetric.advanceWidth,
+          };
+    const glyf = ttf.glyf[index];
+
+    const glyph: Glyph = {
+      id: code,
+      character: String.fromCharCode(code),
+      x: glyf.xMin,
+      y: glyf.yMin,
+      width: glyf.xMax - glyf.xMin,
+      height: glyf.yMax - glyf.yMin,
+      lsb: hmtx.leftSideBearing,
+      rsb: hmtx.advanceWidth - hmtx.leftSideBearing - (glyf.xMax - glyf.xMin),
+    };
+
+    return glyph;
+  });
+}
+export type Packing = {
+  width: number;
+  height: number;
+  positions: Vec2D[];
+};
+
+/**
+ * Takes sizes of rectangles and packs them into a single texture. Width and
+ * height will be the next power of two.
+ */
+export function packShelves(sizes: Vec2D[]): Packing {
+  let area = 0;
+  let maxWidth = 0;
+
+  const rectangles = sizes.map((rectangle, i) => ({
+    id: i,
+    x: 0,
+    y: 0,
+    width: rectangle.x,
+    height: rectangle.y,
+  }));
+
+  for (const box of rectangles) {
+    area += box.width * box.height;
+    maxWidth = Math.max(maxWidth, box.width);
+  }
+
+  rectangles.sort((a, b) => b.height - a.height);
+
+  // Aim for a squarish resulting container. Slightly adjusted for sub-100%
+  // space utilization.
+  const startWidth = Math.max(Math.ceil(Math.sqrt(area / 0.95)), maxWidth);
+
+  const regions = [{ x: 0, y: 0, width: startWidth, height: Infinity }];
+
+  let width = 0;
+  let height = 0;
+
+  for (const box of rectangles) {
+    for (let i = regions.length - 1; i >= 0; i--) {
+      const region = regions[i];
+      if (box.width > region.width || box.height > region.height) {
+        continue;
+      }
+
+      box.x = region.x;
+      box.y = region.y;
+      height = Math.max(height, box.y + box.height);
+      width = Math.max(width, box.x + box.width);
+
+      if (box.width === region.width && box.height === region.height) {
+        const last = regions.pop();
+        validateValue(last, "Regions array should not be empty.");
+
+        if (i < regions.length) {
+          regions[i] = last;
+        }
+      } else if (box.height === region.height) {
+        region.x += box.width;
+        region.width -= box.width;
+      } else if (box.width === region.width) {
+        region.y += box.height;
+        region.height -= box.height;
+      } else {
+        regions.push({
+          x: region.x + box.width,
+          y: region.y,
+          width: region.width - box.width,
+          height: box.height,
+        });
+
+        region.y += box.height;
+        region.height -= box.height;
+      }
+      break;
+    }
+  }
+
+  const size = Math.max(ceilPow2(width), ceilPow2(height));
+  rectangles.sort((a, b) => a.id - b.id);
+
+  return {
+    width: size,
+    height: size,
+    positions: rectangles.map(
+      (rectangle) => new Vec2D([rectangle.x, rectangle.y])
+    ),
+  };
+}
+
+function ceilPow2(x: number): number {
+  let value = x;
+  value -= 1;
+  value |= value >> 1;
+  value |= value >> 2;
+  value |= value >> 4;
+  value |= value >> 8;
+  value |= value >> 16;
+  value += 1;
+  return value;
 }

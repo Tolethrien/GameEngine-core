@@ -1,23 +1,16 @@
-import { invariant } from "./invariant";
-import { Vec2 } from "./math/Vec2";
-import { Lookups } from "./prepareLookups";
-import { ATLAS_FONT_SIZE, ATLAS_GAP } from "./renderFontAtlas";
-
-export type Shape = {
-  boundingRectangle: { width: number; height: number };
-  positions: Vec2[];
-  sizes: Vec2[];
-};
+import Vec2D from "../../../math/vec2D";
+import { validateValue } from "../../../utils/utils";
+import { ATLAS_FONT_SIZE, ATLAS_GAP } from "./glyphAtlas";
+import { Lookups, Shape } from "./parserTypes";
 
 export const ENABLE_KERNING = true;
-
 export function getTextShape(
   lookups: Lookups,
   text: string,
   fontSize: number
 ): Shape {
-  const positions: Vec2[] = [];
-  const sizes: Vec2[] = [];
+  const positions: Vec2D[] = [];
+  const sizes: Vec2D[] = [];
 
   let positionX = 0;
   const scale = (1 / lookups.unitsPerEm) * fontSize;
@@ -26,7 +19,7 @@ export function getTextShape(
   for (let i = 0; i < text.length; i++) {
     const character = text[i].charCodeAt(0);
     const glyph = lookups.glyphs.get(character);
-    invariant(glyph, `Glyph not found for character ${text[i]}`);
+    validateValue(glyph, `Glyph not found for character ${text[i]}`);
 
     const { y, width, height, lsb, rsb } = glyph;
 
@@ -36,15 +29,15 @@ export function getTextShape(
     }
 
     positions.push(
-      new Vec2(
+      new Vec2D([
         positionX + (lsb + kerning) * scale - padding,
-        (lookups.capHeight - y - height) * scale - padding
-      )
+        (lookups.capHeight - y - height) * scale - padding,
+      ])
     );
 
     // 2 * padding is to account for padding from both sides of the glyph.
     sizes.push(
-      new Vec2(width * scale + padding * 2, height * scale + padding * 2)
+      new Vec2D([width * scale + padding * 2, height * scale + padding * 2])
     );
     positionX += (lsb + kerning + width + rsb) * scale;
   }

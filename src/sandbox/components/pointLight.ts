@@ -1,6 +1,7 @@
 import Component from "../../core/dogma/component";
 import { clamp } from "../../core/math/math";
-
+//IDEA: swiatlo mogloby miec wysokosc od ziemi i wtedy jesli jest jej blisko zostawia cien(łune)
+// na ziemi w kolorze swiatla
 export interface PointLightProps {
   type: "radial";
   intencity: number;

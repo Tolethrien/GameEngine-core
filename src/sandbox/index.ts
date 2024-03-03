@@ -5,13 +5,13 @@ import Player from "./entities/player";
 import mapData from "./mapLUT.json";
 import AuroraTexture from "../core/aurora/auroraTexture";
 import AuroraBatcher from "../core/aurora/urp/batcher";
-import fontLato from "../assets/lato_regular_32.png";
-import latoData from "../core/aurora/fonts/lato_regular_32.json";
 import DogmaCore from "../core/dogma/core";
 import EntityManager from "../core/dogma/entityManager";
 import Flask from "./entities/flask";
 import { randomColor } from "../core/utils/utils";
 import uiEl from "../assets/uiElements.png";
+import roboto from "./fonts/roboto.ttf";
+
 /**
  * 4) rozkminic dobry system inputu
  * 5) UI!
@@ -22,7 +22,7 @@ async function preload() {
     urls: [tilemap, char, uiEl],
   });
 
-  await AuroraBatcher.loadFont(fontLato, latoData);
+  await AuroraBatcher.loadFont(roboto);
   await AuroraBatcher.createBatcher({
     backgroundColor: [255, 250, 0, 255],
     maxQuadPerSceen: 15000,

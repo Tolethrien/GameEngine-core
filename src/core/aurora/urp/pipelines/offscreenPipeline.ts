@@ -141,7 +141,7 @@ export default class OffscreenPipeline {
           },
           {
             binding: 1,
-            resource: AuroraTexture.getTexture("fonts").texture.createView(),
+            resource: AuroraTexture.getTexture("roboto").texture.createView(),
           },
         ],
       },

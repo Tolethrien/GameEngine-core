@@ -13,3 +13,8 @@ export const randomColor = (): RGB => [
   Math.floor(Math.random() * 256),
   Math.floor(Math.random() * 256),
 ];
+export function validateValue(value: unknown, message?: string): asserts value {
+  if (!value) {
+    throw new Error(message);
+  }
+}

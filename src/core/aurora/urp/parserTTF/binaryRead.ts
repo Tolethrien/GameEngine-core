@@ -1,12 +1,6 @@
-export type Uint8 = number;
-export type Uint16 = number;
-export type Uint32 = number;
-export type Int16 = number;
-export type Int32 = number;
-export type FWord = Int16;
-export type Fixed = number;
+import { FWord, Fixed, Int16, Int32, Uint16, Uint32 } from "./parserTypes";
 
-export class BinaryReader {
+export default class BinaryReader {
   private readonly data: Uint8Array;
   private position = 0;
 

@@ -10,6 +10,8 @@ import System from "../../core/dogma/system";
 import Draw from "../../core/aurora/urp/draw";
 import NaviBody from "../../core/navigpu/elements/body";
 import NaviCore from "../../core/navigpu/core";
+import Vec2D from "../../core/math/vec2D";
+import Vec4D from "../../core/math/vec4D";
 export default class Renderer extends System {
   transforms!: GetComponentsList<TransformType>;
   spriteRenderers!: GetComponentsList<SpriteRendererType>;
@@ -39,15 +41,12 @@ export default class Renderer extends System {
     // AuroraBatcher.setScreenShader("noice", 0.7);
     AuroraBatcher.startBatch();
     NaviCore.renderGUI();
-    // Draw.GUI({
-    //   alpha: 255,
-    //   isTexture: 1,
-    //   position: { x: 0, y: 0 },
-    //   size: { height: 50, width: 50 },
-    //   textureToUse: 0,
-    //   tint: new Uint8ClampedArray([255, 0, 0]),
-    //   crop: new Float32Array([0, 0, 1, 1]),
-    // });
+    Draw.text(
+      "Reniferek :3",
+      new Vec2D([50, 50]),
+      120,
+      new Vec4D([0, 0, 0, 1])
+    );
 
     this.groundRenderers?.forEach((ground) => {
       //TODO: potencjalny performance boost, nie musisz co frame aktualizowac listy ziemi bo buffer zmienia sie tylko

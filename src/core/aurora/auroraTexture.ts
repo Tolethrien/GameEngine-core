@@ -3,7 +3,7 @@ export type GPULoadedTexture = { texture: GPUTexture; sampler: GPUSampler };
 interface GPUAuroraTexture {
   texture: GPUTexture;
   meta: {
-    src: string | string[];
+    src: string | string[] | "bitmap";
     customeSampler?: string;
     width: number;
     height: number;
@@ -130,7 +130,55 @@ export default class AuroraTexture {
     this.useStore && this.textureStore.set(label, finalTexture);
     return finalTexture;
   }
+  public static createTextureFromBitMap({
+    format,
+    label,
+    samplerLabel,
+    bitmap,
+  }: GeneralTextureProps & { bitmap: ImageBitmap }) {
+    //TODO: POPPRAW TO!
+    const texture = Aurora.device.createTexture({
+      label: label,
+      size: {
+        width: bitmap.width,
+        height: bitmap.height,
+        depthOrArrayLayers: 2,
+      },
+      format: format ?? "rgba8unorm",
 
+      usage:
+        GPUTextureUsage.TEXTURE_BINDING |
+        GPUTextureUsage.COPY_DST |
+        GPUTextureUsage.RENDER_ATTACHMENT,
+    });
+
+    Aurora.device.queue.copyExternalImageToTexture(
+      { source: bitmap },
+      { texture, origin: { z: 0 } },
+      { width: bitmap.width, height: bitmap.height }
+    );
+    Aurora.device.queue.copyExternalImageToTexture(
+      { source: bitmap },
+      { texture, origin: { z: 1 } },
+      { width: bitmap.width, height: bitmap.height }
+    );
+    const finalTexture: GPUAuroraTexture = {
+      texture: texture,
+      meta: {
+        height: texture.height,
+        width: texture.width,
+        src: "bitmap",
+        customeSampler: samplerLabel ?? "none",
+        arrayTexture: {
+          numberOfLayers: 2,
+          totalHeight: bitmap.height * 2,
+          totalWidth: bitmap.width * 2,
+        },
+      },
+    };
+    this.useStore && this.textureStore.set(label, finalTexture);
+    return finalTexture;
+  }
   public static createEmptyTexture({
     format,
     label,
