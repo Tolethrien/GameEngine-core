@@ -48,13 +48,13 @@ export default class ItemSlot extends NaviNode {
     });
 
     this.text = this.addChild("NaviText", {
-      color: [255, 222, 222],
+      color: [255, 255, 255],
       position: {
         x: position.x + 0.5,
         y: position.y + size.height - 2.5,
       },
       size: { width: 1, height: 1 },
-      text: "1",
+      text: "hehe",
     });
     this.text.setPropagation = false;
     this.getMouseEvents.rightClick = () =>

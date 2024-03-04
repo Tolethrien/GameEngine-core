@@ -19,7 +19,8 @@ type ColorAttachments =
   | "oversaturated"
   | "standard"
   | "storage-read-write"
-  | "post-process";
+  | "post-process"
+  | "test-standard";
 export default class AuroraPipeline {
   private static pipelineList: PipeList = new Map();
   private static bindGroups: BindGroup = new Map();
@@ -177,8 +178,8 @@ export default class AuroraPipeline {
               operation: "add",
             },
             alpha: {
-              srcFactor: "src-alpha",
-              dstFactor: "one-minus-src-alpha",
+              srcFactor: "one",
+              dstFactor: "one",
               operation: "add",
             },
           },
@@ -195,6 +196,23 @@ export default class AuroraPipeline {
             },
             alpha: {
               srcFactor: "one",
+              dstFactor: "one-minus-src-alpha",
+              operation: "add",
+            },
+          },
+        };
+      case "test-standard":
+        return {
+          format: navigator.gpu.getPreferredCanvasFormat(),
+          writeMask: GPUColorWrite.ALL,
+          blend: {
+            color: {
+              srcFactor: "src-alpha",
+              dstFactor: "one-minus-src-alpha",
+              operation: "add",
+            },
+            alpha: {
+              srcFactor: "src-alpha",
               dstFactor: "one-minus-src-alpha",
               operation: "add",
             },

@@ -12,10 +12,6 @@ import { randomColor } from "../core/utils/utils";
 import uiEl from "../assets/uiElements.png";
 import roboto from "./fonts/roboto.ttf";
 
-/**
- * 4) rozkminic dobry system inputu
- * 5) UI!
- */
 async function preload() {
   await AuroraTexture.createTextureArray({
     label: "userTextureAtlas",
@@ -24,10 +20,10 @@ async function preload() {
 
   await AuroraBatcher.loadFont(roboto);
   await AuroraBatcher.createBatcher({
-    backgroundColor: [255, 250, 0, 255],
+    backgroundColor: [255, 255, 0, 255],
     maxQuadPerSceen: 15000,
     customCamera: true,
-    bloom: { active: false, str: 16 },
+    bloom: { active: true, str: 16 },
   });
 }
 function setup() {

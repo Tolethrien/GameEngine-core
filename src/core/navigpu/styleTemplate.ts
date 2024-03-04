@@ -11,6 +11,7 @@ export interface NodeStyle {
   height: number;
   alignX: "left" | "center" | "right";
   alignY: "top" | "center" | "bottom";
+  fontSize: number;
 }
 export const nodeStyle: NodeStyle = {
   alpha: 255,
@@ -25,4 +26,5 @@ export const nodeStyle: NodeStyle = {
   width: 0,
   left: 0,
   top: 0,
+  fontSize: 16,
 };

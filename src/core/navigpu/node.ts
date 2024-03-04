@@ -209,14 +209,12 @@ export default abstract class NaviNode {
     } else if (this.typeOfNode === "Text") {
       Draw.GUIText({
         alpha: this.style.alpha!,
-        isTexture: this.style.backgroundTexture === undefined ? 0 : 1,
         position: { x: this.position.x, y: this.position.y },
-        size: { height: this.size.height, width: this.size.width },
         textureToUse: this.style.backgroundTexture ?? 0,
         tint: new Uint8ClampedArray(this.style.backgroundColor!),
-        crop: new Float32Array(this.style.textureCrop!),
         text: this.content,
-        weight: 1,
+        fontFace: "roboto",
+        fontSize: this.style.fontSize,
       });
     }
     this.children.forEach((child) =>

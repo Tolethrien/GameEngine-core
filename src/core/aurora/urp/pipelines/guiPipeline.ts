@@ -57,7 +57,7 @@ export default class GUIPipeline {
         {
           format: "uint32",
           offset: 5 * Uint32Array.BYTES_PER_ELEMENT,
-          shaderLocation: 5, // isTextureOrColor, see vertex shader
+          shaderLocation: 5, // isTextureOrColor (or if text) Size, see vertex shader
         },
         {
           format: "uint32",

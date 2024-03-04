@@ -15,8 +15,8 @@ export default class Cameras extends System {
   }
 
   onUpdate() {
-    // this.cameraFollow();
-    this.cameraFree();
+    this.cameraFollow();
+    // this.cameraFree();
   }
   private cameraFree() {
     this.othCam.projectionViewMatrix = Mat4.create()

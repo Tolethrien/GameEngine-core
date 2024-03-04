@@ -26,7 +26,13 @@ struct VertexOutput {
 @vertex
 fn vertexMain(props:VertexInput) -> VertexOutput {
   var out: VertexOutput;
+  if(props.isGlyph == 1){
+  out.pos = getVertexTextPosition(props.vi,props.pos,props.size);
+  out.pos.y = -out.pos.y;
+  }
+  else{
   out.pos = getVertexPosition(props.vi,props.pos,props.size);
+  }
   out.textureCoords = getTextureCoords(props.vi,props.crop);
   out.color = props.color;
   out.textureIndex = props.textureIndex;
@@ -38,13 +44,22 @@ fn vertexMain(props:VertexInput) -> VertexOutput {
 @fragment
 fn fragmentMain(props:VertexOutput) -> @location(0) vec4f{
   var convertedColor = convertColor(props.color);
-    if(props.isGlyph != 0){
-      return textureSampleLevel(textTextures,textSampler,props.textureCoords,props.textureIndex,0) * convertedColor;
+  if(props.isGlyph == 1){
+      let distance = textureSampleLevel(textTextures, textSampler, props.textureCoords,0,0).a;
+      let fontSize = f32(props.isTexture);
+      //0.4-0.1 kontroluje rozmycie w zaleznosci od wielkosci fontu
+      var width = mix(0.4, 0.1, clamp(fontSize, 0, 40) / 40.0);
+      let alpha = convertedColor.a * smoothstep(0.5 - width, 0.5 + width, distance);
+        return vec4f(convertedColor.rgb, alpha);
     }
-    if(props.isTexture != 0){      
+  else{
+    if(props.isTexture == 1){
      return textureSampleLevel(guiTextures,universalSampler,props.textureCoords,props.textureIndex,0) * convertedColor;
     }
+    else{
     return convertedColor;
+    }
+  }
 }
 fn convertColor(color: vec4u) -> vec4f {
   return vec4f(color)/255;
@@ -59,6 +74,16 @@ fn getVertexPosition(index: u32, pos: vec2f, size: vec2f) -> vec4f {
     case 1 { return percentToScreenSpace(vec2f(pos.x + size.x, pos.y)); }
     case 2 { return percentToScreenSpace(vec2f(pos.x, pos.y + size.y)); }
     case 3 { return percentToScreenSpace(vec2f(pos.x+size.x, pos.y+size.y)); }
+    default { return vec4f(0, 0, 0, 0); }
+  }
+}
+fn getVertexTextPosition(index: u32, pos: vec2f, size: vec2f) -> vec4f {
+// let pos = vec2f(pos.x - size.x / 2.0, pos.y - size.y / 2.0);
+  switch(index) {
+    case 0 { return vec4f(pos.x, pos.y, 0, 1); }
+    case 1 { return vec4f(pos.x + size.x, pos.y, 0, 1); }
+    case 2 { return vec4f(pos.x, pos.y + size.y, 0, 1); }
+    case 3 { return vec4f(pos.x + size.x, pos.y + size.y, 0, 1); }
     default { return vec4f(0, 0, 0, 0); }
   }
 }

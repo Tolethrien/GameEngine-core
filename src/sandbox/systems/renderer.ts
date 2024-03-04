@@ -37,16 +37,10 @@ export default class Renderer extends System {
 
   onUpdate() {
     AuroraBatcher.setCameraBuffer(this.othCam.projectionViewMatrix.getMatrix);
-    // AuroraBatcher.setGlobalColorCorrection([0.2, 0.5, 0.0]);
-    // AuroraBatcher.setScreenShader("noice", 0.7);
+    AuroraBatcher.setGlobalColorCorrection([0.2, 0.15, 0.08]);
+    // AuroraBatcher.setScreenShader("grayscale", 0.7);
     AuroraBatcher.startBatch();
     NaviCore.renderGUI();
-    Draw.text(
-      "Reniferek :3",
-      new Vec2D([50, 50]),
-      120,
-      new Vec4D([0, 0, 0, 1])
-    );
 
     this.groundRenderers?.forEach((ground) => {
       //TODO: potencjalny performance boost, nie musisz co frame aktualizowac listy ziemi bo buffer zmienia sie tylko
@@ -76,6 +70,7 @@ export default class Renderer extends System {
         });
       });
     });
+
     Array.from(this.spriteRenderers.values())
       .sort(this.sortByPositionY)
       .forEach((renderer) => {
@@ -110,15 +105,23 @@ export default class Renderer extends System {
         type: light.typeOfLight,
       });
     });
-    // AuroraBatcher.drawText({
-    //   alpha: 255,
-    //   bloom: 0,
-    //   color: new Uint8ClampedArray([5, 5, 5]),
-    //   position: { x: 0, y: 0 },
-    //   text: "jebie sledzien",
-    //   textureToUse: 0,
-    //   weight: 1.5,
-    // });
+    Draw.Light({
+      intensity: 255,
+      position: { x: 1718 + 100, y: 870 },
+      size: { width: 300, height: 150 },
+      tint: [200, 0, 0],
+      type: "radial",
+    });
+    Draw.Text({
+      alpha: 255,
+      bloom: 1,
+      color: new Uint8ClampedArray([250, 190, 190]),
+      position: { x: 1710, y: 870 },
+      text: "light weight baby!",
+      textureToUse: 0,
+      fontFace: "roboto",
+      fontSize: 30,
+    });
     // const rend = AuroraBatcher.getRendererData;
     // const opt = AuroraBatcher.getOptionsData;
     // RenderFrame.setGameData({
@@ -136,6 +139,7 @@ export default class Renderer extends System {
     //   computeCalls: AuroraBatcher.getGPUCalls.compute,
     //   drawCalls: AuroraBatcher.getGPUCalls.render,
     // });
+
     RenderFrame.swapToGPU();
     AuroraBatcher.endBatch();
   }

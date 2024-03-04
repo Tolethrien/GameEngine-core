@@ -1,3 +1,4 @@
+import { canvas } from "../../engine";
 import Vec2D from "../../math/vec2D";
 import Vec4D from "../../math/vec4D";
 import { validateValue } from "../../utils/utils";
@@ -36,12 +37,13 @@ interface LightProps {
 }
 interface TextProps {
   position: { x: number; y: number };
-  weight: number;
   textureToUse: number;
   color: Uint8ClampedArray;
   alpha: number;
   bloom: number;
   text: string;
+  fontSize: number;
+  fontFace: "roboto";
 }
 interface GUIProps {
   position: { x: number; y: number };
@@ -54,14 +56,12 @@ interface GUIProps {
 }
 interface GUITextProps {
   position: { x: number; y: number };
-  size: { width: number; height: number };
   textureToUse: number;
-  crop: Float32Array;
   tint: Uint8ClampedArray;
   alpha: number;
-  isTexture: number;
   text: string;
-  weight: number;
+  fontSize: number;
+  fontFace: "roboto";
 }
 //TODO: zmien index textury moze na jakis string czy cos by bylo latwiej niz myslec jaki index to co
 export default class Draw {
@@ -121,59 +121,96 @@ export default class Draw {
     color,
     position,
     textureToUse,
-    weight,
     text,
+    fontFace,
+    fontSize,
   }: TextProps) {
-    //TODO: znormalizowac jesli renderujesz UI
-    let xPos = position.x;
-    const { height: imgHeight, width: imgWidth } =
-      AuroraTexture.getTexture("fontRoboto").meta;
+    const lut = Fonter.getFontLUT(fontFace);
+    validateValue(lut, "Font must be set.");
+    const shape = getTextShape(lut, text, fontSize);
+    // console.log(shape);
     const vertices = OffscreenPipeline.getVertices;
     const addData = OffscreenPipeline.getAddData;
     const quadsData = Batcher.getRenderData;
     const stride = Batcher.getStride;
-    const renderGui = false;
-    Array.from(text).forEach((char) => {
+
+    shape.positions.forEach((glyph, index) => {
+      const shapePosition = glyph.add(new Vec2D([position.x, position.y]));
+      const size = shape.sizes[index];
+      const uv = lut.uvs.get(text[index].charCodeAt(0));
+
       const quadsTotal = quadsData.numberOfQuads.game;
-      const glyph = Batcher.getFontData[char.charCodeAt(0)];
-      let width, height, advence, offsetY;
-      if (renderGui) {
-        width = (glyph.width * weight) / Aurora.canvas.width;
-        height = (glyph.height * weight) / Aurora.canvas.height;
-        advence = (glyph.xadvance * weight) / Aurora.canvas.width;
-        offsetY = (glyph.yoffset * weight) / Aurora.canvas.height;
-      } else {
-        width = glyph.width * weight;
-        height = glyph.height * weight;
-        advence = glyph.xadvance * weight;
-        offsetY = glyph.yoffset * weight;
-      }
-      vertices[quadsTotal * stride.vertices] = xPos + width / 2;
-      vertices[quadsTotal * stride.vertices + 1] =
-        position.y + height / 2 + (renderGui ? 0 : offsetY);
-      vertices[quadsTotal * stride.vertices + 2] = width / 2;
-      vertices[quadsTotal * stride.vertices + 3] = height / 2;
-      vertices[quadsTotal * stride.vertices + 4] = glyph.x / imgWidth;
-      vertices[quadsTotal * stride.vertices + 5] = glyph.y / imgHeight;
-      vertices[quadsTotal * stride.vertices + 6] =
-        glyph.x / imgWidth + glyph.width / imgWidth;
-      vertices[quadsTotal * stride.vertices + 7] =
-        glyph.y / imgHeight + glyph.height / imgHeight;
+
+      vertices[quadsTotal * stride.vertices] = shapePosition.x;
+      vertices[quadsTotal * stride.vertices + 1] = shapePosition.y;
+      vertices[quadsTotal * stride.vertices + 2] = size.x;
+      vertices[quadsTotal * stride.vertices + 3] = size.y;
+      vertices[quadsTotal * stride.vertices + 4] = uv.x;
+      vertices[quadsTotal * stride.vertices + 5] = uv.y;
+      vertices[quadsTotal * stride.vertices + 6] = uv.x + uv.z;
+      vertices[quadsTotal * stride.vertices + 7] = uv.y + uv.w;
       addData[quadsTotal * stride.gameAddData] = color[0];
       addData[quadsTotal * stride.gameAddData + 1] = color[1];
       addData[quadsTotal * stride.gameAddData + 2] = color[2];
       addData[quadsTotal * stride.gameAddData + 3] = alpha;
       addData[quadsTotal * stride.gameAddData + 4] = textureToUse;
-      addData[quadsTotal * stride.gameAddData + 5] = 0;
+      addData[quadsTotal * stride.gameAddData + 5] = fontSize;
       addData[quadsTotal * stride.gameAddData + 6] = 1;
       addData[quadsTotal * stride.gameAddData + 7] = bloom;
+
       quadsData.numberOfQuads.total++;
-      renderGui
-        ? quadsData.numberOfQuads.gui++
-        : quadsData.numberOfQuads.game++;
-      xPos += advence;
+      quadsData.numberOfQuads.game++;
     });
   }
+
+  // let xPos = position.x;
+  // const { height: imgHeight, width: imgWidth } =
+  //   AuroraTexture.getTexture("fontRoboto").meta;
+  // const vertices = OffscreenPipeline.getVertices;
+  // const addData = OffscreenPipeline.getAddData;
+  // const quadsData = Batcher.getRenderData;
+  // const stride = Batcher.getStride;
+  // const renderGui = false;
+  // Array.from(text).forEach((char) => {
+  //   const quadsTotal = quadsData.numberOfQuads.game;
+  //   const glyph = Batcher.getFontData[char.charCodeAt(0)];
+  //   let width, height, advence, offsetY;
+  //   if (renderGui) {
+  //     width = (glyph.width * weight) / Aurora.canvas.width;
+  //     height = (glyph.height * weight) / Aurora.canvas.height;
+  //     advence = (glyph.xadvance * weight) / Aurora.canvas.width;
+  //     offsetY = (glyph.yoffset * weight) / Aurora.canvas.height;
+  //   } else {
+  //     width = glyph.width * weight;
+  //     height = glyph.height * weight;
+  //     advence = glyph.xadvance * weight;
+  //     offsetY = glyph.yoffset * weight;
+  //   }
+  //   vertices[quadsTotal * stride.vertices] = xPos + width / 2;
+  //   vertices[quadsTotal * stride.vertices + 1] =
+  //     position.y + height / 2 + (renderGui ? 0 : offsetY);
+  //   vertices[quadsTotal * stride.vertices + 2] = width / 2;
+  //   vertices[quadsTotal * stride.vertices + 3] = height / 2;
+  //   vertices[quadsTotal * stride.vertices + 4] = glyph.x / imgWidth;
+  //   vertices[quadsTotal * stride.vertices + 5] = glyph.y / imgHeight;
+  //   vertices[quadsTotal * stride.vertices + 6] =
+  //     glyph.x / imgWidth + glyph.width / imgWidth;
+  //   vertices[quadsTotal * stride.vertices + 7] =
+  //     glyph.y / imgHeight + glyph.height / imgHeight;
+  //   addData[quadsTotal * stride.gameAddData] = color[0];
+  //   addData[quadsTotal * stride.gameAddData + 1] = color[1];
+  //   addData[quadsTotal * stride.gameAddData + 2] = color[2];
+  //   addData[quadsTotal * stride.gameAddData + 3] = alpha;
+  //   addData[quadsTotal * stride.gameAddData + 4] = textureToUse;
+  //   addData[quadsTotal * stride.gameAddData + 5] = 0;
+  //   addData[quadsTotal * stride.gameAddData + 6] = 1;
+  //   addData[quadsTotal * stride.gameAddData + 7] = bloom;
+  //   quadsData.numberOfQuads.total++;
+  //   renderGui
+  //     ? quadsData.numberOfQuads.gui++
+  //     : quadsData.numberOfQuads.game++;
+  //   xPos += advence;
+  // });
   public static GUI({
     alpha,
     crop,
@@ -206,106 +243,62 @@ export default class Draw {
     quadsData.numberOfQuads.total++;
     quadsData.numberOfQuads.gui++;
   }
-  public static text(
-    text: string,
-    position: Vec2D,
-    fontSize: number,
-    color: Vec4D
-  ): void {
-    const lut = Fonter.getFontLUT("roboto");
+
+  public static GUIText({
+    alpha,
+    position,
+    textureToUse,
+    tint,
+    text,
+    fontFace,
+    fontSize,
+  }: GUITextProps) {
+    const lut = Fonter.getFontLUT(fontFace);
     validateValue(lut, "Font must be set.");
     const shape = getTextShape(lut, text, fontSize);
     // console.log(shape);
-    const glyphData = His2Pipeline.getGlyphData;
-    const glyphCount = His2Pipeline.getGlyphCount;
-    const struct = 16;
-    for (let i = 0; i < shape.positions.length; i++) {
-      const shapePosition = shape.positions[i].add(position);
-      const size = shape.sizes[i];
-      // console.log(size);
-      const uv = lut.uvs.get(text[i].charCodeAt(0));
-      // console.log(color);
-      validateValue(uv, "UV does not exist.");
-      //posX
-      //posY
-      //width
-      //height
-      //uvx
-      //uvy
-      //uvw
-      //uvh
-      //tint1
-      //tint2
-      //tint3
-      //alpha
-      glyphData[glyphCount.count * struct + 0] = shapePosition.x;
-      glyphData[glyphCount.count * struct + 1] = shapePosition.y;
-      glyphData[glyphCount.count * struct + 2] = 0;
-      glyphData[glyphCount.count * struct + 3] = fontSize;
-      glyphData[glyphCount.count * struct + 4] = color.x;
-      glyphData[glyphCount.count * struct + 5] = color.y;
-      glyphData[glyphCount.count * struct + 6] = color.z;
-      glyphData[glyphCount.count * struct + 7] = color.w;
-      glyphData[glyphCount.count * struct + 8] = size.x;
-      glyphData[glyphCount.count * struct + 9] = size.y;
-      glyphData[glyphCount.count * struct + 10] = uv.x;
-      glyphData[glyphCount.count * struct + 11] = uv.y;
-      glyphData[glyphCount.count * struct + 12] = uv.x + uv.z;
-      glyphData[glyphCount.count * struct + 13] = uv.y + uv.w;
-      glyphData[glyphCount.count * struct + 14] = window.innerWidth;
-      glyphData[glyphCount.count * struct + 15] = window.innerHeight;
+    const vertices = GUIPipeline.getVertices;
+    const addData = GUIPipeline.getAddData;
+    const stride = Batcher.getStride;
+    const quadsData = Batcher.getRenderData;
 
-      glyphCount.count += 1;
-    }
+    shape.positions.forEach((glyph, index) => {
+      const popo = {
+        x: Math.round((position.x / 100) * canvas.width),
+        y: Math.round((position.y / 100) * canvas.height),
+      };
+      const shapePosition = glyph.add(new Vec2D([popo.x, popo.y]));
+      const size = shape.sizes[index];
+      const uv = lut.uvs.get(text[index].charCodeAt(0));
+
+      const finalPos = {
+        x: (shapePosition.x / canvas.width) * 2 - 1,
+        y: (shapePosition.y / canvas.height) * 2 - 1,
+      };
+      const finalSize = {
+        x: (size.x / canvas.width) * 2,
+        y: (size.y / canvas.height) * 2,
+      };
+
+      const quadsTotal = quadsData.numberOfQuads.gui;
+
+      vertices[quadsTotal * stride.vertices] = finalPos.x;
+      vertices[quadsTotal * stride.vertices + 1] = finalPos.y;
+      vertices[quadsTotal * stride.vertices + 2] = finalSize.x;
+      vertices[quadsTotal * stride.vertices + 3] = finalSize.y;
+      vertices[quadsTotal * stride.vertices + 4] = uv.x;
+      vertices[quadsTotal * stride.vertices + 5] = uv.y;
+      vertices[quadsTotal * stride.vertices + 6] = uv.x + uv.z;
+      vertices[quadsTotal * stride.vertices + 7] = uv.y + uv.w;
+      addData[quadsTotal * stride.guiAddData] = tint[0];
+      addData[quadsTotal * stride.guiAddData + 1] = tint[1];
+      addData[quadsTotal * stride.guiAddData + 2] = tint[2];
+      addData[quadsTotal * stride.guiAddData + 3] = alpha;
+      addData[quadsTotal * stride.guiAddData + 4] = textureToUse;
+      addData[quadsTotal * stride.guiAddData + 5] = fontSize;
+      addData[quadsTotal * stride.guiAddData + 6] = 1;
+      quadsData.numberOfQuads.total++;
+      quadsData.numberOfQuads.gui++;
+    });
   }
-  // public static GUIText({
-  //   alpha,
-  //   crop,
-  //   isTexture,
-  //   position,
-  //   size,
-  //   textureToUse,
-  //   tint,
-  //   text,
-  //   weight,
-  // }: GUITextProps) {
-  //   let xPos = position.x;
-  //   const { height: imgHeight, width: imgWidth } =
-  //     AuroraTexture.getTexture("fontRoboto").meta;
-  //   const vertices = GUIPipeline.getVertices;
-  //   const addData = GUIPipeline.getAddData;
-  //   const quadsData = Batcher.getRenderData;
-  //   const stride = Batcher.getStride;
-  //   Array.from(text).forEach((char) => {
-  //     // console.log(char);
-  //     const quadsTotal = quadsData.numberOfQuads.gui;
-
-  //     const glyph = Batcher.getFontData[char.charCodeAt(0)];
-  //     let width, height, advence, offsetY;
-  //     width = (glyph.width * weight) / Aurora.canvas.width;
-  //     height = (glyph.height * weight) / Aurora.canvas.height;
-  //     advence = (glyph.xadvance * weight) / Aurora.canvas.width;
-  //     offsetY = (glyph.yoffset * weight) / Aurora.canvas.height;
-  //     vertices[quadsTotal * stride.vertices] = xPos;
-  //     vertices[quadsTotal * stride.vertices + 1] = position.y;
-  //     vertices[quadsTotal * stride.vertices + 2] = 1;
-  //     vertices[quadsTotal * stride.vertices + 3] = 1.5;
-  //     vertices[quadsTotal * stride.vertices + 4] = glyph.x / imgWidth;
-  //     vertices[quadsTotal * stride.vertices + 5] = glyph.y / imgHeight;
-  //     vertices[quadsTotal * stride.vertices + 6] =
-  //       glyph.x / imgWidth + glyph.width / imgWidth;
-  //     vertices[quadsTotal * stride.vertices + 7] =
-  //       glyph.y / imgHeight + glyph.height / imgHeight;
-  //     addData[quadsTotal * stride.guiAddData] = tint[0];
-  //     addData[quadsTotal * stride.guiAddData + 1] = tint[1];
-  //     addData[quadsTotal * stride.guiAddData + 2] = tint[2];
-  //     addData[quadsTotal * stride.guiAddData + 3] = alpha;
-  //     addData[quadsTotal * stride.guiAddData + 4] = textureToUse;
-  //     addData[quadsTotal * stride.guiAddData + 5] = 1;
-  //     addData[quadsTotal * stride.guiAddData + 6] = 1;
-  //     quadsData.numberOfQuads.total++;
-  //     quadsData.numberOfQuads.gui++;
-  //     xPos += advence;
-  //   });
-  // }
 }

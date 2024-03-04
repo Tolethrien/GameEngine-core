@@ -18,6 +18,6 @@ export default class NaviText extends NaviNode {
       alpha: 255,
     };
     this.setContent = text;
-    this.setTypOfNode = "GUI";
+    this.setTypOfNode = "Text";
   }
 }

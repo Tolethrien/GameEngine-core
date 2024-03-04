@@ -1,8 +1,6 @@
 @group(0) @binding(0) var<uniform> effectType: vec2f;
 @group(0) @binding(1) var textureSampOne: sampler;
-@group(0) @binding(2) var<uniform> showGui: u32;
 @group(1) @binding(0) var compositionTexture: texture_2d<f32>;
-@group(2) @binding(0) var guiTexture: texture_2d<f32>;
 
 struct VertexInput {
   @builtin(vertex_index) vi: u32,
@@ -32,11 +30,8 @@ return out;
 @fragment
 fn fragmentMain(props:VertexOutput) -> @location(0) vec4f{
 var output:vec4f;
-let gui = textureSampleLevel(guiTexture,textureSampOne,props.coords,0);
-  if(showGui == 1 && gui.a == 1){
-    output = gui;
-  }
-  else{
+  
+
     if(u32(effectType.x) == 1){output = grayscale(props.coords,effectType.y);}
     else if(u32(effectType.x) == 2){output = sepia(props.coords,effectType.y);}
     else if(u32(effectType.x) == 3){output = invert(props.coords,effectType.y);}
@@ -44,10 +39,7 @@ let gui = textureSampleLevel(guiTexture,textureSampOne,props.coords,0);
     else if(u32(effectType.x) == 5){output = vignette(props.coords,effectType.y);}
     else if(u32(effectType.x) == 6){output = noice(props.coords,effectType.y);}
     else {output = textureSampleLevel(compositionTexture,textureSampOne,props.coords,0);}
-    if(showGui == 1 && gui.a != 0){
-       output = mix(output, gui, gui.a);
-    }
-  }
+  
 return output;
 }
 fn sepia(coords:vec2f,intensity:f32) -> vec4f{

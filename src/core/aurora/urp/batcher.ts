@@ -22,6 +22,7 @@ import { createGlyphAtlas } from "./parserTTF/glyphAtlas";
 import Fonter from "./parserTTF/fonter";
 import HisPipeline from "./pipelines/hisPipeline";
 import His2Pipeline from "./pipelines/testPipeline";
+import PresentGuiPipeline from "./pipelines/presentGuiPipeline";
 interface RenderData {
   numberOfQuads: {
     total: number;
@@ -121,10 +122,11 @@ export default class Batcher {
     LightsPipeline.createPipeline();
     CompositePipeline.createPipeline();
     GUIPipeline.createPipeline();
-    // HisPipeline.createPipeline();
-    His2Pipeline.createPipeline();
     if (this.testMode) LayeredTestPipeline.createPipeline();
-    else PresentationPipeline.createPipeline();
+    else {
+      PresentationPipeline.createPipeline();
+      PresentGuiPipeline.createPipeline();
+    }
   }
   public static get getRenderData() {
     return this.renderData;
@@ -297,11 +299,11 @@ export default class Batcher {
     LightsPipeline.startPipeline();
     CompositePipeline.startPipeline();
     GUIPipeline.startPipeline();
-    // HisPipeline.startPipeline();
-    His2Pipeline.startPipeline();
     if (this.testMode) LayeredTestPipeline.startPipeline();
-    else PresentationPipeline.startPipeline();
-
+    else {
+      PresentationPipeline.startPipeline();
+      PresentGuiPipeline.startPipeline();
+    }
     Aurora.device.queue.submit(this.pipelinesInFrame);
   }
   public static setScreenShader(effect: ScreenEffects, intesity?: number) {

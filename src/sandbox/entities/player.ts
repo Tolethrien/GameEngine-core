@@ -63,12 +63,12 @@ export default class Player extends Entity {
       action: { left: "sdsd", right: "sss" },
       objectType: "translated",
     });
-    // this.addComponent("PointLight", {
-    //   color: [255, 50, 50],
-    //   intencity: 255,
-    //   type: "radial",
-    //   size: { width: 100, height: 100 },
-    // });
+    this.addComponent("PointLight", {
+      color: [255, 250, 150],
+      intencity: 155,
+      type: "radial",
+      size: { width: 150, height: 150 },
+    });
     this.addComponent("PlayerInventory");
     this.addComponent("PlayerHealth");
   }
