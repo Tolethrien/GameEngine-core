@@ -45,7 +45,7 @@ fn vertexMain(props:VertexInput) -> VertexOutput {
 fn fragmentMain(props:VertexOutput) -> @location(0) vec4f{
   var convertedColor = convertColor(props.color);
   if(props.isGlyph == 1){
-      let distance = textureSampleLevel(textTextures, textSampler, props.textureCoords,0,0).a;
+      let distance = textureSampleLevel(textTextures, textSampler, props.textureCoords,props.textureIndex,0).a;
       let fontSize = f32(props.isTexture);
       //0.4-0.1 kontroluje rozmycie w zaleznosci od wielkosci fontu
       var width = mix(0.4, 0.1, clamp(fontSize, 0, 40) / 40.0);

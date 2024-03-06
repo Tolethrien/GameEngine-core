@@ -10,7 +10,7 @@ export default class Flask extends Entity {
     this.addComponent("SpriteRenderer", {
       type: "spritesheet",
       atlasIndex: 0,
-      GPUAtlas: "userTextureAtlas",
+      GPUAtlas: "TextureBatchGame",
       isStatic: false,
       layers: [
         {

@@ -87,6 +87,14 @@ export default class Vec4D {
       this.vecW * scalar,
     ]);
   }
+  div(scalar: number) {
+    return new Vec4D([
+      this.vecX / scalar,
+      this.vecY / scalar,
+      this.vecZ / scalar,
+      this.vecW / scalar,
+    ]);
+  }
   crosProduct(targetVec: Vec4DType | ArrayVec4) {
     return Array.isArray(targetVec)
       ? new Vec4D([

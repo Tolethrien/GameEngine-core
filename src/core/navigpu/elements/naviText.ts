@@ -16,6 +16,7 @@ export default class NaviText extends NaviNode {
     this.setStyle = {
       backgroundColor: color,
       alpha: 255,
+      fontFace: "MedievalSharp",
     };
     this.setContent = text;
     this.setTypOfNode = "Text";

@@ -12,6 +12,7 @@ export interface NodeStyle {
   alignX: "left" | "center" | "right";
   alignY: "top" | "center" | "bottom";
   fontSize: number;
+  fontFace: string;
 }
 export const nodeStyle: NodeStyle = {
   alpha: 255,
@@ -27,4 +28,5 @@ export const nodeStyle: NodeStyle = {
   left: 0,
   top: 0,
   fontSize: 16,
+  fontFace: "roboto",
 };

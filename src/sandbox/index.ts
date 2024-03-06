@@ -1,9 +1,8 @@
 import tilemap from "../assets/tilemap3.png";
-import char from "../assets/char.png";
 import Engine from "../core/engine";
+import char from "../assets/char.png";
 import Player from "./entities/player";
 import mapData from "./mapLUT.json";
-import AuroraTexture from "../core/aurora/auroraTexture";
 import AuroraBatcher from "../core/aurora/urp/batcher";
 import DogmaCore from "../core/dogma/core";
 import EntityManager from "../core/dogma/entityManager";
@@ -11,14 +10,13 @@ import Flask from "./entities/flask";
 import { randomColor } from "../core/utils/utils";
 import uiEl from "../assets/uiElements.png";
 import roboto from "./fonts/roboto.ttf";
+import tamoto from "./fonts/MedievalSharp.ttf";
 
 async function preload() {
-  await AuroraTexture.createTextureArray({
-    label: "userTextureAtlas",
-    urls: [tilemap, char, uiEl],
+  await AuroraBatcher.createTextureBatchGame({
+    textures: [tilemap, char, uiEl],
   });
-
-  await AuroraBatcher.loadFont(roboto);
+  await AuroraBatcher.loadFonts([roboto, tamoto]);
   await AuroraBatcher.createBatcher({
     backgroundColor: [255, 255, 0, 255],
     maxQuadPerSceen: 15000,

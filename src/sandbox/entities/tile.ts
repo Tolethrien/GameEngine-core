@@ -33,7 +33,7 @@ export default class Tile extends Entity {
     if (groundData) {
       this.addComponent("GroundRenderer", {
         type: "spritesheet",
-        GPUAtlas: "userTextureAtlas",
+        GPUAtlas: "TextureBatchGame",
         atlasIndex: 0,
         isStatic: true,
         //TODO: skoro i tak to jest parsowwanie mozesz podawac po prostu array i obliczac w constructorze
@@ -64,7 +64,7 @@ export default class Tile extends Entity {
       this.addComponent("SpriteRenderer", {
         type: "spritesheet",
         atlasIndex: 0,
-        GPUAtlas: "userTextureAtlas",
+        GPUAtlas: "TextureBatchGame",
         isStatic: true,
         //TODO: skoro i tak to jest parsowwanie mozesz podawac po prostu array i obliczac w constructorze
         layers: tileData.map((data) => {

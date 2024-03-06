@@ -118,7 +118,6 @@ export default class Renderer extends System {
       color: new Uint8ClampedArray([250, 190, 190]),
       position: { x: 1710, y: 870 },
       text: "light weight baby!",
-      textureToUse: 0,
       fontFace: "roboto",
       fontSize: 30,
     });

@@ -1,7 +1,10 @@
 import { clamp, normalizeColor } from "../../math/math";
 import AuroraCamera from "./auroraCamera";
 import Aurora from "../auroraCore";
-import AuroraTexture from "../auroraTexture";
+import AuroraTexture, {
+  GPUAuroraTexture,
+  GeneralTextureProps,
+} from "../auroraTexture";
 import BloomPipeline from "./pipelines/bloomPipeline";
 import CompositePipeline from "./pipelines/compositePipeline";
 import LayeredTestPipeline from "./pipelines/layeredTestPipeline";
@@ -14,15 +17,13 @@ import TresholdPipeline from "./pipelines/tresholdPipeline";
 import radialL from "../../../assets/lights/radial.png";
 import AuroraBuffer from "../auroraBuffer";
 import AuroraPipeline from "../auroraPipeline";
-import { WARNINGS } from "./warnings";
 import GUIPipeline from "./pipelines/guiPipeline";
 import { parseTTF } from "./parserTTF/parse";
 import { createGlyphLUT } from "./parserTTF/glyphLUT";
 import { createGlyphAtlas } from "./parserTTF/glyphAtlas";
 import Fonter from "./parserTTF/fonter";
-import HisPipeline from "./pipelines/hisPipeline";
-import His2Pipeline from "./pipelines/testPipeline";
 import PresentGuiPipeline from "./pipelines/presentGuiPipeline";
+import Vec2D from "../../math/vec2D";
 interface RenderData {
   numberOfQuads: {
     total: number;
@@ -105,8 +106,7 @@ export default class Batcher {
   private static indexBuffer: GPUBuffer;
   public static async createBatcher(options?: Partial<BatcherOptions>) {
     //TODO: zmienic by user sam wybieral nazwe tego
-    !AuroraTexture.getStore.has("userTextureAtlas") &&
-      console.error(WARNINGS.TEXTURE_WARNING);
+
     this.indexBuffer = AuroraBuffer.createBufferMaped({
       data: [0, 1, 2, 1, 2, 3],
       bufferType: "index",
@@ -171,17 +171,24 @@ export default class Batcher {
 
     await AuroraTexture.createTextureArray({
       label: "lightsList",
-      urls: [radialL, radialL],
+      textures: [radialL, radialL],
     });
-
-    AuroraTexture.createEmptyTexture({
+    AuroraTexture.createTextureArrayEmpty({
+      label: "BatcherEmptyTextures",
+      length: 7,
+      texturesSize: {
+        width: Aurora.canvas.width,
+        height: Aurora.canvas.height,
+      },
+    });
+    AuroraTexture.createTextureEmpty({
       label: "offscreenTexture",
       size: {
         width: Aurora.canvas.width,
         height: Aurora.canvas.height,
       },
     });
-    AuroraTexture.createEmptyTexture({
+    AuroraTexture.createTextureEmpty({
       label: "offscreenTextureFloat",
       size: {
         width: Aurora.canvas.width,
@@ -189,42 +196,42 @@ export default class Batcher {
       },
       format: "rgba16float",
     });
-    AuroraTexture.createEmptyTexture({
+    AuroraTexture.createTextureEmpty({
       label: "treshholdTexture",
       size: {
         width: Aurora.canvas.width,
         height: Aurora.canvas.height,
       },
     });
-    AuroraTexture.createEmptyTexture({
+    AuroraTexture.createTextureEmpty({
       label: "lightsTexture",
       size: {
         width: Aurora.canvas.width,
         height: Aurora.canvas.height,
       },
     });
-    AuroraTexture.createEmptyTexture({
+    AuroraTexture.createTextureEmpty({
       label: "GUITexture",
       size: {
         width: Aurora.canvas.width,
         height: Aurora.canvas.height,
       },
     });
-    AuroraTexture.createEmptyTexture({
+    AuroraTexture.createTextureEmpty({
       label: "bloomPassOneTexture",
       size: {
         width: Aurora.canvas.width,
         height: Aurora.canvas.height,
       },
     });
-    AuroraTexture.createEmptyTexture({
+    AuroraTexture.createTextureEmpty({
       label: "bloomPassTwoTexture",
       size: {
         width: Aurora.canvas.width,
         height: Aurora.canvas.height,
       },
     });
-    AuroraTexture.createEmptyTexture({
+    AuroraTexture.createTextureEmpty({
       label: "compositeTexture",
       size: {
         width: Aurora.canvas.width,
@@ -258,22 +265,52 @@ export default class Batcher {
       },
     });
   }
-  public static async loadFont(font: string) {
-    const name = font.split("/").at(-1)!.split(".")[0];
-    const fontFile = await fetch(font).then((result) => result.arrayBuffer());
-    const ttf = parseTTF(fontFile);
-    const lookups = createGlyphLUT(ttf);
-    const fontAtlas = await createGlyphAtlas(lookups, fontFile, {
-      useSDF: true,
-    });
+  public static async loadFonts(fonts: string[]) {
+    //TODO: for now font will be generated on game start, later, will be genrated on final game export and stored
+    //TODO: dodac podstawowy font bezposrednio w batcher
+    const atlases: ImageBitmap[] = [];
+    for (const font of fonts) {
+      const name = font.split("/").at(-1)!.split(".")[0];
+      const fontFile = await fetch(font).then((result) => result.arrayBuffer());
+      const ttf = parseTTF(fontFile);
+      const lookups = createGlyphLUT(ttf);
+      const fontAtlas = await createGlyphAtlas(lookups, fontFile, {
+        useSDF: true,
+      });
+      // fontAtlas.
+      Fonter.addFont({
+        fontName: name,
+        LUT: lookups,
+        textureIndex: atlases.length,
+        atlasSize: Vec2D.Create([fontAtlas.width, fontAtlas.height]),
+      });
+      atlases.push(fontAtlas);
+    }
     //TODO: dodawac do listy textur fontow a nie tworzyc jedna texture
-    AuroraTexture.createTextureFromBitMap({
-      label: name,
-      bitmap: fontAtlas,
-    });
-    Fonter.addFont(name, lookups);
+    if (fonts.length === 0) throw new Error("Batcher Error: empty font array");
+    else if (atlases.length === 1) {
+      AuroraTexture.createTextureFromBitmap({
+        label: "batcherFonts",
+        bitmap: atlases[0],
+      });
+    } else {
+      const { meta } = AuroraTexture.createTextureArrayFromBitmap({
+        label: "batcherFonts",
+        bitmaps: atlases,
+      });
+      this.recalculateUVS(meta);
+    }
   }
-
+  public static async createTextureBatchGame(
+    props: Omit<GeneralTextureProps, "label"> & {
+      textures: string[];
+    }
+  ) {
+    await AuroraTexture.createTextureArray({
+      ...props,
+      label: "TextureBatchGame",
+    });
+  }
   public static startBatch() {
     this.renderData.numberOfQuads = {
       game: 0,
@@ -341,5 +378,19 @@ export default class Batcher {
   }
   public static setCameraBuffer(matrix: Float32Array) {
     this.customcameraMatrix = matrix;
+  }
+
+  private static recalculateUVS({ width }: GPUAuroraTexture["meta"]) {
+    const fonts = Fonter.getAlaFontsMeta;
+    fonts.forEach(({ LUT, atlasSize }) => {
+      if (width === atlasSize.x) return;
+      const siezRatio = width / atlasSize.x;
+      LUT.uvs = new Map(
+        Array.from(LUT.uvs).map((uvs) => [
+          uvs[0],
+          (uvs[1] as Vec4DType).div(siezRatio),
+        ])
+      );
+    });
   }
 }

@@ -1,4 +1,5 @@
 import Vec2D from "../core/math/vec2D";
+import Vec4D from "../core/math/vec4D";
 import {
   NaviUINodes,
   avalibleComponents,
@@ -17,6 +18,7 @@ declare global {
   type GetComponentsList<T> = Map<string, T>;
   type GetExplicitComponent<T> = Required<T>;
   interface Vec2DType extends Vec2D {}
+  interface Vec4DType extends Vec4D {}
   interface ComponentType extends Component {}
   interface SystemType extends System {}
   interface WorldType extends World {}

@@ -110,7 +110,7 @@ export default class OffscreenPipeline {
           {
             binding: 1,
             resource:
-              AuroraTexture.getTexture("userTextureAtlas").texture.createView(),
+              AuroraTexture.getTexture("TextureBatchGame").texture.createView(),
           },
         ],
       },
@@ -141,7 +141,8 @@ export default class OffscreenPipeline {
           },
           {
             binding: 1,
-            resource: AuroraTexture.getTexture("roboto").texture.createView(),
+            resource:
+              AuroraTexture.getTexture("batcherFonts").texture.createView(),
           },
         ],
       },

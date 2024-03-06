@@ -67,7 +67,7 @@ if(props.isGlyph == 0){
   }
 }
 else{
-  return getGlyph(convertedColor,props.bloom,props.textureCoord,props.isTexture);
+  return getGlyph(convertedColor,props.bloom,props.textureCoord,props.isTexture,props.textureIndex);
 }
 }
 
@@ -115,7 +115,7 @@ out.one = finalColor;
     return out;
 
 }
-fn getGlyph(color:vec4f,bloom:u32,textureCoords:vec2f,font:u32) -> FragmenOut{
+fn getGlyph(color:vec4f,bloom:u32,textureCoords:vec2f,font:u32,textureIndex:u32) -> FragmenOut{
 // let glyph = textureSampleLevel(textTextures,textSampler,textureCoords,textureIndex,0);
 var out:FragmenOut;
 // let finalColor = glyph * color;
@@ -127,7 +127,7 @@ var out:FragmenOut;
 //     out.two = vec4f(finalColor.rgb+2,finalColor.a);
 //   }
 //     return out;
-let distance = textureSampleLevel(textTextures, textSampler, textureCoords,0,0).a;
+let distance = textureSampleLevel(textTextures, textSampler, textureCoords,textureIndex,0).a;
       let fontSize = f32(font);
       //0.4-0.1 kontroluje rozmycie w zaleznosci od wielkosci fontu
       var width = mix(0.4, 0.1, clamp(fontSize, 0, 40) / 40.0);

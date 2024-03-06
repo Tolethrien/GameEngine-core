@@ -210,10 +210,9 @@ export default abstract class NaviNode {
       Draw.GUIText({
         alpha: this.style.alpha!,
         position: { x: this.position.x, y: this.position.y },
-        textureToUse: this.style.backgroundTexture ?? 0,
         tint: new Uint8ClampedArray(this.style.backgroundColor!),
         text: this.content,
-        fontFace: "roboto",
+        fontFace: this.style.fontFace,
         fontSize: this.style.fontSize,
       });
     }
@@ -237,5 +236,8 @@ export default abstract class NaviNode {
     this.children.forEach((child) =>
       NaviCore.getNodeByID(child)?.setDisable(disable)
     );
+  }
+  public get centerX() {
+    //mozesz uzyc bind by przypisac sie do rodzica
   }
 }

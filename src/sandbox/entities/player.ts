@@ -7,7 +7,7 @@ export default class Player extends Entity {
     this.addComponent("SpriteRenderer", {
       type: "spritesheet",
       atlasIndex: 1,
-      GPUAtlas: "userTextureAtlas",
+      GPUAtlas: "TextureBatchGame",
       isStatic: false,
       layers: [
         { crop: { x: 0, y: 0 }, cropSize: { width: 32, height: 32 }, bloom: 1 },
@@ -15,7 +15,7 @@ export default class Player extends Entity {
     });
     this.addComponent("Animation", {
       cropSize: { width: 32, height: 32 },
-      spriteSheet: { gpuAtlas: "userTextureAtlas", atlasIndex: 1 },
+      spriteSheet: { gpuAtlas: "TextureBatchGame", atlasIndex: 1 },
       animationData: {
         top: { numberOfFrames: 6, rowInSpritesheet: 4 },
         down: { numberOfFrames: 6, rowInSpritesheet: 1 },
