@@ -8,17 +8,23 @@ Misa is a game engine focusing on 2D graphics, its main premise is the short tim
 
 ### Modules
 
-Engine is designed to consist of several modules which will eventually be combined into one application.”
+You are currently on "Core" repo.
 
+Engine is designed to consist of several modules which will eventually be combined into one application.
+
+```
 | Misa
-| ----> Editor - main graphical interface for Misa
-| ----> Core - Core elements of engine
-| ----> Aurora - WebGPU based custome 2D renderer
-| ----> Cello - Sound Module
-| ----> Dogma - ECS system
-| ----> MapMaker - module for the ease of creating worlds.
-| ----> FontParser - ttf font reader and creator
-| ----> NaviGPU - ingame GUI based on gpu
+| []--> Editor - main graphical interface for Misa
+| [x]--> Core - Core elements of engine*
+| [x]--> Aurora - WebGPU based custome 2D renderer
+| []--> Cello - Sound Module
+| [x]--> Dogma - ECS system
+| []--> MapMaker - module for the ease of creating worlds.
+| []--> FontParser - ttf font reader and creator
+| [x]--> NaviGPU - ingame GUI based on gpu
+```
+
+Core contains some version (stable) of all currently available modules. Marked with "x"
 
 ### More
 
